@@ -1,0 +1,298 @@
+import { Router } from 'express';
+import { Response } from 'express';
+import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { uploadImage, uploadVideo, uploadDocument, uploadThumbnail, uploadAny, deleteUploadedFile, getFileUrl } from '../config/multer';
+import { PrismaClient } from '@prisma/client';
+import path from 'path';
+import fs from 'fs';
+
+const router = Router();
+const prisma = new PrismaClient();
+
+// Upload course thumbnail
+router.post('/course-thumbnail', authMiddleware, uploadThumbnail.single('thumbnail'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: { message: 'No file uploaded' } });
+    }
+
+    const fileUrl = getFileUrl(req, `uploads/thumbnails/${req.file.filename}`);
+    const filePath = `uploads/thumbnails/${req.file.filename}`;
+
+    // If courseId is provided, update the course
+    const { courseId } = req.body;
+    if (courseId) {
+      // Check if user owns the course
+      const course = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          creatorId: req.user!.id
+        }
+      });
+
+      if (!course) {
+        // Delete uploaded file if course not found
+        await deleteUploadedFile(filePath);
+        return res.status(404).json({ success: false, error: { message: 'Course not found' } });
+      }
+
+      // Delete old thumbnail if exists
+      if (course.thumbnail) {
+        const oldPath = course.thumbnail.replace(/^.*\/uploads/, 'uploads');
+        await deleteUploadedFile(oldPath);
+      }
+
+      // Update course with new thumbnail
+      await prisma.course.update({
+        where: { id: courseId },
+        data: { thumbnail: fileUrl }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url: fileUrl,
+        filename: req.file.filename,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, error: { message: 'Upload failed' } });
+  }
+});
+
+// Upload material file (video, document, image)
+router.post('/material', authMiddleware, uploadAny.single('file'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: { message: 'No file uploaded' } });
+    }
+
+    const { courseId, materialId, type } = req.body;
+    
+    // Determine file type and path
+    let folder = 'documents';
+    if (/image/.test(req.file.mimetype)) {
+      folder = 'images';
+    } else if (/video/.test(req.file.mimetype)) {
+      folder = 'videos';
+    }
+
+    const fileUrl = getFileUrl(req, `uploads/${folder}/${req.file.filename}`);
+    const filePath = `uploads/${folder}/${req.file.filename}`;
+
+    // Verify user owns the course
+    if (courseId) {
+      const course = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          creatorId: req.user!.id
+        }
+      });
+
+      if (!course) {
+        await deleteUploadedFile(filePath);
+        return res.status(404).json({ success: false, error: { message: 'Course not found' } });
+      }
+    }
+
+    // If materialId is provided, update the material
+    if (materialId) {
+      const material = await prisma.material.findFirst({
+        where: {
+          id: materialId,
+          course: {
+            creatorId: req.user!.id
+          }
+        }
+      });
+
+      if (!material) {
+        await deleteUploadedFile(filePath);
+        return res.status(404).json({ success: false, error: { message: 'Material not found' } });
+      }
+
+      // Delete old file if exists
+      if (material.fileUrl) {
+        const oldPath = material.fileUrl.replace(/^.*\/uploads/, 'uploads');
+        await deleteUploadedFile(oldPath);
+      }
+
+      // Update material with new file URL
+      await prisma.material.update({
+        where: { id: materialId },
+        data: { 
+          fileUrl: fileUrl,
+          type: type || material.type
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        url: fileUrl,
+        filename: req.file.filename,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        type: folder
+      }
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, error: { message: 'Upload failed' } });
+  }
+});
+
+// Upload user avatar
+router.post('/avatar', authMiddleware, uploadImage.single('avatar'), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: { message: 'No file uploaded' } });
+    }
+
+    const fileUrl = getFileUrl(req, `uploads/images/${req.file.filename}`);
+    const filePath = `uploads/images/${req.file.filename}`;
+
+    // Get user's old avatar
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id }
+    });
+
+    // Delete old avatar if exists
+    if (user?.avatar) {
+      const oldPath = user.avatar.replace(/^.*\/uploads/, 'uploads');
+      await deleteUploadedFile(oldPath);
+    }
+
+    // Update user with new avatar
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { avatar: fileUrl }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        avatarUrl: fileUrl,
+        filename: req.file.filename,
+        size: req.file.size
+      }
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ success: false, error: { message: 'Upload failed' } });
+  }
+});
+
+// Delete uploaded file
+router.delete('/file', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { url, materialId, courseId } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ success: false, error: { message: 'File URL required' } });
+    }
+
+    // Extract file path from URL
+    const filePath = url.replace(/^.*\/uploads/, 'uploads');
+
+    // If materialId is provided, verify ownership and clear the URL
+    if (materialId) {
+      const material = await prisma.material.findFirst({
+        where: {
+          id: materialId,
+          course: {
+            creatorId: req.user!.id
+          }
+        }
+      });
+
+      if (!material) {
+        return res.status(404).json({ success: false, error: { message: 'Material not found' } });
+      }
+
+      // Clear the file URL from material
+      await prisma.material.update({
+        where: { id: materialId },
+        data: { fileUrl: null }
+      });
+    }
+
+    // If courseId is provided, verify ownership and clear thumbnail
+    if (courseId) {
+      const course = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          creatorId: req.user!.id
+        }
+      });
+
+      if (!course) {
+        return res.status(404).json({ success: false, error: { message: 'Course not found' } });
+      }
+
+      // Clear thumbnail if it matches
+      if (course.thumbnail === url) {
+        await prisma.course.update({
+          where: { id: courseId },
+          data: { thumbnail: null }
+        });
+      }
+    }
+
+    // Delete the physical file
+    await deleteUploadedFile(filePath);
+
+    res.json({
+      success: true,
+      data: { message: 'File deleted successfully' }
+    });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ success: false, error: { message: 'Delete failed' } });
+  }
+});
+
+// Batch upload for multiple files
+router.post('/batch', authMiddleware, uploadAny.array('files', 10), async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.files || !Array.isArray(req.files)) {
+      return res.status(400).json({ success: false, error: { message: 'No files uploaded' } });
+    }
+
+    const uploadedFiles = req.files.map(file => {
+      let folder = 'documents';
+      if (/image/.test(file.mimetype)) {
+        folder = 'images';
+      } else if (/video/.test(file.mimetype)) {
+        folder = 'videos';
+      }
+
+      return {
+        url: getFileUrl(req, `uploads/${folder}/${file.filename}`),
+        filename: file.filename,
+        originalName: file.originalname,
+        size: file.size,
+        mimetype: file.mimetype,
+        type: folder
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        files: uploadedFiles,
+        count: uploadedFiles.length
+      }
+    });
+  } catch (error) {
+    console.error('Batch upload error:', error);
+    res.status(500).json({ success: false, error: { message: 'Batch upload failed' } });
+  }
+});
+
+export default router;

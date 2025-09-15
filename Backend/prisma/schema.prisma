@@ -7,10 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-}
-
 enum CourseStatus {
   DRAFT
   PUBLISHED
@@ -38,32 +34,48 @@ enum AssignmentStatus {
   GRADED
 }
 
-model User {
+model Student {
   id          String   @id @default(cuid())
   email       String   @unique
   password    String
   firstName   String
   lastName    String
   avatar      String?
-  role        UserRole @default(ADMIN)
   isVerified  Boolean  @default(false)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Organization/Tutor relations
+  // Student relations
   enrollments Enrollment[]
   submissions AssignmentSubmission[]
   progress    Progress[]
   discussions DiscussionPost[]
   quizAttempts QuizAttempt[]
+  reviews     Review[]
+
+  @@map("students")
+}
+
+model Admin {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  avatar      String?
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Admin/Tutor relations
   createdCourses Course[] @relation("CourseCreator")
   materials     Material[]
   assignments   Assignment[]
   announcements Announcement[]
-  reviews       Review[]
 
-  @@map("users")
+  @@map("admins")
 }
 
 model Course {
@@ -82,7 +94,7 @@ model Course {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  creator      User           @relation("CourseCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creator      Admin          @relation("CourseCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   enrollments  Enrollment[]
   modules      CourseModule[]
@@ -139,7 +151,7 @@ model Material {
 
   course Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   module CourseModule? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
-  author User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author Admin         @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("materials")
 }
@@ -153,7 +165,7 @@ model Enrollment {
   completedAt DateTime?
   progressPercentage Float      @default(0) // percentage
 
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  student         Student    @relation(fields: [userId], references: [id], onDelete: Cascade)
   course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   progressRecords Progress[]
 
@@ -171,7 +183,7 @@ model Progress {
   lastAccessed DateTime @default(now())
   createdAt    DateTime @default(now())
 
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  student    Student     @relation(fields: [userId], references: [id], onDelete: Cascade)
   enrollment Enrollment  @relation(fields: [userId, courseId], references: [userId, courseId], onDelete: Cascade)
 
   @@unique([userId, courseId, materialId])
@@ -190,7 +202,7 @@ model Assignment {
   updatedAt   DateTime @updatedAt
 
   course      Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  creator     User                   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator     Admin                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   submissions AssignmentSubmission[]
 
   @@map("assignments")
@@ -209,7 +221,7 @@ model AssignmentSubmission {
   gradedAt     DateTime?
 
   assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, studentId])
   @@map("assignment_submissions")
@@ -257,7 +269,7 @@ model QuizAttempt {
   createdAt   DateTime @default(now())
 
   quiz    Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("quiz_attempts")
 }
@@ -272,7 +284,7 @@ model DiscussionPost {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  author   User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author   Student           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   parent   DiscussionPost?   @relation("PostReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies  DiscussionPost[]  @relation("PostReplies")
 
@@ -289,7 +301,7 @@ model Announcement {
   updatedAt DateTime @updatedAt
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author Admin  @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("announcements")
 }
@@ -304,7 +316,7 @@ model Review {
   updatedAt DateTime @updatedAt
 
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([courseId, userId])
   @@map("reviews")

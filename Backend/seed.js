@@ -9,22 +9,21 @@ async function main() {
   // Create test users
   const hashedPassword = await bcrypt.hash('password123', 12);
 
-  // Create a tutor
-  const tutor = await prisma.user.upsert({
-    where: { email: 'tutor@coderzon.com' },
+  // Create an admin
+  const admin = await prisma.admin.upsert({
+    where: { email: 'admin@coderzon.com' },
     update: {},
     create: {
-      email: 'tutor@coderzon.com',
+      email: 'admin@coderzon.com',
       password: hashedPassword,
       firstName: 'John',
       lastName: 'Doe',
-      role: 'TUTOR',
       isVerified: true,
     },
   });
 
   // Create a student
-  const student = await prisma.user.upsert({
+  const student = await prisma.student.upsert({
     where: { email: 'student@coderzon.com' },
     update: {},
     create: {
@@ -32,7 +31,6 @@ async function main() {
       password: hashedPassword,
       firstName: 'Jane',
       lastName: 'Smith',
-      role: 'STUDENT',
       isVerified: true,
     },
   });
@@ -48,8 +46,8 @@ async function main() {
 
   console.log('✅ Database seeded successfully!');
   console.log('\n📝 Test Credentials:');
-  console.log('Tutor Login:');
-  console.log('  Email: tutor@coderzon.com');
+  console.log('Admin Login:');
+  console.log('  Email: admin@coderzon.com');
   console.log('  Password: password123');
   console.log('\nStudent Login:');
   console.log('  Email: student@coderzon.com');

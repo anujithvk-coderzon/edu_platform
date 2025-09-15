@@ -2,17 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Button } from '../ui/Button';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '../../utils/cn';
-import { 
-  BookOpenIcon, 
-  HomeIcon, 
-  UserIcon, 
-  Bars3Icon, 
+import {
+  BookOpenIcon,
+  HomeIcon,
+  UserIcon,
+  Bars3Icon,
   XMarkIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  AcademicCapIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface NavItem {
   name: string;
@@ -21,21 +24,26 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Courses', href: '/courses', icon: BookOpenIcon },
-  { name: 'My Learning', href: '/my-courses', icon: UserIcon },
+  { name: 'Home', href: '/', icon: HomeIcon },
+  { name: 'Courses', href: '/courses', icon: MagnifyingGlassIcon },
+  { name: 'My Learning', href: '/my-courses', icon: AcademicCapIcon },
 ];
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  // Mock user data - replace with actual auth context
-  const user = {
-    name: 'John Doe',
-    email: 'john@example.com',
-    avatar: null,
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      router.push('/');
+    } catch (error) {
+      toast.error('Failed to logout');
+    }
   };
 
   return (
@@ -47,9 +55,9 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center">
                 <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">C</span>
+                  <span className="text-white font-bold text-lg">E</span>
                 </div>
-                <span className="ml-2 text-xl font-bold text-gray-900">CoderZon</span>
+                <span className="ml-2 text-xl font-bold text-gray-900">EduPlatform</span>
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -76,50 +84,79 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {/* User menu */}
-            <div className="ml-3 relative">
-              <div>
-                <Button
-                  variant="ghost"
-                  className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                >
-                  <span className="sr-only">Open user menu</span>
-                  <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    {user.avatar ? (
-                      <img className="h-8 w-8 rounded-full" src={user.avatar} alt={user.name} />
-                    ) : (
-                      <UserIcon className="h-5 w-5 text-blue-600" />
-                    )}
-                  </div>
-                  <ChevronDownIcon className="ml-2 h-4 w-4 text-gray-500" />
-                </Button>
-              </div>
-              
-              {userMenuOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
-                  <div className="px-4 py-2 text-sm text-gray-500 border-b">
-                    <p className="font-medium text-gray-900">{user.name}</p>
-                    <p className="text-sm">{user.email}</p>
-                  </div>
-                  <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Your Profile
-                  </Link>
-                  <Link href="/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Settings
-                  </Link>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    Sign out
+            {user ? (
+              /* User menu */
+              <div className="ml-3 relative">
+                <div>
+                  <button
+                    className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 hover:bg-gray-50 p-2"
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  >
+                    <span className="sr-only">Open user menu</span>
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                      {user.avatar ? (
+                        <img className="h-8 w-8 rounded-full object-cover" src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                      ) : (
+                        <UserIcon className="h-5 w-5 text-blue-600" />
+                      )}
+                    </div>
+                    <span className="ml-2 text-sm font-medium text-gray-700">{user.firstName}</span>
+                    <ChevronDownIcon className="ml-1 h-4 w-4 text-gray-500" />
                   </button>
                 </div>
-              )}
-            </div>
+
+                {userMenuOpen && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="px-4 py-3 text-sm border-b border-gray-100">
+                      <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      Profile & Settings
+                    </Link>
+                    <Link
+                      href="/my-courses"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      My Learning
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Login/Register buttons */
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <button className="text-gray-700 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                    Sign in
+                  </button>
+                </Link>
+                <Link href="/register">
+                  <button className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium">
+                    Sign up
+                  </button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
           <div className="sm:hidden flex items-center">
-            <Button
-              variant="ghost"
+            <button
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -129,7 +166,7 @@ export default function Navbar() {
               ) : (
                 <Bars3Icon className="block h-6 w-6" />
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </div>
@@ -160,42 +197,71 @@ export default function Navbar() {
               );
             })}
           </div>
-          <div className="pt-4 pb-3 border-t border-gray-200">
-            <div className="flex items-center px-4">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  {user.avatar ? (
-                    <img className="h-10 w-10 rounded-full" src={user.avatar} alt={user.name} />
-                  ) : (
-                    <UserIcon className="h-6 w-6 text-blue-600" />
-                  )}
+          {user && (
+            <div className="pt-4 pb-3 border-t border-gray-200">
+              <div className="flex items-center px-4">
+                <div className="flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                    {user.avatar ? (
+                      <img className="h-10 w-10 rounded-full object-cover" src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                    ) : (
+                      <UserIcon className="h-6 w-6 text-blue-600" />
+                    )}
+                  </div>
+                </div>
+                <div className="ml-3">
+                  <div className="text-base font-medium text-gray-800">{user.firstName} {user.lastName}</div>
+                  <div className="text-sm font-medium text-gray-500">{user.email}</div>
                 </div>
               </div>
-              <div className="ml-3">
-                <div className="text-base font-medium text-gray-800">{user.name}</div>
-                <div className="text-sm font-medium text-gray-500">{user.email}</div>
+              <div className="mt-3 space-y-1">
+                <Link
+                  href="/profile"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Profile & Settings
+                </Link>
+                <Link
+                  href="/my-courses"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Learning
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                >
+                  Sign out
+                </button>
               </div>
             </div>
-            <div className="mt-3 space-y-1">
-              <Link
-                href="/profile"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Your Profile
-              </Link>
-              <Link
-                href="/settings"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Settings
-              </Link>
-              <button className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
-                Sign out
-              </button>
+          )}
+
+          {!user && (
+            <div className="pt-4 pb-3 border-t border-gray-200">
+              <div className="space-y-1">
+                <Link
+                  href="/login"
+                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  className="block px-4 py-2 text-base font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </nav>

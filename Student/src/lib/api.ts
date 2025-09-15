@@ -1,6 +1,7 @@
 import { ApiResponse, PaginatedResponse } from '../types/api';
+import { studentStorage } from '../utils/storage';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student';
 
 class ApiClient {
   private baseURL: string;
@@ -9,16 +10,30 @@ class ApiClient {
     this.baseURL = baseURL;
   }
 
+  private getToken(): string | null {
+    // No longer needed since we use cookies
+    return null;
+  }
+
+  private setToken(token: string): void {
+    // No longer needed since backend sets cookies
+  }
+
+  private removeToken(): void {
+    // No longer needed since backend clears cookies
+  }
+
   private async request<T = any>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
       },
+      // Use cookies for authentication (student_token cookie)
       credentials: 'include',
     };
 
@@ -77,7 +92,7 @@ class ApiClient {
 
   async uploadFile(endpoint: string, formData: FormData): Promise<ApiResponse> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -100,9 +115,21 @@ class ApiClient {
 
   // Auth endpoints
   auth = {
-    register: (userData: any) => this.post('/auth/register', userData),
-    login: (credentials: any) => this.post('/auth/login', credentials),
-    logout: () => this.post('/auth/logout'),
+    register: async (userData: any) => {
+      // Backend now sets role-specific cookie automatically
+      const response = await this.post('/auth/register', userData);
+      return response;
+    },
+    login: async (credentials: any) => {
+      // Backend now sets role-specific cookie automatically
+      const response = await this.post('/auth/login', credentials);
+      return response;
+    },
+    logout: async () => {
+      // Backend now clears role-specific cookie automatically
+      const response = await this.post('/auth/logout');
+      return response;
+    },
     getMe: () => this.get('/auth/me'),
     updateProfile: (data: any) => this.put('/auth/profile', data),
     changePassword: (data: any) => this.put('/auth/change-password', data),

@@ -1,92 +1,59 @@
-import { config } from 'dotenv';
-config({ quiet: true });
-
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
-import path from 'path';
-
-import { PrismaClient } from '@prisma/client';
-import authRoutes from './routes/auth';
-import userRoutes from './routes/users';
-import courseRoutes from './routes/courses';
-import categoryRoutes from './routes/categories';
-import moduleRoutes from './routes/modules';
-import materialRoutes from './routes/materials';
-import enrollmentRoutes from './routes/enrollments';
-import uploadRoutes from './routes/uploads';
-import analyticsRoutes from './routes/analytics';
-import { errorHandler } from './middleware/errorHandler';
-import { authMiddleware } from './middleware/auth';
-
-const app = express();
+import { config } from "dotenv";
+config({quiet:true});
+import express, { Request, Response, NextFunction } from 'express'
+import route from "./routes/route";
+import studentRoutes from "./routes/student.routes";
+import adminRoutes from "./routes/admin.routes";
+import generalRoutes from "./routes/general.routes";
+import cors from 'cors'
+import path from 'path'
+import cookieParser from 'cookie-parser'
 const port = process.env.PORT || 4000;
+const app = express()
 
-export const prisma = new PrismaClient();
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.',
-});
-
-app.use(limiter);
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+app.use(cookieParser())
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"], 
   credentials: true
-}));
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json({ limit: '10mb' }));
+}))
 
-// Serve uploaded files statically - uploads folder is in project root
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads'), {
-  setHeaders: (res, path) => {
-    // Enable CORS for all files
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    
-    // Set appropriate content types for video files
-    if (path.endsWith('.mp4')) {
-      res.header('Content-Type', 'video/mp4');
-    } else if (path.endsWith('.webm')) {
-      res.header('Content-Type', 'video/webm');
-    } else if (path.endsWith('.mov')) {
-      res.header('Content-Type', 'video/quicktime');
+// Student routes (for student app)
+app.use('/api/student', studentRoutes)
+
+// Admin routes (for tutor app)
+app.use('/api/admin', adminRoutes)
+
+// General routes (for creating admin via Postman)
+app.use('/api', generalRoutes)
+
+// 404 handler - must be after all routes
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    error: {
+      message: 'API endpoint not found',
+      path: req.path,
+      method: req.method
     }
-    
-    // Enable partial content requests for video streaming
-    res.header('Accept-Ranges', 'bytes');
-  }
-}));
-
-app.use('/api/auth', authRoutes);
-app.use('/api/users', authMiddleware, userRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/modules', authMiddleware, moduleRoutes);
-app.use('/api/materials', authMiddleware, materialRoutes);
-app.use('/api/enrollments', authMiddleware, enrollmentRoutes);
-app.use('/api/uploads', authMiddleware, uploadRoutes);
-app.use('/api/analytics', authMiddleware, analyticsRoutes);
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-app.use(errorHandler);
-
-const server = app.listen(port, () => {
-  console.log(`🚀 CoderZon Education Platform API running on http://localhost:${port}`);
-});
-
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  await prisma.$disconnect();
-  server.close(() => {
-    console.log('Server closed.');
-    process.exit(0);
   });
 });
+
+// Error handler - must be last
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Server error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: {
+      message: err.message || 'Internal server error',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  });
+});
+
+app.listen(port, () => {
+    console.log(`🚀 Server listening at http://localhost:${port}`);
+})
+

@@ -2,13 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { api } from '../lib/api';
+import { studentStorage } from '../utils/storage';
 
 interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'STUDENT' | 'TUTOR' | 'ADMIN';
   avatar?: string;
   isVerified: boolean;
 }
@@ -16,10 +16,11 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -42,7 +43,6 @@ const authApi = {
         email: response.data.user.email,
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
-        role: response.data.user.role as 'STUDENT' | 'TUTOR' | 'ADMIN',
         avatar: response.data.user.avatar,
         isVerified: response.data.user.isVerified
       };
@@ -52,14 +52,13 @@ const authApi = {
   },
   
   register: async (data: RegisterData): Promise<User> => {
-    const response = await api.auth.register({ ...data, role: 'STUDENT' });
+    const response = await api.auth.register(data);
     if (response.success && response.data.user) {
       const user: User = {
         id: response.data.user.id,
         email: response.data.user.email,
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
-        role: response.data.user.role as 'STUDENT' | 'TUTOR' | 'ADMIN',
         avatar: response.data.user.avatar,
         isVerified: response.data.user.isVerified
       };
@@ -77,7 +76,6 @@ const authApi = {
           email: response.data.user.email,
           firstName: response.data.user.firstName,
           lastName: response.data.user.lastName,
-          role: response.data.user.role as 'STUDENT' | 'TUTOR' | 'ADMIN',
           avatar: response.data.user.avatar,
           isVerified: response.data.user.isVerified
         };
@@ -104,7 +102,6 @@ const authApi = {
         email: response.data.user.email,
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
-        role: response.data.user.role as 'STUDENT' | 'TUTOR' | 'ADMIN',
         avatar: response.data.user.avatar,
         isVerified: response.data.user.isVerified
       };
@@ -121,10 +118,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // Try to get current user from cookie-based auth
         const currentUser = await authApi.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
         console.error('Auth initialization error:', error);
+        // No need to clear localStorage tokens since we use cookies now
       } finally {
         setLoading(false);
       }
@@ -133,13 +132,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
     setLoading(true);
     try {
       const user = await authApi.login(email, password);
       setUser(user);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshUser = async (): Promise<void> => {
+    try {
+      const currentUser = await authApi.getCurrentUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Error refreshing user:', error);
     }
   };
 
@@ -157,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       await authApi.logout();
+      // Backend clears student_token cookie automatically
       setUser(null);
     } finally {
       setLoading(false);
@@ -182,6 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     register,
     updateProfile,
+    refreshUser,
     isAuthenticated: !!user
   };
 

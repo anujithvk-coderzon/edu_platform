@@ -1,20 +1,58 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
-import { 
-  BookOpenIcon, 
-  ClockIcon, 
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
+import Link from 'next/link';
+import {
+  BookOpenIcon,
+  ClockIcon,
   UserGroupIcon,
   CheckCircleIcon,
   StarIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  MagnifyingGlassIcon,
+  AcademicCapIcon,
+  UsersIcon,
+  PlayIcon
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { api } from '../lib/api';
-import { Course, Enrollment, ApiResponse } from '../types/api';
-import { useAuth } from '../contexts/AuthContext';
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  price: number;
+  level: string;
+  duration: number;
+  averageRating: number;
+  isEnrolled: boolean;
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+  };
+  category: {
+    id: string;
+    name: string;
+  };
+  _count: {
+    enrollments: number;
+    materials: number;
+    reviews: number;
+  };
+}
+
+interface Enrollment {
+  id: string;
+  courseId: string;
+  progressPercentage: number;
+  status: string;
+  completedMaterials: number;
+  totalTimeSpent: number;
+  course: Course;
+}
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
@@ -26,270 +64,323 @@ export default function Home() {
     totalHours: 0
   });
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
-  const [myProgress, setMyProgress] = useState<Enrollment[]>([]);
+  const [myEnrollments, setMyEnrollments] = useState<Enrollment[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // If user is logged in, get their enrollments
-        if (user) {
-          try {
-            const enrollmentsResponse = await api.enrollments.getMy();
-            if (enrollmentsResponse.success) {
-              setMyProgress(enrollmentsResponse.data.enrollments || []);
-              setStats(prev => ({
-                ...prev,
-                completedCourses: enrollmentsResponse.data.enrollments?.filter((e: any) => e.status === 'COMPLETED').length || 0,
-                totalHours: enrollmentsResponse.data.enrollments?.reduce((total: number, e: any) => total + (e.totalTimeSpent || 0), 0) || 0
-              }));
-            }
-          } catch (error) {
-            console.error('Error fetching enrollments:', error);
-          }
-        }
+    fetchData();
+  }, [user]);
 
-        // Get featured courses
-        const coursesResponse = await api.courses.getAll({ limit: 3, featured: true });
-        if (coursesResponse.success) {
-          setFeaturedCourses(coursesResponse.data?.items || []);
-          setStats(prev => ({
-            ...prev,
-            totalCourses: coursesResponse.data?.pagination?.total || 0
-          }));
-        }
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
 
-        // Get platform stats
+      // Get featured courses
+      const coursesResponse = await api.courses.getAll({ limit: 6 });
+      if (coursesResponse.success) {
+        setFeaturedCourses(coursesResponse.data.courses || []);
+
+        // Calculate active students from course enrollment counts
+        const totalActiveStudents = coursesResponse.data.courses.reduce(
+          (total: number, course: Course) => total + (course._count?.enrollments || 0),
+          0
+        );
+
+        setStats(prev => ({
+          ...prev,
+          totalCourses: coursesResponse.data.pagination?.total || 0,
+          activeStudents: totalActiveStudents
+        }));
+      }
+
+      // If user is logged in, get their enrollments
+      if (user) {
         try {
-          const statsResponse = await api.get('/users/stats/overview');
-          if (statsResponse.success) {
+          const enrollmentsResponse = await api.enrollments.getMy();
+          if (enrollmentsResponse.success) {
+            setMyEnrollments(enrollmentsResponse.data.enrollments || []);
             setStats(prev => ({
               ...prev,
-              activeStudents: statsResponse.data.stats.totalStudents || 0
+              completedCourses: enrollmentsResponse.data.enrollments?.filter((e: any) => e.status === 'COMPLETED').length || 0,
+              totalHours: Math.round(enrollmentsResponse.data.enrollments?.reduce((total: number, e: any) => total + (e.totalTimeSpent || 0), 0) / 60) || 0
             }));
           }
         } catch (error) {
-          // Stats might be admin only, use defaults
-          setStats(prev => ({
-            ...prev,
-            activeStudents: 2500 // fallback
-          }));
+          console.error('Error fetching enrollments:', error);
         }
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        // Fallback to default data
-        setStats({
-          totalCourses: 120,
-          activeStudents: 2500,
-          completedCourses: 0,
-          totalHours: 0
-        });
-        setFeaturedCourses([]);
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    fetchData();
-  }, [user]); // Re-fetch when user changes
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/courses?search=${encodeURIComponent(searchQuery)}`;
+    }
+  };
 
   if (authLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/3 mb-8"></div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 sm:text-6xl mb-6">
-          {user ? `Welcome back, ${user.firstName}!` : 'Welcome to CoderZone'}
-          <span className="text-blue-600"> {user ? 'Continue your' : 'Start your'} learning journey</span>
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          {user 
-            ? 'Continue learning with our comprehensive courses designed by industry experts. Track your progress and achieve your goals.'
-            : 'Discover amazing courses designed by industry experts. Join thousands of learners and start your journey today!'
-          }
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Link href="/courses">
-            <Button size="lg">Explore Courses</Button>
-          </Link>
-          {user ? (
-            <Link href="/my-courses">
-              <Button variant="outline" size="lg">Continue Learning</Button>
-            </Link>
-          ) : (
-            <Link href="/login">
-              <Button variant="outline" size="lg">Sign In</Button>
-            </Link>
-          )}
+      <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold mb-6">
+              {user ? `Welcome back, ${user.firstName}!` : 'Learn Without Limits'}
+            </h1>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              {user
+                ? 'Continue your learning journey and achieve your goals with our expert-led courses'
+                : `Discover ${stats.totalCourses > 0 ? `${stats.totalCourses}+` : 'thousands of'} courses from expert instructors and accelerate your career`
+              }
+            </p>
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-8">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="What do you want to learn today?"
+                  className="w-full px-6 py-4 text-gray-900 bg-white/90 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 pl-12"
+                />
+                <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Search
+                </button>
+              </div>
+            </form>
+
+            {/* CTA Buttons */}
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link href="/courses">
+                <button className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                  Explore Courses
+                </button>
+              </Link>
+              {user ? (
+                <Link href="/my-courses">
+                  <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+                    My Learning
+                  </button>
+                </Link>
+              ) : (
+                <Link href="/login">
+                  <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+                    Get Started
+                  </button>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6">
+              <AcademicCapIcon className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">{stats.totalCourses || 0}+</div>
+              <div className="text-blue-100">Courses Available</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6">
+              <UsersIcon className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">
+                {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '0'}
+              </div>
+              <div className="text-blue-100">Active Students</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6">
+              <StarIcon className="h-8 w-8 mx-auto mb-2" />
+              <div className="text-2xl font-bold">{featuredCourses.length > 0 ? (featuredCourses.reduce((sum, course) => sum + (course.averageRating || 0), 0) / featuredCourses.length).toFixed(1) : 'N/A'}</div>
+              <div className="text-blue-100">Average Rating</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <BookOpenIcon className="w-8 h-8 mx-auto text-blue-600 mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{stats.totalCourses}</div>
-            <p className="text-sm text-gray-600">Available Courses</p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <UserGroupIcon className="w-8 h-8 mx-auto text-green-600 mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{stats.activeStudents}</div>
-            <p className="text-sm text-gray-600">Active Students</p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <CheckCircleIcon className="w-8 h-8 mx-auto text-purple-600 mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{stats.completedCourses}</div>
-            <p className="text-sm text-gray-600">Completed Courses</p>
-          </CardContent>
-        </Card>
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <ClockIcon className="w-8 h-8 mx-auto text-orange-600 mb-2" />
-            <div className="text-2xl font-bold text-gray-900">{stats.totalHours}</div>
-            <p className="text-sm text-gray-600">Hours Learned</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Continue Learning Section */}
-      {user && myProgress.length > 0 && (
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Continue Learning</h2>
-            <Link href="/my-courses">
-              <Button variant="ghost" className="flex items-center">
-                View All
-                <ArrowRightIcon className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
+        {/* Personal Stats for logged in users */}
+        {user && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Learning Stats</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center">
+                <BookOpenIcon className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                <div className="text-2xl font-bold text-gray-900">{myEnrollments.length}</div>
+                <p className="text-sm text-gray-600">Enrolled Courses</p>
+              </div>
+              <div className="text-center">
+                <CheckCircleIcon className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                <div className="text-2xl font-bold text-gray-900">{stats.completedCourses}</div>
+                <p className="text-sm text-gray-600">Completed</p>
+              </div>
+              <div className="text-center">
+                <ClockIcon className="h-8 w-8 mx-auto text-orange-600 mb-2" />
+                <div className="text-2xl font-bold text-gray-900">{stats.totalHours}</div>
+                <p className="text-sm text-gray-600">Hours Learned</p>
+              </div>
+              <div className="text-center">
+                <StarIcon className="h-8 w-8 mx-auto text-purple-600 mb-2" />
+                <div className="text-2xl font-bold text-gray-900">
+                  {myEnrollments.length > 0 ? Math.round(myEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / myEnrollments.length) : 0}%
+                </div>
+                <p className="text-sm text-gray-600">Avg Progress</p>
+              </div>
+            </div>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {myProgress.slice(0, 2).map((enrollment) => (
-              <Card key={enrollment.id} hover>
-                <CardContent className="p-6">
+        )}
+
+        {/* Continue Learning Section */}
+        {user && myEnrollments.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Continue Learning</h2>
+              <Link href="/my-courses">
+                <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                  View All
+                  <ArrowRightIcon className="h-4 w-4 ml-1" />
+                </button>
+              </Link>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {myEnrollments.slice(0, 2).map((enrollment) => (
+                <div key={enrollment.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">{enrollment.course?.title || 'Course'}</h3>
+                    <h3 className="font-semibold text-gray-900 truncate">{enrollment.course?.title}</h3>
                     <span className="text-sm font-medium text-blue-600">{Math.round(enrollment.progressPercentage)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${enrollment.progressPercentage}%` }}
                     />
                   </div>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Status: {enrollment.status.charAt(0) + enrollment.status.slice(1).toLowerCase()}
-                  </p>
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                    <span>{enrollment.completedMaterials || 0} materials completed</span>
+                    <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h studied</span>
+                  </div>
                   <Link href={`/courses/${enrollment.courseId}`}>
-                    <Button size="sm" className="w-full">
+                    <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                      <PlayIcon className="h-4 w-4 mr-2" />
                       Continue Learning
-                    </Button>
+                    </button>
                   </Link>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Featured Courses */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Featured Courses</h2>
-          <Link href="/courses">
-            <Button variant="ghost" className="flex items-center">
-              View All
-              <ArrowRightIcon className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
-        </div>
-        {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
-                <div className="aspect-video bg-gray-200 rounded-t-lg animate-pulse"></div>
-                <CardHeader>
-                  <div className="h-6 bg-gray-200 rounded animate-pulse mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        {/* Featured Courses */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Featured Courses</h2>
+            <Link href="/courses">
+              <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                View All
+                <ArrowRightIcon className="h-4 w-4 ml-1" />
+              </button>
+            </Link>
           </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredCourses.length > 0 ? (
-              featuredCourses.map((course) => (
-                <Card key={course.id} hover>
-                  <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-600 rounded-t-lg flex items-center justify-center">
-                    <BookOpenIcon className="w-16 h-16 text-white opacity-80" />
+
+          {isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white rounded-lg shadow-sm animate-pulse">
+                  <div className="aspect-video bg-gray-200 rounded-t-lg"></div>
+                  <div className="p-6">
+                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                    <div className="h-10 bg-gray-200 rounded"></div>
                   </div>
-                  <CardHeader>
-                    <CardTitle className="line-clamp-2">{course.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">{course.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+                </div>
+              ))}
+            </div>
+          ) : featuredCourses.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredCourses.map((course) => (
+                <div key={course.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-600 rounded-t-lg flex items-center justify-center relative">
+                    {course.thumbnail ? (
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
+                        alt={course.title}
+                        className="w-full h-full object-cover rounded-t-lg"
+                      />
+                    ) : (
+                      <BookOpenIcon className="h-16 w-16 text-white opacity-80" />
+                    )}
+                    {course.isEnrolled && (
+                      <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        Enrolled
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+
                     <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                       <span>{course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor'}</span>
                       <div className="flex items-center">
-                        <ClockIcon className="w-4 h-4 mr-1" />
+                        <ClockIcon className="h-4 w-4 mr-1" />
                         {course.duration ? `${course.duration}h` : 'N/A'}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
-                        <StarIcon className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                        {course.averageRating || 'N/A'} ({course._count?.enrollments || 0} students)
+                        <div className="flex text-yellow-400">
+                          {[...Array(5)].map((_, i) => (
+                            <StarIcon
+                              key={i}
+                              className={`h-4 w-4 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-sm text-gray-600 ml-2">
+                          {course.averageRating?.toFixed(1) || 'N/A'} ({course._count?.enrollments || 0})
+                        </span>
                       </div>
                       <span className="font-bold text-lg text-gray-900">
                         {course.price === 0 ? 'Free' : `$${course.price}`}
                       </span>
                     </div>
+
                     <Link href={`/courses/${course.id}`}>
-                      <Button className="w-full">
+                      <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
                         {course.isEnrolled ? 'Continue Learning' : 'View Course'}
-                      </Button>
+                      </button>
                     </Link>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <BookOpenIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No courses available yet</h3>
-                <p className="text-gray-600">Check back later for new courses!</p>
-              </div>
-            )}
-          </div>
-        )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No courses available yet</h3>
+              <p className="text-gray-600">Check back later for new courses!</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

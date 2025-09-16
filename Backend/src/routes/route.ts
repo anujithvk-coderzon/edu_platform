@@ -1148,8 +1148,11 @@ router.delete('/courses/:id', authMiddleware, adminOnly,
             type: true
           }
         },
-        _count: {
-          select: { enrollments: true }
+        enrollments: {
+          select: {
+            status: true,
+            progressPercentage: true
+          }
         }
       }
     });
@@ -1168,10 +1171,15 @@ router.delete('/courses/:id', authMiddleware, adminOnly,
       });
     }
 
-    if (course._count.enrollments > 0) {
+    // Check for active enrollments (not completed)
+    const activeEnrollments = course.enrollments.filter(
+      enrollment => enrollment.status !== 'COMPLETED' && enrollment.progressPercentage < 100
+    );
+
+    if (activeEnrollments.length > 0) {
       return res.status(400).json({
         success: false,
-        error: { message: 'Cannot delete course with active enrollments' }
+        error: { message: `Cannot delete course with ${activeEnrollments.length} active enrollment(s). Wait for students to complete the course or manually mark enrollments as completed.` }
       });
     }
 
@@ -1869,7 +1877,8 @@ router.post('/materials', adminOnly,
     body('type').isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/.+|\/[^\/].*)$/;
+        // Allow HTTP/HTTPS URLs, local paths, and www URLs
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }
@@ -1974,7 +1983,8 @@ router.put('/materials/:id', adminOnly,
     body('type').optional().isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/.+|\/[^\/].*)$/;
+        // Allow HTTP/HTTPS URLs, local paths, and www URLs
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }
@@ -2953,14 +2963,15 @@ router.get('/analytics/tutor', authMiddleware, async (req: AuthRequest, res: Res
       totalMaterials += materialCount * studentCount;
       totalCompletedMaterials += course.enrollments.reduce((sum, enrollment) => sum + enrollment.progressRecords.length, 0);
       totalStudents += studentCount;
-      totalEarnings += studentCount * course.price;
+      // Since there's no payment system implemented yet, revenue should be 0
+      // totalEarnings += studentCount * course.price;
       totalReviews += reviewCount;
 
       return {
         id: course.id,
         title: course.title,
         students: studentCount,
-        revenue: studentCount * course.price,
+        revenue: 0, // No payment system implemented yet
         rating: 0, // Would need to calculate from reviews
         completionRate: Math.round(completionRate * 100) / 100,
         materials: materialCount,
@@ -2979,15 +2990,15 @@ router.get('/analytics/tutor', authMiddleware, async (req: AuthRequest, res: Res
     const thisMonth = new Date().getMonth();
     const thisMonthStudents = Math.floor(totalStudents * 0.2);
     const lastMonthStudents = Math.floor(totalStudents * 0.18);
-    const thisMonthRevenue = Math.floor(totalEarnings * 0.2);
-    const lastMonthRevenue = Math.floor(totalEarnings * 0.18);
+    const thisMonthRevenue = 0; // No payment system implemented yet
+    const lastMonthRevenue = 0; // No payment system implemented yet
 
     const analytics = {
       revenue: {
-        total: totalEarnings,
-        thisMonth: thisMonthRevenue,
-        lastMonth: lastMonthRevenue,
-        growth: lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
+        total: 0, // No payment system implemented yet
+        thisMonth: 0, // No payment system implemented yet
+        lastMonth: 0, // No payment system implemented yet
+        growth: 0 // No payment system implemented yet
       },
       students: {
         total: totalStudents,
@@ -3010,9 +3021,9 @@ router.get('/analytics/tutor', authMiddleware, async (req: AuthRequest, res: Res
     };
 
     const revenueData = [
-      { date: '2024-01', revenue: totalEarnings * 0.2, students: Math.floor(totalStudents * 0.2) },
-      { date: '2024-02', revenue: totalEarnings * 0.3, students: Math.floor(totalStudents * 0.3) },
-      { date: '2024-03', revenue: totalEarnings * 0.5, students: Math.floor(totalStudents * 0.5) }
+      { date: '2024-01', revenue: 0, students: Math.floor(totalStudents * 0.2) }, // No payment system implemented yet
+      { date: '2024-02', revenue: 0, students: Math.floor(totalStudents * 0.3) }, // No payment system implemented yet
+      { date: '2024-03', revenue: 0, students: Math.floor(totalStudents * 0.5) } // No payment system implemented yet
     ];
 
     res.json({

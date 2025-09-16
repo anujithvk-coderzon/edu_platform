@@ -168,24 +168,28 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Please log in</h3>
-          <p className="text-gray-600">You need to be logged in to view your profile.</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-3xl"></div>
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center bg-white/95 backdrop-blur-xl rounded-3xl p-12 shadow-2xl border border-white/20">
+            <h3 className="text-2xl font-bold text-slate-800 mb-3">🔒 Please log in</h3>
+            <p className="text-slate-600 text-lg">You need to be logged in to view your profile.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-3xl"></div>
+      <div className="relative z-10 container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 mb-8">
             <div className="flex items-center gap-6">
               <div className="relative">
-                <div className="h-24 w-24 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                <div className="h-28 w-28 rounded-2xl bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center overflow-hidden shadow-2xl ring-4 ring-white/50">
                   {profileData.avatar ? (
                     <img
                       src={profileData.avatar}
@@ -193,14 +197,14 @@ export default function ProfilePage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <UserIcon className="h-12 w-12 text-gray-600" />
+                    <UserIcon className="h-14 w-14 text-blue-600" />
                   )}
                 </div>
                 <label
                   htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors"
+                  className="absolute bottom-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-3 cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-110"
                 >
-                  <CameraIcon className="h-4 w-4 text-white" />
+                  <CameraIcon className="h-5 w-5 text-white" />
                   <input
                     id="avatar-upload"
                     type="file"
@@ -211,21 +215,21 @@ export default function ProfilePage() {
                 </label>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {user.firstName} {user.lastName}
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                  🎓 {user.firstName} {user.lastName}
                 </h1>
-                <p className="text-gray-600">{user.email}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                <p className="text-slate-700 text-lg font-medium mb-2">📧 {user.email}</p>
+                <p className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-xl inline-block">
+                  📅 Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="border-b">
-              <nav className="flex space-x-8 px-6">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
+            <div className="border-b border-slate-200">
+              <nav className="flex space-x-8 px-8">
                 {[
                   { key: 'profile', label: 'Profile', icon: UserIcon },
                   { key: 'security', label: 'Security', icon: KeyIcon },
@@ -235,13 +239,13 @@ export default function ProfilePage() {
                   <button
                     key={key}
                     onClick={() => setActiveTab(key as typeof activeTab)}
-                    className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm ${
+                    className={`flex items-center gap-3 py-5 px-4 border-b-4 font-semibold text-base rounded-t-xl transition-all duration-300 ${
                       activeTab === key
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+                        : 'border-transparent text-slate-500 hover:text-blue-600 hover:bg-blue-50/30'
                     }`}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-5 w-5" />
                     {label}
                   </button>
                 ))}
@@ -249,31 +253,31 @@ export default function ProfilePage() {
             </div>
 
             {/* Tab Content */}
-            <div className="p-6">
+            <div className="p-8">
               {activeTab === 'profile' && (
-                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                <form onSubmit={handleProfileUpdate} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
+                      <label className="block text-sm font-semibold text-slate-700 mb-3">
+                        🧑 First Name
                       </label>
                       <input
                         type="text"
                         value={profileData.firstName}
                         onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/70 backdrop-blur-sm font-medium text-slate-800 shadow-md transition-all duration-200"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
+                      <label className="block text-sm font-semibold text-slate-700 mb-3">
+                        👤 Last Name
                       </label>
                       <input
                         type="text"
                         value={profileData.lastName}
                         onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white/70 backdrop-blur-sm font-medium text-slate-800 shadow-md transition-all duration-200"
                         required
                       />
                     </div>

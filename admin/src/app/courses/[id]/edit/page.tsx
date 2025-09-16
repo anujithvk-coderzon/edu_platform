@@ -53,10 +53,12 @@ interface Course {
   level: string;
   price: number;
   duration: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  isPublic: boolean;
   thumbnail?: string;
   thumbnailFile?: File;
   tutorName?: string;
+  requirements: string[];
+  prerequisites: string[];
   modules: Module[];
 }
 
@@ -111,7 +113,14 @@ export default function CourseEditPage() {
       if (response.success && response.data?.course) {
         console.log('Loaded course data:', response.data.course);
         console.log('Course thumbnail:', response.data.course.thumbnail);
-        setCourse(response.data.course);
+        // Ensure requirements and prerequisites are arrays, and isPublic has a default value
+        const courseData = {
+          ...response.data.course,
+          requirements: response.data.course.requirements || [],
+          prerequisites: response.data.course.prerequisites || [],
+          isPublic: response.data.course.isPublic ?? false
+        };
+        setCourse(courseData);
       } else {
         toast.error('Failed to load course data');
       }
@@ -153,12 +162,18 @@ export default function CourseEditPage() {
         description: course.description,
         price: course.price,
         duration: course.duration,
-        status: course.status,
+        isPublic: course.isPublic,
         categoryId: course.categoryId,
         level: course.level,
         tutorName: course.tutorName,
+        requirements: course.requirements || [],
+        prerequisites: course.prerequisites || [],
         thumbnail: thumbnailUrl
       };
+
+      console.log('Saving course with data:', updateData);
+      console.log('Requirements:', updateData.requirements);
+      console.log('Prerequisites:', updateData.prerequisites);
 
       const response = await api.courses.update(courseId, updateData);
 
@@ -275,8 +290,8 @@ export default function CourseEditPage() {
         title: newMaterial.title,
         description: newMaterial.description,
         type: newMaterial.type,
-        fileUrl: newMaterial.fileUrl || undefined,
-        content: newMaterial.content || undefined,
+        fileUrl: newMaterial.type === 'LINK' ? newMaterial.content : (newMaterial.fileUrl || undefined),
+        content: newMaterial.type === 'LINK' ? undefined : (newMaterial.content || undefined),
         orderIndex: targetModule.materials.length,
         courseId: courseId,
         moduleId: moduleId
@@ -407,52 +422,60 @@ export default function CourseEditPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <Link href="/my-courses" className="text-blue-600 hover:text-blue-700">
-            <ChevronLeftIcon className="w-4 h-4 mr-2 inline" />
-            Back to My Courses
-          </Link>
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <div className="mb-4">
+            <Link href="/my-courses" className="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-sm">
+              <ChevronLeftIcon className="w-4 h-4 mr-2" />
+              Back to My Courses
+            </Link>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-2">
+              Edit Course
+            </h1>
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                <p className="text-slate-600 text-sm sm:text-base">Loading course data...</p>
+              </div>
+            ) : course ? (
+              <p className="text-slate-600 text-sm sm:text-base">{course.title}</p>
+            ) : (
+              <p className="text-red-600 font-medium">Course not found</p>
+            )}
+          </div>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900">Edit Course</h1>
-        {loading ? (
-          <p className="text-gray-600">Loading...</p>
-        ) : course ? (
-          <p className="text-gray-600">{course.title}</p>
-        ) : (
-          <p className="text-red-600">Course not found</p>
-        )}
-      </div>
 
-      {/* Tabs */}
-      <div className="mb-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('details')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'details'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Course Details
-            </button>
-            <button
-              onClick={() => setActiveTab('content')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'content'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Course Content
-            </button>
-          </nav>
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-1">
+            <nav className="flex space-x-1">
+              <button
+                onClick={() => setActiveTab('details')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                  activeTab === 'details'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                Course Details
+              </button>
+              <button
+                onClick={() => setActiveTab('content')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                  activeTab === 'content'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                Course Content
+              </button>
+            </nav>
+          </div>
         </div>
-      </div>
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
@@ -470,73 +493,175 @@ export default function CourseEditPage() {
         </Card>
       ) : activeTab === 'details' ? (
         /* Course Details Tab */
-        <Card>
+        <Card className="bg-white shadow-sm border border-slate-200">
           <CardHeader>
-            <CardTitle>Course Information</CardTitle>
-            <CardDescription>Update your course details and settings</CardDescription>
+            <CardTitle className="text-lg font-semibold text-slate-900">
+              Course Information
+            </CardTitle>
+            <CardDescription className="text-slate-600 text-sm mt-1">
+              Update your course details and settings
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
                 Course Title
               </label>
               <Input
                 value={course?.title || ''}
                 onChange={(e) => setCourse(prev => prev ? ({ ...prev, title: e.target.value }) : prev)}
+                placeholder="Enter course title"
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
                 Description
               </label>
               <Textarea
                 value={course?.description || ''}
                 onChange={(e) => setCourse(prev => prev ? ({ ...prev, description: e.target.value }) : prev)}
                 rows={4}
+                placeholder="Describe what students will learn"
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">
                   Price (USD)
                 </label>
                 <Input
                   type="number"
                   min="0"
                   step="0.01"
-                  value={course?.price || 0}
+                  value={course?.price || ''}
                   onChange={(e) => setCourse(prev => prev ? ({ ...prev, price: parseFloat(e.target.value) }) : prev)}
+                  placeholder="0.00"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-slate-700">
                   Duration (hours)
                 </label>
                 <Input
                   type="number"
                   min="1"
-                  value={course?.duration || 0}
+                  value={course?.duration || ''}
                   onChange={(e) => setCourse(prev => prev ? ({ ...prev, duration: parseInt(e.target.value) }) : prev)}
+                  placeholder="Duration in hours"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
                 Tutor/Organization Name
               </label>
               <Input
                 value={course?.tutorName || ''}
                 onChange={(e) => setCourse(prev => prev ? ({ ...prev, tutorName: e.target.value }) : prev)}
-                placeholder="e.g., CoderZone Academy or Your Name"
+                placeholder="e.g., CoderZone Academy"
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 This will be displayed as "Created by" on the course page
               </p>
             </div>
-            
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Requirements
+              </label>
+              <div className="space-y-2">
+                {(course?.requirements || []).map((req, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={req}
+                      onChange={(e) => {
+                        const newReqs = [...(course?.requirements || [])];
+                        newReqs[index] = e.target.value;
+                        setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
+                      }}
+                      placeholder="e.g., Basic computer skills"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newReqs = course?.requirements?.filter((_, i) => i !== index) || [];
+                        setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
+                      }}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newReqs = [...(course?.requirements || []), ''];
+                    setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
+                  }}
+                >
+                  <PlusIcon className="h-4 w-4 mr-1" />
+                  Add Requirement
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                What students need to have or know before taking this course
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Prerequisites
+              </label>
+              <div className="space-y-2">
+                {(course?.prerequisites || []).map((prereq, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={prereq}
+                      onChange={(e) => {
+                        const newPrereqs = [...(course?.prerequisites || [])];
+                        newPrereqs[index] = e.target.value;
+                        setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
+                      }}
+                      placeholder="e.g., Introduction to Programming course"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newPrereqs = course?.prerequisites?.filter((_, i) => i !== index) || [];
+                        setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
+                      }}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newPrereqs = [...(course?.prerequisites || []), ''];
+                    setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
+                  }}
+                >
+                  <PlusIcon className="h-4 w-4 mr-1" />
+                  Add Prerequisite
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Recommended courses or knowledge before taking this course
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Course Thumbnail
@@ -628,20 +753,22 @@ export default function CourseEditPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Course Status
+                Visibility
               </label>
               <Select
                 options={[
-                  { value: 'DRAFT', label: 'Draft' },
-                  { value: 'PUBLISHED', label: 'Published' },
-                  { value: 'ARCHIVED', label: 'Archived' }
+                  { value: 'false', label: 'Private (Hidden from students)' },
+                  { value: 'true', label: 'Public (Visible to students)' }
                 ]}
-                value={course?.status || 'DRAFT'}
-                onChange={(value) => setCourse(prev => prev ? ({ ...prev, status: value as Course['status'] }) : prev)}
+                value={course?.isPublic ? 'true' : 'false'}
+                onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
               />
+              <p className="text-sm text-gray-500 mt-1">
+                Course must be both "Published" and "Public" to appear in the student course catalog
+              </p>
             </div>
             
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-6 pt-6 border-t border-indigo-200/50">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -649,14 +776,23 @@ export default function CourseEditPage() {
                   toast.success('Changes cancelled');
                 }}
                 disabled={loading || saving}
+                className="px-6 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleSaveCourse}
                 disabled={saving || loading}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 flex items-center space-x-2"
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <span>Save Changes</span>
+                )}
               </Button>
             </div>
           </CardContent>
@@ -664,63 +800,74 @@ export default function CourseEditPage() {
       ) : (
         /* Course Content Tab */
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Course Content</h2>
-              <p className="text-gray-600">Organize your course into modules and add materials</p>
-            </div>
-            <Button onClick={() => setShowModuleModal(true)}>
-              <PlusIcon className="w-4 h-4 mr-2" />
-              Add Module
-            </Button>
-          </div>
+          <Card className="bg-white shadow-sm border border-slate-200">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-slate-900">
+                    Course Content
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 text-sm">
+                    Organize your course into modules and add materials
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => setShowModuleModal(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
+                >
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  Add Chapter
+                </Button>
+              </div>
+            </CardHeader>
 
-          {course?.modules && course.modules.length > 0 ? (
-            <div className="space-y-4">
-              {course.modules.map((module, moduleIndex) => (
-                <Card key={module.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <FolderIcon className="w-5 h-5 text-blue-600 mr-2" />
-                        <div>
-                          <CardTitle className="text-lg">{module.title}</CardTitle>
-                          {module.description && (
-                            <CardDescription>{module.description}</CardDescription>
-                          )}
+            <CardContent className="pt-0">
+              {course?.modules && course.modules.length > 0 ? (
+                <div className="space-y-4">
+                  {course.modules.map((module, moduleIndex) => (
+                    <Card key={module.id} className="bg-white border border-slate-200 shadow-sm">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mr-3">
+                              <FolderIcon className="w-4 h-4 text-slate-600" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-base font-semibold text-slate-900">{module.title}</CardTitle>
+                              {module.description && (
+                                <CardDescription className="text-slate-600 text-sm mt-1">{module.description}</CardDescription>
+                              )}
+                            </div>
+                          </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveModule(module.id, 'up')}
+                            disabled={moduleIndex === 0}
+                            className="rounded-none border-0 px-2 h-8"
+                          >
+                            <ArrowUpIcon className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => moveModule(module.id, 'down')}
+                            disabled={moduleIndex === (course?.modules.length || 0) - 1}
+                            className="rounded-none border-0 border-l border-slate-200 px-2 h-8"
+                          >
+                            <ArrowDownIcon className="w-3 h-3" />
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => moveModule(module.id, 'up')}
-                          disabled={moduleIndex === 0}
-                        >
-                          <ArrowUpIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => moveModule(module.id, 'down')}
-                          disabled={moduleIndex === (course?.modules.length || 0) - 1}
-                        >
-                          <ArrowDownIcon className="w-4 h-4" />
-                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setShowMaterialModal({ moduleId: module.id })}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
                         >
-                          <PlusIcon className="w-4 h-4 mr-1" />
+                          <PlusIcon className="w-3 h-3 mr-1" />
                           Add Material
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingModule(module)}
-                        >
-                          <PencilIcon className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="outline"
@@ -744,40 +891,37 @@ export default function CourseEditPage() {
                         {module.materials.map((material, materialIndex) => {
                           const MaterialIcon = getMaterialIcon(material.type);
                           return (
-                            <div key={material.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div key={material.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                               <div className="flex items-center">
-                                <MaterialIcon className="w-5 h-5 text-gray-500 mr-3" />
+                                <MaterialIcon className="w-5 h-5 text-slate-500 mr-3" />
                                 <div>
-                                  <p className="font-medium text-gray-900">{material.title}</p>
-                                  <p className="text-sm text-gray-600">
+                                  <p className="font-medium text-slate-900">{material.title}</p>
+                                  <p className="text-sm text-slate-600">
                                     {material.type} {material.description && `• ${material.description}`}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => moveMaterial(module.id, material.id, 'up')}
-                                  disabled={materialIndex === 0}
-                                >
-                                  <ArrowUpIcon className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => moveMaterial(module.id, material.id, 'down')}
-                                  disabled={materialIndex === module.materials.length - 1}
-                                >
-                                  <ArrowDownIcon className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setEditingMaterial({ moduleId: module.id, material })}
-                                >
-                                  <PencilIcon className="w-4 h-4" />
-                                </Button>
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => moveMaterial(module.id, material.id, 'up')}
+                                    disabled={materialIndex === 0}
+                                    className="rounded-none border-0 px-2 h-7"
+                                  >
+                                    <ArrowUpIcon className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => moveMaterial(module.id, material.id, 'down')}
+                                    disabled={materialIndex === module.materials.length - 1}
+                                    className="rounded-none border-0 border-l border-slate-200 px-2 h-7"
+                                  >
+                                    <ArrowDownIcon className="w-3 h-3" />
+                                  </Button>
+                                </div>
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -805,21 +949,25 @@ export default function CourseEditPage() {
                 </Card>
               ))}
             </div>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <FolderIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No modules yet</h3>
-                <p className="text-gray-600 mb-6">
-                  Organize your course content by creating modules and adding materials.
-                </p>
-                <Button onClick={() => setShowModuleModal(true)}>
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Create Your First Module
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <FolderIcon className="w-8 h-8 text-slate-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No modules yet</h3>
+                  <p className="text-slate-600 mb-6 text-sm max-w-md mx-auto">
+                    Organize your course content by creating modules and adding materials.
+                  </p>
+                  <Button
+                    onClick={() => setShowModuleModal(true)}
+                  >
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    Create Your First Chapter
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -828,16 +976,16 @@ export default function CourseEditPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card className="w-full max-w-lg mx-4">
             <CardHeader>
-              <CardTitle>Add New Module</CardTitle>
-              <CardDescription>Create a new module to organize your course content</CardDescription>
+              <CardTitle>Add New Chapter</CardTitle>
+              <CardDescription>Create a new chapter to organize your course content</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Module Title *
+                  Chapter Title *
                 </label>
                 <Input
-                  placeholder="Enter module title"
+                  placeholder="Enter chapter title"
                   value={newModule.title}
                   onChange={(e) => setNewModule(prev => ({ ...prev, title: e.target.value }))}
                 />
@@ -847,7 +995,7 @@ export default function CourseEditPage() {
                   Description (Optional)
                 </label>
                 <Textarea
-                  placeholder="Brief description of this module"
+                  placeholder="Brief description of this chapter"
                   value={newModule.description}
                   onChange={(e) => setNewModule(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
@@ -960,6 +1108,7 @@ export default function CourseEditPage() {
           </Card>
         </div>
       )}
+    </div>
     </div>
   );
 }

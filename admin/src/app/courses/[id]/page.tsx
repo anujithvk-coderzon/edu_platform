@@ -134,23 +134,25 @@ export default function CourseViewPage() {
   const getStatusColor = (status: Course['status']) => {
     switch (status) {
       case 'PUBLISHED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border border-green-200';
       case 'DRAFT':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'ARCHIVED':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-800 border border-slate-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-800 border border-slate-200';
     }
   };
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-          <div className="h-96 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-slate-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-slate-200 rounded w-1/2 mb-8"></div>
+            <div className="h-96 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+          </div>
         </div>
       </div>
     );
@@ -158,22 +160,24 @@ export default function CourseViewPage() {
 
   if (error || !course) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center mb-4">
-          <Link href="/my-courses" className="text-blue-600 hover:text-blue-700">
-            <ChevronLeftIcon className="w-4 h-4 mr-2 inline" />
-            Back to My Courses
-          </Link>
-        </div>
-        <Card>
-          <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Course Not Found</h3>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <Link href="/my-courses">
-              <Button>Back to My Courses</Button>
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-4">
+            <Link href="/my-courses" className="inline-flex items-center text-slate-700 hover:text-slate-900">
+              <ChevronLeftIcon className="w-4 h-4 mr-2" />
+              Back to My Courses
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+          <Card className="bg-white shadow-sm border border-slate-200">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Course Not Found</h3>
+              <p className="text-slate-600 mb-6">{error}</p>
+              <Link href="/my-courses">
+                <Button>Back to My Courses</Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -181,94 +185,105 @@ export default function CourseViewPage() {
   const isOwner = user && course.creator && user.id === course.creator.id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center mb-4">
-            <Link href="/my-courses" className="text-blue-600 hover:text-blue-700">
-              <ChevronLeftIcon className="w-4 h-4 mr-2 inline" />
+        <div className="mb-6 sm:mb-8">
+          <div className="mb-4">
+            <Link href="/my-courses" className="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-sm">
+              <ChevronLeftIcon className="w-4 h-4 mr-2" />
               Back to My Courses
             </Link>
           </div>
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {course.title}
-                </h1>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getStatusColor(course.status)}`}>
-                  {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
-                </span>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+              <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
+                    {course.title}
+                  </h1>
+                  <span className={`px-3 py-1 rounded text-xs font-medium ${getStatusColor(course.status)} w-fit`}>
+                    {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
+                  </span>
+                </div>
+                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">{course.description}</p>
               </div>
-              <p className="text-gray-600 text-lg mb-4">{course.description}</p>
-              
-              {/* Course Meta */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                <div className="flex items-center text-gray-600">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <UsersIcon className="w-5 h-5 text-blue-600" />
+            </div>
+
+            {/* Course Meta */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center text-slate-700">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <UsersIcon className="w-4 h-4 text-blue-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{course._count?.enrollments || 0}</div>
-                    <div className="text-sm text-gray-500">students</div>
+                    <div className="font-semibold text-slate-900 text-lg">{course._count?.enrollments || 0}</div>
+                    <div className="text-xs text-slate-600">Students</div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center text-gray-600">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                    <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center text-slate-700">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                    <CurrencyDollarIcon className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">${course.price}</div>
-                    <div className="text-sm text-gray-500">price</div>
+                    <div className="font-semibold text-slate-900 text-lg">${course.price}</div>
+                    <div className="text-xs text-slate-600">Price</div>
                   </div>
                 </div>
-                <div className="flex items-center text-gray-600">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
-                    <StarIcon className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center text-slate-700">
+                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                    <StarIcon className="w-4 h-4 text-yellow-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{course.averageRating ? course.averageRating.toFixed(1) : 'N/A'}</div>
-                    <div className="text-sm text-gray-500">rating</div>
+                    <div className="font-semibold text-slate-900 text-lg">{course.averageRating ? course.averageRating.toFixed(1) : 'N/A'}</div>
+                    <div className="text-xs text-slate-600">Rating</div>
                   </div>
                 </div>
-                <div className="flex items-center text-gray-600">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                    <ClockIcon className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                <div className="flex items-center text-slate-700">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                    <ClockIcon className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{course.duration || 0}h</div>
-                    <div className="text-sm text-gray-500">duration</div>
+                    <div className="font-semibold text-slate-900 text-lg">{course.duration || 0}h</div>
+                    <div className="text-xs text-slate-600">Duration</div>
                   </div>
                 </div>
+              </div>
               </div>
 
-              {/* Course Details */}
-              <div className="flex flex-wrap gap-4 mb-6">
-                {course.category && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-blue-700 bg-blue-100 border border-blue-200">
-                    {course.category.name}
-                  </div>
-                )}
-                {course.level && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200">
-                    Level: {course.level}
-                  </div>
-                )}
-                {course.tutorName && (
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-purple-700 bg-purple-100 border border-purple-200">
-                    Created by: {course.tutorName}
-                  </div>
-                )}
-              </div>
+            {/* Course Details */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {course.category && (
+                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
+                  {course.category.name}
+                </div>
+              )}
+              {course.level && (
+                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-slate-700 bg-slate-100 border border-slate-300">
+                  Level: {course.level}
+                </div>
+              )}
+              {course.tutorName && (
+                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200">
+                  Created by: {course.tutorName}
+                </div>
+              )}
+            </div>
             </div>
             
             {isOwner && (
-              <div className="mt-6 lg:mt-0">
+              <div className="mt-4 sm:absolute sm:top-4 sm:right-4">
                 <Link href={`/courses/${courseId}/edit`}>
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3">
-                    <PencilIcon className="w-5 h-5 mr-2" />
-                    Edit Course
+                  <Button className="flex items-center space-x-2">
+                    <PencilIcon className="w-4 h-4" />
+                    <span>Edit Course</span>
                   </Button>
                 </Link>
               </div>
@@ -278,55 +293,60 @@ export default function CourseViewPage() {
 
         {/* Course Content */}
         <div className="space-y-6">
-          <Card className="bg-white/80 backdrop-blur-lg border border-blue-100/50 shadow-lg">
+          <Card className="bg-white shadow-sm border border-slate-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AcademicCapIcon className="w-6 h-6 text-blue-600" />
+              <CardTitle className="flex items-center gap-3 text-lg font-semibold text-slate-900">
+                <AcademicCapIcon className="w-5 h-5 text-slate-600" />
                 Course Content
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-slate-600 text-sm">
                 {course.modules?.length || 0} modules • {course._count?.materials || 0} materials
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-8">
               {course.modules && course.modules.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {course.modules.map((module, moduleIndex) => (
-                    <Card key={module.id} className="border border-gray-200">
+                    <Card key={module.id} className="bg-slate-50 border border-slate-200">
                       <CardHeader className="pb-3">
                         <div className="flex items-center">
-                          <FolderIcon className="w-5 h-5 text-blue-600 mr-3" />
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <FolderIcon className="w-4 h-4 text-blue-600" />
+                          </div>
                           <div>
-                            <CardTitle className="text-lg">{module.title}</CardTitle>
+                            <CardTitle className="text-base font-semibold text-slate-900">{module.title}</CardTitle>
                             {module.description && (
-                              <CardDescription className="mt-1">{module.description}</CardDescription>
+                              <CardDescription className="mt-1 text-slate-600 text-sm">{module.description}</CardDescription>
                             )}
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="pt-0">
                         {module.materials.length > 0 ? (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {module.materials.map((material) => {
                               const MaterialIcon = getMaterialIcon(material.type);
                               return (
-                                <div key={material.id} className="p-3 bg-gray-50 rounded-lg">
+                                <div key={material.id} className="p-3 bg-white rounded-lg border border-slate-200">
                                   <div className="flex items-center">
-                                    <MaterialIcon className="w-5 h-5 text-gray-500 mr-3" />
+                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mr-3">
+                                      <MaterialIcon className="w-4 h-4 text-slate-600" />
+                                    </div>
                                     <div className="flex-1">
-                                      <p className="font-medium text-gray-900">{material.title}</p>
+                                      <p className="font-medium text-slate-900 text-sm">{material.title}</p>
                                       {material.description && (
-                                        <p className="text-sm text-gray-600 mt-1">{material.description}</p>
+                                        <p className="text-slate-600 mt-1 text-xs">{material.description}</p>
                                       )}
-                                      <div className="flex items-center mt-2 space-x-4">
-                                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                                      <div className="flex items-center mt-2 space-x-3">
+                                        <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
                                           {material.type}
                                         </span>
                                         {material.fileUrl && (
                                           <Button
+                                            variant="outline"
                                             size="sm"
                                             onClick={() => handleViewMaterial(material)}
-                                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                                            className="text-xs"
                                           >
                                             <PlayIcon className="w-3 h-3 mr-1" />
                                             {expandedMaterials.has(material.id) ? 'Hide' : (material.type === 'VIDEO' ? 'Play' : 'View')}
@@ -409,27 +429,34 @@ export default function CourseViewPage() {
                             })}
                           </div>
                         ) : (
-                          <p className="text-gray-600 text-center py-4">
-                            No materials in this module yet.
-                          </p>
+                          <div className="text-center py-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-slate-300 to-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <span className="text-white text-2xl">📝</span>
+                            </div>
+                            <p className="text-slate-600 font-medium text-lg">
+                              No materials in this module yet.
+                            </p>
+                          </div>
                         )}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <FolderIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No content yet</h3>
-                  <p className="text-gray-600 mb-6">
-                    This course doesn't have any modules or materials yet.
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-white text-4xl">📁</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-800 mb-4">No content yet ✨</h3>
+                  <p className="text-slate-700 mb-8 text-lg font-medium max-w-md mx-auto">
+                    This course doesn't have any modules or materials yet. Start creating amazing content!
                   </p>
                   {isOwner && (
                     <Link href={`/courses/${courseId}/edit`}>
-                      <Button>
-                        <PencilIcon className="w-4 h-4 mr-2" />
-                        Add Content
-                      </Button>
+                      <div className="inline-flex items-center bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 cursor-pointer">
+                        <PencilIcon className="w-5 h-5 mr-3" />
+                        <span>🚀 Add Content</span>
+                      </div>
                     </Link>
                   )}
                 </div>

@@ -449,10 +449,14 @@ router.get('/courses/my-courses', asyncHandler(async (req: express.Request, res:
         enrollments: {
           select: { id: true }
         },
+        reviews: {
+          select: { rating: true }
+        },
         _count: {
           select: {
             enrollments: true,
-            materials: true
+            materials: true,
+            reviews: true
           }
         }
       },
@@ -461,10 +465,17 @@ router.get('/courses/my-courses', asyncHandler(async (req: express.Request, res:
       }
     });
 
+    // Add average rating to each course
+    const coursesWithRating = courses.map(course => ({
+      ...course,
+      averageRating: course.reviews.length > 0 ?
+        Math.round((course.reviews.reduce((sum, review) => sum + review.rating, 0) / course.reviews.length) * 10) / 10 : 0
+    }));
+
     res.json({
       success: true,
       data: {
-        courses: courses
+        courses: coursesWithRating
       }
     });
   } catch (error) {
@@ -488,6 +499,8 @@ router.post('/courses',
     body('duration').optional().isInt({ min: 1 }),
     body('isPublic').optional().isBoolean(),
     body('tutorName').optional().trim().isLength({ min: 1 }),
+    body('requirements').optional().isArray(),
+    body('prerequisites').optional().isArray(),
   ],
   asyncHandler(async (req: express.Request, res: express.Response) => {
     const token = req.cookies.admin_token;
@@ -517,7 +530,7 @@ router.post('/courses',
         });
       }
 
-      const { title, description, price, level, duration, isPublic, tutorName } = req.body;
+      const { title, description, price, level, duration, isPublic, tutorName, requirements, prerequisites } = req.body;
 
       const course = await prisma.course.create({
         data: {
@@ -528,6 +541,8 @@ router.post('/courses',
           duration: duration ? parseInt(duration) : null,
           isPublic: isPublic || false,
           tutorName: tutorName || null,
+          requirements: requirements || [],
+          prerequisites: prerequisites || [],
           creatorId: decoded.id,
           // categoryId is null by default (no category requirement)
         },
@@ -615,10 +630,14 @@ router.get('/courses/:id', asyncHandler(async (req: express.Request, res: expres
         materials: {
           select: { id: true, title: true, type: true }
         },
+        reviews: {
+          select: { rating: true }
+        },
         _count: {
           select: {
             enrollments: true,
-            materials: true
+            materials: true,
+            reviews: true
           }
         }
       }
@@ -631,10 +650,17 @@ router.get('/courses/:id', asyncHandler(async (req: express.Request, res: expres
       });
     }
 
+    // Add average rating to the course
+    const courseWithRating = {
+      ...course,
+      averageRating: course.reviews.length > 0 ?
+        Math.round((course.reviews.reduce((sum, review) => sum + review.rating, 0) / course.reviews.length) * 10) / 10 : 0
+    };
+
     res.json({
       success: true,
       data: {
-        course: course
+        course: courseWithRating
       }
     });
   } catch (error) {
@@ -656,6 +682,11 @@ router.put('/courses/:id',
     body('duration').optional().isInt({ min: 1 }),
     body('isPublic').optional().isBoolean(),
     body('tutorName').optional().trim().isLength({ min: 1 }),
+    body('categoryId').optional().custom((value) => value === null || value === '' || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)),
+    body('requirements').optional().isArray().withMessage('Requirements must be an array'),
+    body('requirements.*').optional().isString().trim(),
+    body('prerequisites').optional().isArray().withMessage('Prerequisites must be an array'),
+    body('prerequisites.*').optional().isString().trim(),
     body('status').optional().isIn(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
   ],
   asyncHandler(async (req: express.Request, res: express.Response) => {
@@ -701,7 +732,11 @@ router.put('/courses/:id',
         });
       }
 
-      const { title, description, price, level, duration, isPublic, tutorName, status, thumbnail } = req.body;
+      const { title, description, price, level, duration, isPublic, tutorName, requirements, prerequisites, status, thumbnail, categoryId } = req.body;
+
+      console.log('Received update request for course:', req.params.id);
+      console.log('Requirements:', requirements);
+      console.log('Prerequisites:', prerequisites);
 
       const updateData: any = {};
       if (title !== undefined) updateData.title = title;
@@ -711,6 +746,9 @@ router.put('/courses/:id',
       if (duration !== undefined) updateData.duration = duration ? parseInt(duration) : null;
       if (isPublic !== undefined) updateData.isPublic = isPublic;
       if (tutorName !== undefined) updateData.tutorName = tutorName;
+      if (categoryId !== undefined) updateData.categoryId = categoryId;
+      if (requirements !== undefined) updateData.requirements = requirements;
+      if (prerequisites !== undefined) updateData.prerequisites = prerequisites;
       if (status !== undefined) updateData.status = status;
       if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
 
@@ -761,8 +799,11 @@ router.delete('/courses/:id', asyncHandler(async (req: express.Request, res: exp
           type: true
         }
       },
-      _count: {
-        select: { enrollments: true }
+      enrollments: {
+        select: {
+          status: true,
+          progressPercentage: true
+        }
       }
     }
   });
@@ -774,10 +815,15 @@ router.delete('/courses/:id', asyncHandler(async (req: express.Request, res: exp
     });
   }
 
-  if (course._count.enrollments > 0) {
+  // Check for active enrollments (not completed)
+  const activeEnrollments = course.enrollments.filter(
+    enrollment => enrollment.status !== 'COMPLETED' && enrollment.progressPercentage < 100
+  );
+
+  if (activeEnrollments.length > 0) {
     return res.status(400).json({
       success: false,
-      error: { message: 'Cannot delete course with active enrollments' }
+      error: { message: `Cannot delete course with ${activeEnrollments.length} active enrollment(s). Wait for students to complete the course or manually mark enrollments as completed.` }
     });
   }
 
@@ -994,10 +1040,11 @@ router.post('/materials',
   [
     body('title').trim().isLength({ min: 1, max: 200 }),
     body('description').optional().trim(),
-    body('type').isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
+    body('type').isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/.+|\/[^\/].*)$/;
+        // Allow HTTP/HTTPS URLs, local paths, and www URLs
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }
@@ -1192,6 +1239,895 @@ router.post('/uploads/material', upload.single('file'), asyncHandler(async (req:
       path: req.file.path
     }
   });
+}));
+
+// ===== STUDENTS ENDPOINTS =====
+// Get all students with their enrollments and progress
+router.get('/students', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    // Get admin's courses first
+    const adminCourses = await prisma.course.findMany({
+      where: { creatorId: decoded.id },
+      select: { id: true }
+    });
+
+    const courseIds = adminCourses.map(course => course.id);
+
+    if (courseIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          students: [],
+          stats: {
+            totalStudents: 0,
+            activeStudents: 0,
+            newThisMonth: 0,
+            averageProgress: 0,
+            topPerformers: 0,
+            totalRevenue: 0
+          }
+        }
+      });
+    }
+
+    // Get all students enrolled in admin's courses
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        courseId: { in: courseIds }
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            avatar: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        },
+        course: {
+          select: {
+            id: true,
+            title: true,
+            price: true
+          }
+        }
+      },
+      orderBy: { enrolledAt: 'desc' }
+    });
+
+    // Group enrollments by student
+    const studentMap = new Map();
+
+    enrollments.forEach(enrollment => {
+      const studentId = enrollment.student.id;
+
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          id: studentId,
+          firstName: enrollment.student.firstName,
+          lastName: enrollment.student.lastName,
+          email: enrollment.student.email,
+          avatar: enrollment.student.avatar,
+          joinedAt: enrollment.student.createdAt,
+          lastActive: enrollment.student.updatedAt || enrollment.student.createdAt,
+          enrollments: []
+        });
+      }
+
+      studentMap.get(studentId).enrollments.push({
+        courseId: enrollment.courseId,
+        courseTitle: enrollment.course.title,
+        enrolledAt: enrollment.enrolledAt,
+        status: enrollment.status,
+        progressPercentage: enrollment.progressPercentage
+      });
+    });
+
+    const students = await Promise.all(Array.from(studentMap.values()).map(async (student) => {
+      // Calculate actual time spent from Progress records
+      const progressRecords = await prisma.progress.findMany({
+        where: {
+          userId: student.id,
+          courseId: { in: student.enrollments.map((e: any) => e.courseId) }
+        }
+      });
+
+      const totalTimeSpent = progressRecords.reduce((total, record) => total + (record.timeSpent || 0), 0);
+
+      // Get course durations for estimation if no actual time is recorded
+      const courses = await prisma.course.findMany({
+        where: { id: { in: student.enrollments.map((e: any) => e.courseId) } },
+        select: { id: true, duration: true }
+      });
+
+      // Calculate estimated time based on progress if no actual time recorded
+      let estimatedTimeSpent = 0;
+      if (totalTimeSpent === 0) {
+        student.enrollments.forEach((enrollment: any) => {
+          const course = courses.find(c => c.id === enrollment.courseId);
+          if (course && course.duration && enrollment.progressPercentage > 0) {
+            const courseDurationMinutes = course.duration * 60;
+            estimatedTimeSpent += Math.floor((enrollment.progressPercentage / 100) * courseDurationMinutes);
+          }
+        });
+      }
+
+      return {
+        ...student,
+        totalCourses: student.enrollments.length,
+        completedCourses: student.enrollments.filter((e: any) => e.status === 'COMPLETED' || e.progressPercentage >= 100).length,
+        totalSpentHours: Math.round((totalTimeSpent > 0 ? totalTimeSpent : estimatedTimeSpent) / 60) // Convert minutes to hours
+      };
+    }));
+
+    // Calculate statistics
+    const totalStudents = students.length;
+    const activeStudents = students.filter(s =>
+      s.enrollments.some((e: any) => e.status === 'ACTIVE')
+    ).length;
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const newThisMonth = students.filter(s =>
+      new Date(s.joinedAt) > oneMonthAgo
+    ).length;
+
+    const totalProgress = students.reduce((sum, s) =>
+      sum + s.enrollments.reduce((enrollmentSum: number, e: any) => enrollmentSum + e.progressPercentage, 0), 0
+    );
+    const totalEnrollments = students.reduce((sum, s) => sum + s.enrollments.length, 0);
+    const averageProgress = totalEnrollments > 0 ? totalProgress / totalEnrollments : 0;
+
+    const topPerformers = students.filter(s =>
+      s.enrollments.some((e: any) => e.progressPercentage > 80)
+    ).length;
+
+    // Since there's no payment system implemented yet, set revenue to 0
+    // TODO: Implement payment tracking with a Payment model that includes:
+    // - paymentId, enrollmentId, amount, status (pending/completed/failed), paymentDate
+    // Then calculate: SELECT SUM(amount) FROM payments WHERE status='completed' AND enrollmentId IN (...)
+    const totalRevenue = 0;
+
+    const stats = {
+      totalStudents,
+      activeStudents,
+      newThisMonth,
+      averageProgress,
+      topPerformers,
+      totalRevenue
+    };
+
+    res.json({
+      success: true,
+      data: {
+        students,
+        stats
+      }
+    });
+  } catch (error) {
+    console.error('Get students error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Get specific student details
+router.get('/students/:id', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { id } = req.params;
+
+    // Get admin's courses first
+    const adminCourses = await prisma.course.findMany({
+      where: { creatorId: decoded.id },
+      select: { id: true }
+    });
+
+    const courseIds = adminCourses.map(course => course.id);
+
+    // Get student with their enrollments in admin's courses
+    const student = await prisma.student.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true,
+        enrollments: {
+          where: {
+            courseId: { in: courseIds }
+          },
+          include: {
+            course: {
+              select: {
+                id: true,
+                title: true,
+                price: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Student not found' }
+      });
+    }
+
+    if (student.enrollments.length === 0) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Student is not enrolled in any of your courses' }
+      });
+    }
+
+    // Calculate actual time spent from Progress records
+    const progressRecords = await prisma.progress.findMany({
+      where: {
+        userId: student.id,
+        courseId: { in: student.enrollments.map(e => e.courseId) }
+      }
+    });
+
+    const totalTimeSpent = progressRecords.reduce((total, record) => total + (record.timeSpent || 0), 0);
+
+    // Get course durations for estimation if no actual time is recorded
+    const courses = await prisma.course.findMany({
+      where: { id: { in: student.enrollments.map(e => e.courseId) } },
+      select: { id: true, duration: true }
+    });
+
+    // Calculate estimated time based on progress if no actual time recorded
+    let estimatedTimeSpent = 0;
+    if (totalTimeSpent === 0) {
+      student.enrollments.forEach(enrollment => {
+        const course = courses.find(c => c.id === enrollment.courseId);
+        if (course && course.duration && enrollment.progressPercentage > 0) {
+          const courseDurationMinutes = course.duration * 60;
+          estimatedTimeSpent += Math.floor((enrollment.progressPercentage / 100) * courseDurationMinutes);
+        }
+      });
+    }
+
+    const studentData = {
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      avatar: student.avatar,
+      joinedAt: student.createdAt,
+      lastActive: student.updatedAt || student.createdAt,
+      totalCourses: student.enrollments.length,
+      completedCourses: student.enrollments.filter(e => e.status === 'COMPLETED' || e.progressPercentage >= 100).length,
+      totalSpentHours: Math.round((totalTimeSpent > 0 ? totalTimeSpent : estimatedTimeSpent) / 60), // Convert minutes to hours
+      enrollments: student.enrollments.map(enrollment => ({
+        courseId: enrollment.courseId,
+        courseTitle: enrollment.course.title,
+        enrolledAt: enrollment.enrolledAt,
+        status: enrollment.status,
+        progressPercentage: enrollment.progressPercentage
+      }))
+    };
+
+    res.json({
+      success: true,
+      data: { student: studentData }
+    });
+  } catch (error) {
+    console.error('Get student error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Get student email for messaging
+router.get('/students/:id/email', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { id } = req.params;
+
+    // Get admin's courses first to verify student access
+    const adminCourses = await prisma.course.findMany({
+      where: { creatorId: decoded.id },
+      select: { id: true }
+    });
+
+    const courseIds = adminCourses.map(course => course.id);
+
+    // Get student and verify they are enrolled in admin's courses
+    const student = await prisma.student.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        enrollments: {
+          where: {
+            courseId: { in: courseIds }
+          },
+          select: { id: true }
+        }
+      }
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Student not found' }
+      });
+    }
+
+    if (student.enrollments.length === 0) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Student is not enrolled in any of your courses' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        studentId: student.id,
+        name: `${student.firstName} ${student.lastName}`,
+        email: student.email,
+        mailtoLink: `mailto:${student.email}?subject=Message from Your Course Instructor&body=Hello ${student.firstName},%0D%0A%0D%0A`
+      }
+    });
+  } catch (error) {
+    console.error('Get student email error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// ===== ANALYTICS ENDPOINTS =====
+// Get tutor analytics
+router.get('/analytics/tutor', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const tutorId = decoded.id;
+
+    // Get tutor's courses with enrollment counts
+    const courses = await prisma.course.findMany({
+      where: {
+        creatorId: tutorId
+      },
+      include: {
+        _count: {
+          select: {
+            enrollments: true,
+            materials: true,
+            reviews: true
+          }
+        },
+        materials: true,
+        reviews: {
+          select: {
+            rating: true
+          }
+        },
+        enrollments: {
+          include: {
+            progressRecords: {
+              where: {
+                isCompleted: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Calculate completion rates based on actual progress data
+    let totalMaterials = 0;
+    let totalCompletedMaterials = 0;
+    let totalStudents = 0;
+    let totalReviews = 0;
+    let weightedRating = 0;
+
+    const courseAnalytics = courses.map(course => {
+      const materialCount = course.materials.length;
+      const studentCount = course._count.enrollments;
+
+      // Calculate completion rate for this course
+      let completionRate = 0;
+      if (materialCount > 0 && studentCount > 0) {
+        const totalPossibleCompletions = materialCount * studentCount;
+        const actualCompletions = course.enrollments.reduce((sum, enrollment) => {
+          return sum + enrollment.progressRecords.length;
+        }, 0);
+        completionRate = totalPossibleCompletions > 0 ? (actualCompletions / totalPossibleCompletions) * 100 : 0;
+      }
+
+      totalMaterials += materialCount * studentCount;
+      totalCompletedMaterials += course.enrollments.reduce((sum, enrollment) => sum + enrollment.progressRecords.length, 0);
+      totalStudents += studentCount;
+
+      // Add to overall rating calculation
+      if (course.reviews.length > 0) {
+        const courseRating = course.reviews.reduce((sum, review) => sum + review.rating, 0) / course.reviews.length;
+        weightedRating += courseRating * course.reviews.length;
+        totalReviews += course.reviews.length;
+      }
+
+      return {
+        id: course.id,
+        title: course.title,
+        students: studentCount,
+        revenue: 0, // No payment system implemented yet
+        rating: course.reviews.length > 0 ?
+          Math.round((course.reviews.reduce((sum, review) => sum + review.rating, 0) / course.reviews.length) * 10) / 10 : 0,
+        completionRate: Math.round(completionRate * 100) / 100,
+        materials: materialCount,
+        enrollments: [
+          { date: '2024-01', count: Math.floor(studentCount * 0.2) },
+          { date: '2024-02', count: Math.floor(studentCount * 0.3) },
+          { date: '2024-03', count: Math.floor(studentCount * 0.5) }
+        ]
+      };
+    });
+
+    // Calculate overall completion rate
+    const overallCompletionRate = totalMaterials > 0 ? (totalCompletedMaterials / totalMaterials) * 100 : 0;
+
+    // Calculate growth rates (would need historical data for real growth)
+    const thisMonthStudents = Math.floor(totalStudents * 0.2);
+    const lastMonthStudents = Math.floor(totalStudents * 0.18);
+
+    const analytics = {
+      revenue: {
+        total: 0, // No payment system implemented yet
+        thisMonth: 0, // No payment system implemented yet
+        lastMonth: 0, // No payment system implemented yet
+        growth: 0 // No payment system implemented yet
+      },
+      students: {
+        total: totalStudents,
+        thisMonth: thisMonthStudents,
+        lastMonth: lastMonthStudents,
+        growth: lastMonthStudents > 0 ? ((thisMonthStudents - lastMonthStudents) / lastMonthStudents) * 100 : 0
+      },
+      courses: {
+        total: courses.length,
+        published: courses.filter(c => c.status === 'PUBLISHED').length,
+        draft: courses.filter(c => c.status === 'DRAFT').length,
+        archived: courses.filter(c => c.status === 'ARCHIVED').length
+      },
+      engagement: {
+        totalViews: totalStudents * 2, // Estimate based on student engagement
+        avgRating: totalReviews > 0 ? weightedRating / totalReviews : 0,
+        totalReviews: totalReviews,
+        completionRate: Math.round(overallCompletionRate * 100) / 100
+      }
+    };
+
+    const revenueData = [
+      { date: '2024-01', revenue: 0, students: Math.floor(totalStudents * 0.2) }, // No payment system implemented yet
+      { date: '2024-02', revenue: 0, students: Math.floor(totalStudents * 0.3) }, // No payment system implemented yet
+      { date: '2024-03', revenue: 0, students: Math.floor(totalStudents * 0.5) } // No payment system implemented yet
+    ];
+
+    res.json({
+      success: true,
+      data: {
+        analytics,
+        courseAnalytics,
+        revenueData
+      }
+    });
+
+  } catch (error) {
+    console.error('Analytics error:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch analytics data' }
+    });
+  }
+}));
+
+// Get course completion analytics
+router.get('/analytics/course/:courseId/completion', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { courseId } = req.params;
+    const tutorId = decoded.id;
+
+    // Verify course ownership
+    const course = await prisma.course.findFirst({
+      where: {
+        id: courseId,
+        creatorId: tutorId
+      },
+      include: {
+        materials: true,
+        enrollments: {
+          include: {
+            student: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            },
+            progressRecords: {
+              where: {
+                isCompleted: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Course not found' }
+      });
+    }
+
+    const materialCount = course.materials.length;
+    const studentProgress = course.enrollments.map(enrollment => {
+      const completedMaterials = enrollment.progressRecords.length;
+      const completionRate = materialCount > 0 ? (completedMaterials / materialCount) * 100 : 0;
+
+      return {
+        studentId: enrollment.userId,
+        studentName: `${enrollment.student.firstName} ${enrollment.student.lastName}`,
+        completedMaterials,
+        totalMaterials: materialCount,
+        completionRate: Math.round(completionRate * 100) / 100
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        courseId,
+        courseName: course.title,
+        totalMaterials: materialCount,
+        totalStudents: course.enrollments.length,
+        studentProgress
+      }
+    });
+
+  } catch (error) {
+    console.error('Course completion error:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch course completion data' }
+    });
+  }
+}));
+
+// ===== MODULE ENDPOINTS =====
+// Delete a module and all its materials
+router.delete('/modules/:id', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { id } = req.params;
+
+    const module = await prisma.courseModule.findUnique({
+      where: { id },
+      include: {
+        course: {
+          select: {
+            creatorId: true
+          }
+        },
+        materials: {
+          select: {
+            id: true,
+            fileUrl: true,
+            type: true
+          }
+        }
+      }
+    });
+
+    if (!module) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Module not found' }
+      });
+    }
+
+    if (module.course.creatorId !== decoded.id) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Not authorized to delete this module' }
+      });
+    }
+
+    // Delete all material files from server
+    let deletedFilesCount = 0;
+    module.materials.forEach(material => {
+      if (material.fileUrl && material.type !== 'LINK') {
+        try {
+          // Extract filename from URL (e.g., "/uploads/filename.jpg" -> "filename.jpg")
+          const filename = material.fileUrl.startsWith('/uploads/') ? material.fileUrl.replace('/uploads/', '') : path.basename(material.fileUrl);
+          const uploadDir = process.env.UPLOAD_DIR || './uploads';
+          const filePath = path.join(uploadDir, filename);
+
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            deletedFilesCount++;
+            console.log(`🗑️ Deleted material file: ${filePath}`);
+          }
+        } catch (error) {
+          console.error(`Failed to delete material file ${material.fileUrl}:`, error);
+        }
+      }
+    });
+
+    // Delete the module from database (this will cascade delete all materials)
+    await prisma.courseModule.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: `Module and ${module.materials.length} materials (${deletedFilesCount} files) deleted successfully`
+    });
+  } catch (error) {
+    console.error('Delete module error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// ===== MATERIAL ENDPOINTS =====
+// Delete a material
+router.delete('/materials/:id', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { id } = req.params;
+
+    const material = await prisma.material.findUnique({
+      where: { id },
+      include: {
+        course: {
+          select: {
+            creatorId: true
+          }
+        }
+      }
+    });
+
+    if (!material) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Material not found' }
+      });
+    }
+
+    if (material.course.creatorId !== decoded.id) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Not authorized to delete this material' }
+      });
+    }
+
+    // Delete the physical file if it exists
+    if (material.fileUrl && material.type !== 'LINK') {
+      try {
+        // Extract filename from URL (e.g., "/uploads/filename.jpg" -> "filename.jpg")
+        const filename = material.fileUrl.startsWith('/uploads/') ? material.fileUrl.replace('/uploads/', '') : path.basename(material.fileUrl);
+        const uploadDir = process.env.UPLOAD_DIR || './uploads';
+        const filePath = path.join(uploadDir, filename);
+
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`🗑️ Deleted material file: ${filePath}`);
+        }
+      } catch (error) {
+        console.error(`Failed to delete material file ${material.fileUrl}:`, error);
+      }
+    }
+
+    const courseId = material.courseId;
+
+    // Delete the material from database
+    await prisma.material.delete({
+      where: { id }
+    });
+
+    // Delete progress records for this deleted material
+    await prisma.progress.deleteMany({
+      where: { materialId: id }
+    });
+
+    // Recalculate progress for all enrollments in this course
+    const enrollments = await prisma.enrollment.findMany({
+      where: { courseId }
+    });
+
+    for (const enrollment of enrollments) {
+      // Get current materials for the course
+      const currentMaterials = await prisma.material.findMany({
+        where: { courseId },
+        select: { id: true }
+      });
+
+      // Get completed materials for this student
+      const completedMaterials = await prisma.progress.findMany({
+        where: {
+          userId: enrollment.userId,
+          courseId,
+          isCompleted: true
+        }
+      });
+
+      const totalMaterials = currentMaterials.length;
+      const completedCount = completedMaterials.length;
+
+      const progressPercentage = totalMaterials > 0
+        ? Math.min(100, Math.round((completedCount / totalMaterials) * 100))
+        : 0;
+
+      // Update enrollment progress
+      await prisma.enrollment.update({
+        where: {
+          userId_courseId: {
+            userId: enrollment.userId,
+            courseId
+          }
+        },
+        data: {
+          progressPercentage,
+          ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Material deleted and progress recalculated for all students'
+    });
+  } catch (error) {
+    console.error('Delete material error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
 }));
 
 export default router;

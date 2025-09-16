@@ -72,13 +72,13 @@ const Page = () => {
             // Calculate stats from courses
             const totalStudents = courses.reduce((sum: number, course: any) => 
               sum + (course._count?.enrollments || 0), 0);
-            const totalEarnings = courses.reduce((sum: number, course: any) => 
-              sum + ((course._count?.enrollments || 0) * course.price), 0);
+            // Since there's no payment system implemented yet, earnings should be 0
+            const totalEarnings = 0;
             
             // Calculate progress percentages based on dynamic goals
             const courseGoal = Math.max(10, courses.length * 2);
             const studentGoal = Math.max(100, totalStudents * 3);
-            const earningsGoal = Math.max(1000, totalEarnings * 2);
+            const earningsGoal = 1000; // Static goal since no payment system
             const viewsGoal = Math.max(500, totalStudents * 2);
             
             // Calculate monthly views based on course engagement
@@ -154,27 +154,38 @@ const Page = () => {
   const { user, stats, myCourses } = data;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Welcome back, {user?.firstName || 'Tutor'}! 👋
-              </h1>
-              <p className="text-gray-600 text-lg mt-2">Here's what's happening with your courses today.</p>
-            </div>
-            <div className="hidden md:block">
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <div className="text-sm text-gray-500">Today's Date</div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-3 mb-1">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm sm:text-base">
+                      {user?.firstName?.charAt(0) || 'T'}
+                    </span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-900">
+                    Welcome back, {user?.firstName || 'Tutor'}
+                  </h1>
+                </div>
+                <p className="text-slate-600 text-sm sm:text-base ml-11 sm:ml-13">
+                  Manage your courses and track student progress
+                </p>
+              </div>
+              <div className="text-right sm:text-right">
+                <div className="text-xs sm:text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  {new Date().toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric'
                   })}
+                </div>
+                <div className="flex items-center justify-end space-x-1 mt-1">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                  <span className="text-xs text-slate-600">Online</span>
                 </div>
               </div>
             </div>
@@ -182,247 +193,162 @@ const Page = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-12">
-          <Link href="/create-course" className="flex-1">
-            <div className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-2xl p-6 text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Create New Course</h3>
-                  <p className="text-blue-100 text-sm">Start teaching and reach new students</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <Link href="/create-course" className="group">
+            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                  <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
-                <div className="bg-white/20 p-3 rounded-xl group-hover:bg-white/30 transition-all">
-                  <PlusIcon className="w-6 h-6" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">Create Course</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 truncate">Add new course content</p>
                 </div>
               </div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
             </div>
           </Link>
-          <Link href="/my-courses" className="flex-1">
-            <div className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-2xl p-6 text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">Manage Courses</h3>
-                  <p className="text-purple-100 text-sm">Edit and track your course performance</p>
+
+          <Link href="/courses" className="group">
+            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                  <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                 </div>
-                <div className="bg-white/20 p-3 rounded-xl group-hover:bg-white/30 transition-all">
-                  <BookOpenIcon className="w-6 h-6" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">Manage Courses</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 truncate">Edit and organize content</p>
                 </div>
               </div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+            </div>
+          </Link>
+
+          <Link href="/students" className="group">
+            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                  <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">View Students</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 truncate">Monitor student progress</p>
+                </div>
+              </div>
             </div>
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-blue-100 p-3 rounded-xl group-hover:bg-blue-200 transition-colors">
-                <BookOpenIcon className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.totalCourses}</div>
-                <p className="text-sm font-medium text-gray-600">Total Courses</p>
+        {/* Statistics */}
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Overview</h2>
+              <div className="flex items-center space-x-1 text-sm text-slate-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-xs sm:text-sm">Live data</span>
               </div>
             </div>
-            <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-500"
-                style={{ width: `${stats.coursesProgress}%` }}
-              ></div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-green-100 p-3 rounded-xl group-hover:bg-green-200 transition-colors">
-                <UserGroupIcon className="w-6 h-6 text-green-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalCourses}</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Courses</div>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.activeStudents}</div>
-                <p className="text-sm font-medium text-gray-600">Active Students</p>
-              </div>
-            </div>
-            <div className="h-2 bg-green-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-500"
-                style={{ width: `${stats.studentsProgress}%` }}
-              ></div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-purple-100 p-3 rounded-xl group-hover:bg-purple-200 transition-colors">
-                <CurrencyDollarIcon className="w-6 h-6 text-purple-600" />
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.activeStudents}</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Active Students</div>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">${stats.totalEarnings.toFixed(0)}</div>
-                <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-              </div>
-            </div>
-            <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-500"
-                style={{ width: `${stats.earningsProgress}%` }}
-              ></div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-orange-100 p-3 rounded-xl group-hover:bg-orange-200 transition-colors">
-                <ChartBarIcon className="w-6 h-6 text-orange-600" />
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <CurrencyDollarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">${stats.totalEarnings}</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Earnings</div>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">{stats.monthlyViews.toLocaleString()}</div>
-                <p className="text-sm font-medium text-gray-600">Monthly Views</p>
+
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <ChartBarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.monthlyViews}</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Monthly Views</div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="h-2 bg-orange-100 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-500"
-                style={{ width: `${stats.viewsProgress}%` }}
-              ></div>
             </div>
           </div>
         </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* My Courses */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">My Courses</h2>
+        {/* Recent Courses */}
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-900">My Courses</h2>
               <Link href="/my-courses">
-                <Button variant="ghost" size="sm" className="flex items-center text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   View All
-                  <ArrowRightIcon className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
             </div>
-            <div className="space-y-4">
+
+            <div className="space-y-3">
               {myCourses.length > 0 ? (
                 myCourses.slice(0, 3).map((course) => (
-                  <div key={course.id} className="group bg-gray-50 hover:bg-gray-100 rounded-xl p-4 transition-all duration-200 border border-gray-100 hover:border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{course.title}</h3>
-                        <div className="flex items-center space-x-4 mt-2 text-sm">
-                          <span className="flex items-center text-blue-600">
-                            <UserGroupIcon className="w-4 h-4 mr-1" />
-                            {course._count?.enrollments || 0}
-                          </span>
-                          <span className="flex items-center text-green-600">
-                            <CurrencyDollarIcon className="w-4 h-4 mr-1" />
-                            ${((course._count?.enrollments || 0) * course.price).toFixed(0)}
-                          </span>
-                          <span className="flex items-center text-yellow-600">
-                            ⭐ {course.averageRating?.toFixed(1) || 'N/A'}
-                          </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            course.status === 'PUBLISHED' 
-                              ? 'bg-green-100 text-green-700 border border-green-200'
-                              : course.status === 'DRAFT'
-                              ? 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                              : 'bg-gray-100 text-gray-700 border border-gray-200'
+                  <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-slate-900 text-sm sm:text-base truncate">{course.title}</h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs text-slate-600 mt-1 space-y-1 sm:space-y-0">
+                          <span>{course._count?.enrollments || 0} students</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium self-start ${
+                            course.status === 'PUBLISHED'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
+                            {course.status}
                           </span>
                         </div>
                       </div>
-                      <Link href={`/courses/${course.id}/edit`}>
-                        <Button variant="outline" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          Edit
-                        </Button>
-                      </Link>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <div className="bg-blue-50 rounded-full p-6 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-                    <BookOpenIcon className="w-10 h-10 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No courses yet</h3>
-                  <p className="text-gray-600 mb-6">Create your first course to get started!</p>
-                  <Link href="/create-course">
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                      <PlusIcon className="w-4 h-4 mr-2" />
-                      Create Course
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
-            <div className="space-y-4">
-              {myCourses.length > 0 ? (
-                <>
-                  <div className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200">
-                    <div className="bg-blue-500 p-2 rounded-lg">
-                      <BookOpenIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="font-medium text-gray-900">
-                        You have {stats.totalCourses} active courses
-                      </p>
-                      <p className="text-sm text-blue-600">Updated just now</p>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {stats.totalCourses}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
-                    <div className="bg-green-500 p-2 rounded-lg">
-                      <CurrencyDollarIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="font-medium text-gray-900">
-                        Total revenue generated
-                      </p>
-                      <p className="text-sm text-green-600">Calculated from enrollments</p>
-                    </div>
-                    <div className="text-2xl font-bold text-green-600">
-                      ${stats.totalEarnings.toFixed(0)}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl border border-purple-200">
-                    <div className="bg-purple-500 p-2 rounded-lg">
-                      <UserGroupIcon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="ml-4 flex-1">
-                      <p className="font-medium text-gray-900">
-                        Students enrolled across all courses
-                      </p>
-                      <p className="text-sm text-purple-600">All time enrollment</p>
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {stats.activeStudents}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8">
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-4 rounded-xl w-fit mx-auto mb-4">
-                      <UserGroupIcon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Welcome to the tutor dashboard! 🎉
-                    </h3>
-                    <p className="text-gray-600 mb-4">Create your first course to get started and begin your teaching journey.</p>
-                    <Link href="/create-course">
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        Get started today
+                    <Link href={`/courses/${course.id}/edit`} className="self-end sm:self-center">
+                      <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+                        Edit
                       </Button>
                     </Link>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpenIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
+                  </div>
+                  <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">No courses yet</p>
+                  <Link href="/create-course">
+                    <Button className="w-full sm:w-auto">Create Your First Course</Button>
+                  </Link>
                 </div>
               )}
             </div>

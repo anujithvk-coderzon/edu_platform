@@ -28,6 +28,11 @@ enum MaterialType {
   LINK
 }
 
+enum UserRole {
+  ADMIN
+  STUDENT
+}
+
 enum AssignmentStatus {
   PENDING
   SUBMITTED
@@ -41,6 +46,15 @@ model Student {
   firstName   String
   lastName    String
   avatar      String?
+  phone       String?
+  dateOfBirth DateTime?
+  gender      String?
+  country     String?
+  city        String?
+  education   String? // Highest education level
+  institution String? // Current or last educational institution
+  occupation  String?
+  company     String?
   isVerified  Boolean  @default(false)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -78,6 +92,8 @@ model Admin {
   @@map("admins")
 }
 
+
+
 model Course {
   id          String       @id @default(cuid())
   title       String
@@ -90,9 +106,11 @@ model Course {
   isPublic    Boolean      @default(false)
   creatorId   String
   categoryId  String?
-  tutorName   String? // Display name for the tutor/organization
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  tutorName     String? // Display name for the tutor/organization
+  requirements  String[] @default([])
+  prerequisites String[] @default([])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   creator      Admin          @relation("CourseCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)

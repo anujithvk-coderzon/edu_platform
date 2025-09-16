@@ -26,7 +26,11 @@ interface Course {
   level: string;
   duration: number;
   averageRating: number;
+  tutorName?: string;
   isEnrolled: boolean;
+  hasReviewed?: boolean;
+  enrollmentStatus?: string;
+  progressPercentage?: number;
   creator: {
     id: string;
     firstName: string;
@@ -127,6 +131,33 @@ export default function CoursesPage() {
       if (response.success) {
         let filteredCourses = response.data.courses;
 
+        // Enrich courses with enrollment data if user is logged in
+        if (user) {
+          try {
+            const enrollmentsResponse = await api.enrollments.getMy();
+            if (enrollmentsResponse.success) {
+              const enrollmentMap = new Map(
+                enrollmentsResponse.data.enrollments.map((e: any) => [
+                  e.course.id,
+                  { status: e.status, progressPercentage: e.progressPercentage, hasReviewed: e.hasReviewed }
+                ])
+              );
+
+              filteredCourses = filteredCourses.map((course: Course) => {
+                const enrollment = enrollmentMap.get(course.id);
+                return {
+                  ...course,
+                  enrollmentStatus: enrollment?.status,
+                  progressPercentage: enrollment?.progressPercentage,
+                  hasReviewed: enrollment?.hasReviewed
+                };
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching enrollments for course enrichment:', error);
+          }
+        }
+
         // Apply price filter (client-side since backend might not support it)
         if (priceRange) {
           filteredCourses = filteredCourses.filter((course: Course) => {
@@ -186,10 +217,8 @@ export default function CoursesPage() {
       const response = await api.enrollments.enroll(courseId);
       if (response.success) {
         toast.success('Successfully enrolled in course!');
-        // Update the course in the list to show as enrolled
-        setCourses(prev => prev.map(course =>
-          course.id === courseId ? { ...course, isEnrolled: true } : course
-        ));
+        // Refresh the courses data to get updated enrollment status
+        await fetchCourses();
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to enroll in course');
@@ -209,60 +238,107 @@ export default function CoursesPage() {
 
   const hasActiveFilters = searchQuery || selectedCategory || selectedLevel || priceRange || sortBy !== 'newest';
 
+  const getCourseButtonState = (course: Course) => {
+    if (!course.isEnrolled) {
+      return { text: 'View Course', href: `/courses/${course.id}` };
+    }
+
+    const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
+
+    if (isCompleted) {
+      if (course.hasReviewed) {
+        return { text: 'Completed', href: `/courses/${course.id}` };
+      } else {
+        return { text: 'Rate Course', href: `/courses/${course.id}` };
+      }
+    } else {
+      return { text: 'Continue Learning', href: `/learn/${course.id}` };
+    }
+  };
+
+  const getCourseStatusBadge = (course: Course) => {
+    if (!course.isEnrolled) return null;
+
+    const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
+
+    if (isCompleted) {
+      if (course.hasReviewed) {
+        return { text: 'Completed', color: 'bg-green-500' };
+      } else {
+        return { text: 'Rate Course', color: 'bg-orange-500' };
+      }
+    } else {
+      return { text: `${Math.min(100, Math.round(course.progressPercentage || 0))}%`, color: 'bg-blue-500' };
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-blue-200 to-pink-200 rounded-full blur-3xl opacity-30"></div>
+
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Explore Courses</h1>
-              <p className="text-gray-600 mt-1">
-                {totalCourses > 0 ? `${totalCourses} courses available` : 'Loading courses...'} • Find your perfect learning path
+      <div className="bg-white/80 backdrop-blur-xl shadow-lg border-b border-indigo-200/50 relative z-10">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="text-center lg:text-left">
+              <div className="flex justify-center lg:justify-start mb-6">
+                <div className="h-16 w-16 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-700 rounded-3xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 group">
+                  <span className="text-white font-bold text-2xl group-hover:scale-110 transition-transform duration-300">🎓</span>
+                </div>
+              </div>
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                Explore Courses ✨
+              </h1>
+              <p className="text-slate-700 text-xl font-medium">
+                🚀 {totalCourses > 0 ? `${totalCourses} courses available` : 'Loading courses...'} • Find your perfect learning path
               </p>
             </div>
 
             {/* Search Bar */}
-            <div className="relative max-w-md">
+            <div className="relative max-w-md w-full lg:w-auto">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search courses..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="🔍 Search courses..."
+                className="w-full pl-12 pr-6 py-4 bg-white/90 backdrop-blur-sm border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 shadow-lg text-lg font-medium placeholder:text-slate-500 hover:shadow-xl"
               />
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-slate-500">
+                <span>🔍</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap items-center gap-4">
+      <div className="bg-white/80 backdrop-blur-xl border-b border-indigo-200/50 relative z-10">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex flex-wrap items-center gap-6">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 shadow-md hover:shadow-lg font-bold text-slate-800"
             >
-              <FunnelIcon className="h-4 w-4" />
-              Filters
-              <ChevronDownIcon className={`h-4 w-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <span>🎛️</span>
+              <span>Filters</span>
+              <ChevronDownIcon className={`h-5 w-5 transform transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Quick Filters */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {categories.slice(0, 4).map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(selectedCategory === category.name ? '' : category.name)}
-                  className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                  className={`px-4 py-2 rounded-2xl text-sm font-bold border-2 transition-all duration-200 hover:scale-105 shadow-md ${
                     selectedCategory === category.name
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-600 shadow-lg'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-slate-400'
                   }`}
                 >
-                  {category.name}
+                  🏷️ {category.name}
                 </button>
               ))}
             </div>
@@ -272,7 +348,7 @@ export default function CoursesPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-3 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 shadow-md font-bold text-slate-800"
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -285,15 +361,18 @@ export default function CoursesPage() {
 
           {/* Expanded Filters */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="mt-6 p-8 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-sm rounded-3xl border-2 border-indigo-200/50 shadow-xl">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Categories */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                  <label className="block text-lg font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <span>🏷️</span>
+                    <span>Category</span>
+                  </label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 shadow-md font-medium text-slate-800"
                   >
                     <option value="">All Categories</option>
                     {categories.map((category) => (
@@ -306,11 +385,14 @@ export default function CoursesPage() {
 
                 {/* Level */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Level</label>
+                  <label className="block text-lg font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <span>📊</span>
+                    <span>Level</span>
+                  </label>
                   <select
                     value={selectedLevel}
                     onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 shadow-md font-medium text-slate-800"
                   >
                     <option value="">All Levels</option>
                     {levels.map((level) => (
@@ -323,11 +405,14 @@ export default function CoursesPage() {
 
                 {/* Price Range */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                  <label className="block text-lg font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                    <span>💰</span>
+                    <span>Price</span>
+                  </label>
                   <select
                     value={priceRange}
                     onChange={(e) => setPriceRange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-3 bg-white/90 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 shadow-md font-medium text-slate-800"
                   >
                     <option value="">All Prices</option>
                     {priceRanges.map((range) => (
@@ -343,9 +428,10 @@ export default function CoursesPage() {
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="w-full px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                      className="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-2xl hover:from-red-600 hover:to-pink-700 transition-all duration-200 hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
                     >
-                      Clear All
+                      <span>🗑️</span>
+                      <span>Clear All</span>
                     </button>
                   )}
                 </div>
@@ -355,48 +441,48 @@ export default function CoursesPage() {
 
           {/* Active Filters Display */}
           {hasActiveFilters && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-6 flex flex-wrap gap-3">
               {searchQuery && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  Search: "{searchQuery}"
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-2xl text-sm font-bold border-2 border-blue-200 shadow-md">
+                  🔍 Search: "{searchQuery}"
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="hover:bg-blue-200 rounded-full p-0.5"
+                    className="hover:bg-blue-200 rounded-full p-1 transition-colors duration-200"
                   >
-                    <XMarkIcon className="h-3 w-3" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </span>
               )}
               {selectedCategory && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  Category: {selectedCategory}
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-2xl text-sm font-bold border-2 border-green-200 shadow-md">
+                  🏷️ Category: {selectedCategory}
                   <button
                     onClick={() => setSelectedCategory('')}
-                    className="hover:bg-blue-200 rounded-full p-0.5"
+                    className="hover:bg-green-200 rounded-full p-1 transition-colors duration-200"
                   >
-                    <XMarkIcon className="h-3 w-3" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </span>
               )}
               {selectedLevel && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  Level: {selectedLevel}
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 rounded-2xl text-sm font-bold border-2 border-purple-200 shadow-md">
+                  📊 Level: {selectedLevel}
                   <button
                     onClick={() => setSelectedLevel('')}
-                    className="hover:bg-blue-200 rounded-full p-0.5"
+                    className="hover:bg-purple-200 rounded-full p-1 transition-colors duration-200"
                   >
-                    <XMarkIcon className="h-3 w-3" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </span>
               )}
               {priceRange && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  Price: {priceRanges.find(p => p.value === priceRange)?.label}
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 rounded-2xl text-sm font-bold border-2 border-orange-200 shadow-md">
+                  💰 Price: {priceRanges.find(p => p.value === priceRange)?.label}
                   <button
                     onClick={() => setPriceRange('')}
-                    className="hover:bg-blue-200 rounded-full p-0.5"
+                    className="hover:bg-orange-200 rounded-full p-1 transition-colors duration-200"
                   >
-                    <XMarkIcon className="h-3 w-3" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </span>
               )}
@@ -406,104 +492,134 @@ export default function CoursesPage() {
       </div>
 
       {/* Course Grid */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-12 relative z-10">
         {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm animate-pulse">
-                <div className="aspect-video bg-gray-200 rounded-t-lg"></div>
+              <div key={i} className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl animate-pulse border border-indigo-200/50">
+                <div className="aspect-video bg-gradient-to-br from-indigo-200 to-purple-200 rounded-t-3xl"></div>
                 <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
+                  <div className="h-6 bg-indigo-200 rounded-xl mb-3"></div>
+                  <div className="h-4 bg-slate-200 rounded-xl mb-3"></div>
+                  <div className="h-4 bg-slate-200 rounded-xl mb-6"></div>
+                  <div className="h-12 bg-gradient-to-r from-indigo-200 to-purple-200 rounded-2xl"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : courses.length > 0 ? (
           <>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12">
               {courses.map((course) => (
-                <div key={course.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-600 rounded-t-lg flex items-center justify-center relative">
+                <div key={course.id} className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border border-indigo-200/50 overflow-hidden group">
+                  <div className="aspect-video bg-gradient-to-br from-indigo-400 via-purple-500 to-pink-600 rounded-t-3xl flex items-center justify-center relative overflow-hidden">
                     {course.thumbnail ? (
                       <img
                         src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
                         alt={course.title}
-                        className="w-full h-full object-cover rounded-t-lg"
+                        className="w-full h-full object-cover rounded-t-3xl group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (
-                      <BookOpenIcon className="h-16 w-16 text-white opacity-80" />
-                    )}
-                    {course.isEnrolled && (
-                      <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                        Enrolled
+                      <div className="relative">
+                        <BookOpenIcon className="h-20 w-20 text-white opacity-90" />
+                        <div className="absolute inset-0 bg-white/10 rounded-full animate-pulse"></div>
                       </div>
                     )}
+                    {(() => {
+                      const badge = getCourseStatusBadge(course);
+                      return badge && (
+                        <div className={`absolute top-3 right-3 ${badge.color} text-white px-3 py-2 rounded-2xl text-sm font-bold shadow-lg border-2 border-white/20`}>
+                          {badge.text}
+                        </div>
+                      );
+                    })()}
                     {course.category && (
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                        {course.category.name}
+                      <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-2xl text-sm font-bold border border-white/20">
+                        🏷️ {course.category.name}
                       </div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
 
-                  <div className="p-6">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{course.description}</p>
+                  <div className="p-8">
+                    <h3 className="font-bold text-slate-800 mb-3 line-clamp-2 text-xl group-hover:text-indigo-700 transition-colors duration-200">{course.title}</h3>
+                    <p className="text-slate-700 text-sm mb-4 line-clamp-2 font-medium leading-relaxed">{course.description}</p>
 
-                    <div className="text-sm text-gray-600 mb-3">
-                      by {course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor'}
+                    <div className="text-sm font-bold text-slate-700 mb-4 flex items-center space-x-2">
+                      <span>👨‍🏫</span>
+                      <span>by {course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}</span>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                      <div className="flex items-center">
-                        <ClockIcon className="h-4 w-4 mr-1" />
-                        {course.duration ? `${course.duration}h` : 'N/A'}
+                    <div className="flex items-center justify-between text-sm font-bold text-slate-700 mb-6">
+                      <div className="flex items-center bg-blue-50 px-3 py-2 rounded-xl border border-blue-200">
+                        <span className="mr-2">⏱️</span>
+                        <span>{course.duration ? `${course.duration}h` : 'N/A'}</span>
                       </div>
-                      <div className="flex items-center">
-                        <UsersIcon className="h-4 w-4 mr-1" />
-                        {course._count.enrollments}
+                      <div className="flex items-center bg-green-50 px-3 py-2 rounded-xl border border-green-200">
+                        <span className="mr-2">👥</span>
+                        <span>{course._count.enrollments}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center">
                         <div className="flex text-yellow-400">
                           {[...Array(5)].map((_, i) => (
                             <StarIcon
                               key={i}
-                              className={`h-4 w-4 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
+                              className={`h-5 w-5 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-gray-600 ml-2">
+                        <span className="text-sm font-bold text-slate-700 ml-2">
                           {course.averageRating?.toFixed(1) || 'N/A'}
                         </span>
                       </div>
-                      <span className="font-bold text-lg text-gray-900">
-                        {course.price === 0 ? 'Free' : `$${course.price}`}
+                      <span className="font-bold text-2xl bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        {course.price === 0 ? '🆓 Free' : `💰 $${course.price}`}
                       </span>
                     </div>
 
                     {course.isEnrolled ? (
-                      <Link href={`/courses/${course.id}`}>
-                        <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
-                          Continue Learning
-                        </button>
-                      </Link>
+                      (() => {
+                        const buttonState = getCourseButtonState(course);
+                        return (
+                          <Link href={buttonState.href}>
+                            <button className={`w-full py-4 rounded-2xl transition-all duration-200 hover:scale-105 shadow-lg font-bold text-lg flex items-center justify-center space-x-2 ${
+                              buttonState.text === 'Completed'
+                                ? 'bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800'
+                                : 'bg-gradient-to-r from-indigo-600 to-purple-700 text-white hover:from-indigo-700 hover:to-purple-800'
+                            }`}>
+                              <span>{buttonState.text === 'Completed' ? '✅' : buttonState.text === 'Continue Learning' ? '📚' : '⭐'}</span>
+                              <span>{buttonState.text}</span>
+                            </button>
+                          </Link>
+                        );
+                      })()
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <Link href={`/courses/${course.id}`}>
-                          <button className="w-full border border-blue-600 text-blue-600 py-2 rounded-lg hover:bg-blue-50 transition-colors">
-                            View Details
+                          <button className="w-full border-2 border-indigo-600 text-indigo-700 py-3 rounded-2xl hover:bg-indigo-50 transition-all duration-200 font-bold hover:scale-105 shadow-md flex items-center justify-center space-x-2">
+                            <span>👀</span>
+                            <span>View Details</span>
                           </button>
                         </Link>
                         <button
                           onClick={() => handleEnroll(course.id)}
                           disabled={enrolling === course.id}
-                          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full bg-gradient-to-r from-indigo-600 to-purple-700 text-white py-4 rounded-2xl hover:from-indigo-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg hover:scale-105 shadow-lg flex items-center justify-center space-x-2"
                         >
-                          {enrolling === course.id ? 'Enrolling...' : `Enroll ${course.price === 0 ? 'Free' : `$${course.price}`}`}
+                          {enrolling === course.id ? (
+                            <>
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Enrolling...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>🚀</span>
+                              <span>Enroll {course.price === 0 ? 'Free' : `$${course.price}`}</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
@@ -515,13 +631,13 @@ export default function CoursesPage() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center">
-                <nav className="flex space-x-2">
+                <nav className="flex space-x-3 bg-white/80 backdrop-blur-xl p-4 rounded-2xl shadow-xl border border-indigo-200/50">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 text-sm font-bold rounded-2xl border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 shadow-md"
                   >
-                    Previous
+                    ⬅️ Previous
                   </button>
 
                   {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -540,10 +656,10 @@ export default function CoursesPage() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-2 text-sm rounded-md border ${
+                        className={`px-4 py-3 text-sm font-bold rounded-2xl border-2 transition-all duration-200 hover:scale-105 shadow-md ${
                           currentPage === page
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-600'
+                            : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400'
                         }`}
                       >
                         {page}
@@ -554,32 +670,35 @@ export default function CoursesPage() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2 text-sm rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 text-sm font-bold rounded-2xl border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 shadow-md"
                   >
-                    Next
+                    Next ➡️
                   </button>
                 </nav>
               </div>
             )}
           </>
         ) : (
-          <div className="text-center py-12">
-            <MagnifyingGlassIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {hasActiveFilters ? 'No courses found with current filters' : 'No courses available'}
+          <div className="text-center py-20">
+            <div className="w-32 h-32 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-8">
+              <span className="text-white text-6xl">🔍</span>
+            </div>
+            <h3 className="text-3xl font-bold text-slate-800 mb-6">
+              {hasActiveFilters ? 'No courses found with current filters ✨' : 'No courses available 📚'}
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-slate-700 mb-8 text-xl font-medium max-w-2xl mx-auto leading-relaxed">
               {hasActiveFilters
-                ? 'Try adjusting your search criteria or browse all courses'
-                : 'Check back later for new courses!'
+                ? 'Try adjusting your search criteria or browse all courses to find your perfect learning path!'
+                : 'Check back later for new courses! We\'re constantly adding exciting learning opportunities.'
               }
             </p>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-200 hover:scale-105 shadow-2xl flex items-center space-x-3 mx-auto"
               >
-                Browse All Courses
+                <span>🌟</span>
+                <span>Browse All Courses</span>
               </button>
             )}
           </div>

@@ -276,6 +276,12 @@ class ApiClient {
     getTutorAnalytics: () => this.get<ApiResponse>('/analytics/tutor'),
     getCourseCompletion: (courseId: string) => this.get<ApiResponse>(`/analytics/course/${courseId}/completion`)
   };
+
+  // Students endpoints
+  students = {
+    getAll: () => this.get<ApiResponse>('/students'),
+    getById: (id: string) => this.get<ApiResponse>(`/students/${id}`),
+  };
 }
 
 export const api = new ApiClient(API_BASE_URL);

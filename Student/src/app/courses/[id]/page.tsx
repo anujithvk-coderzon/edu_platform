@@ -21,6 +21,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
+import StarRating from '@/components/ui/StarRating';
+import CourseReview from '@/components/CourseReview';
+import CourseReviews from '@/components/CourseReviews';
 
 interface Course {
   id: string;
@@ -31,6 +34,8 @@ interface Course {
   level: string;
   duration: number;
   averageRating: number;
+  totalReviews: number;
+  tutorName?: string;
   isEnrolled: boolean;
   creator: {
     id: string;
@@ -41,7 +46,9 @@ interface Course {
   category: {
     id: string;
     name: string;
-  };
+  } | null;
+  requirements: string[];
+  prerequisites: string[];
   modules: Array<{
     id: string;
     title: string;
@@ -108,6 +115,10 @@ export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
   const courseId = params?.id as string;
+
+  // Debug logging
+  console.log('Course Detail Page - params:', params);
+  console.log('Course Detail Page - courseId:', courseId);
 
   const [course, setCourse] = useState<Course | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -245,9 +256,11 @@ export default function CourseDetailPage() {
             {/* Course Info */}
             <div className="lg:col-span-2">
               <div className="flex items-start gap-2 mb-4">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  {course.category.name}
-                </span>
+                {course.category && (
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    {course.category.name}
+                  </span>
+                )}
                 <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
                   {course.level}
                 </span>
@@ -258,9 +271,8 @@ export default function CourseDetailPage() {
 
               <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600">
                 <div className="flex items-center">
-                  <StarIcon className="h-5 w-5 text-yellow-400 mr-1" />
-                  <span className="font-medium">{course.averageRating?.toFixed(1) || 'N/A'}</span>
-                  <span className="ml-1">({course._count.reviews} reviews)</span>
+                  <StarRating rating={course.averageRating || 0} readonly showValue />
+                  <span className="ml-2 text-gray-600">({course.totalReviews} reviews)</span>
                 </div>
                 <div className="flex items-center">
                   <UsersIcon className="h-5 w-5 mr-1" />
@@ -293,7 +305,7 @@ export default function CourseDetailPage() {
                   )}
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-900">
-                      {course.creator.firstName} {course.creator.lastName}
+                      {course.tutorName || `${course.creator.firstName} ${course.creator.lastName}`}
                     </p>
                     <p className="text-sm text-gray-600">Instructor</p>
                   </div>
@@ -336,12 +348,12 @@ export default function CourseDetailPage() {
                       <div>
                         <div className="flex justify-between text-sm mb-2">
                           <span>Progress</span>
-                          <span className="font-medium">{Math.round(progress.stats.progressPercentage)}%</span>
+                          <span className="font-medium">{Math.min(100, Math.round(progress.stats.progressPercentage))}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress.stats.progressPercentage}%` }}
+                            style={{ width: `${Math.min(100, progress.stats.progressPercentage)}%` }}
                           />
                         </div>
                         <div className="flex justify-between text-xs text-gray-600 mt-2">
@@ -361,31 +373,59 @@ export default function CourseDetailPage() {
                   <button
                     onClick={handleEnroll}
                     disabled={enrolling}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                   >
-                    {enrolling ? 'Enrolling...' : `Enroll ${course.price === 0 ? 'for Free' : `for $${course.price}`}`}
+                    {enrolling ? 'Enrolling...' : 'Enroll Now'}
                   </button>
                 )}
 
-                <div className="mt-6 space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
-                    <span>Lifetime access</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
-                    <span>Mobile and desktop access</span>
-                  </div>
-                  {course._count.materials > 0 && (
-                    <div className="flex items-center">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
-                      <span>Certificate of completion</span>
+                <div className="mt-6 space-y-4">
+                  {course.requirements && course.requirements.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Requirements</h4>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        {course.requirements.map((req, index) => (
+                          <div key={index} className="flex items-start">
+                            <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+                            <span>{req}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  <div className="flex items-center">
-                    <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
-                    <span>{course._count.materials} learning materials</span>
-                  </div>
+
+                  {course.prerequisites && course.prerequisites.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Prerequisites</h4>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        {course.prerequisites.map((prereq, index) => (
+                          <div key={index} className="flex items-start">
+                            <CheckCircleIcon className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0 mt-0.5" />
+                            <span>{prereq}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Show general info if no requirements or prerequisites */}
+                  {(!course.requirements || course.requirements.length === 0) &&
+                   (!course.prerequisites || course.prerequisites.length === 0) && (
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center">
+                        <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
+                        <span>{course._count.materials} learning materials</span>
+                      </div>
+                      <div className="flex items-center">
+                        <ClockIcon className="h-5 w-5 text-green-500 mr-3" />
+                        <span>{course.duration || 0} hours of content</span>
+                      </div>
+                      <div className="flex items-center">
+                        <BookOpenIcon className="h-5 w-5 text-green-500 mr-3" />
+                        <span>{course.level} level</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -493,59 +533,17 @@ export default function CourseDetailPage() {
           )}
 
           {activeTab === 'reviews' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Student Reviews</h2>
-                <div className="flex items-center">
-                  {renderStars(course.averageRating || 0)}
-                  <span className="ml-2 text-lg font-medium">{course.averageRating?.toFixed(1) || 'N/A'}</span>
-                  <span className="ml-1 text-gray-600">({course._count.reviews} reviews)</span>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {course.reviews.length > 0 ? (
-                  course.reviews.map((review) => (
-                    <div key={review.id} className="bg-white border rounded-lg p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0">
-                          {review.user.avatar ? (
-                            <img
-                              src={review.user.avatar}
-                              alt={`${review.user.firstName} ${review.user.lastName}`}
-                              className="h-10 w-10 rounded-full"
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-700">
-                                {review.user.firstName[0]}{review.user.lastName[0]}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium text-gray-900">
-                              {review.user.firstName} {review.user.lastName}
-                            </h4>
-                            {renderStars(review.rating)}
-                            <span className="text-sm text-gray-500">
-                              {new Date(review.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="text-gray-700">{review.comment}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12">
-                    <StarIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
-                    <p className="text-gray-600">Be the first to review this course!</p>
-                  </div>
-                )}
-              </div>
+            <div className="space-y-8">
+              {course.isEnrolled && (
+                <CourseReview
+                  courseId={course.id}
+                  onReviewSubmitted={() => {
+                    // Refresh course data to update ratings
+                    fetchCourseDetails();
+                  }}
+                />
+              )}
+              <CourseReviews courseId={course.id} />
             </div>
           )}
         </div>

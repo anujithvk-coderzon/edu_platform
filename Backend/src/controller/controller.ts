@@ -1098,6 +1098,13 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
             type: true
           }
         },
+        enrollments: {
+          select: {
+            id: true,
+            status: true,
+            progressPercentage: true
+          }
+        },
         _count: {
           select: { enrollments: true }
         }
@@ -1118,10 +1125,15 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (course._count.enrollments > 0) {
+    // Check for active enrollments (not completed)
+    const activeEnrollments = course.enrollments.filter(
+      enrollment => enrollment.status !== 'COMPLETED' && enrollment.progressPercentage < 100
+    );
+
+    if (activeEnrollments.length > 0) {
       return res.status(400).json({
         success: false,
-        error: { message: 'Cannot delete course with active enrollments' }
+        error: { message: `Cannot delete course with ${activeEnrollments.length} active enrollment(s). Wait for students to complete the course or manually mark enrollments as completed.` }
       });
     }
 
@@ -2158,7 +2170,9 @@ export const CompleteMaterial = async (req: AuthRequest, res: express.Response) 
       }
     });
 
-    const progressPercentage = Math.round((completedMaterials / totalMaterials) * 100);
+    const progressPercentage = totalMaterials > 0
+      ? Math.min(100, Math.round((completedMaterials / totalMaterials) * 100))
+      : 0;
 
     await prisma.enrollment.update({
       where: {
@@ -2561,7 +2575,7 @@ export const GetEnrollmentProgress = async (req: AuthRequest, res: express.Respo
         stats: {
           totalMaterials,
           completedMaterials,
-          progressPercentage: totalMaterials > 0 ? Math.round((completedMaterials / totalMaterials) * 100) : 0,
+          progressPercentage: totalMaterials > 0 ? Math.min(100, Math.round((completedMaterials / totalMaterials) * 100)) : 0,
           totalTimeSpent
         }
       }
@@ -3009,14 +3023,15 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
       totalMaterials += materialCount * studentCount;
       totalCompletedMaterials += course.enrollments.reduce((sum, enrollment) => sum + enrollment.progressRecords.length, 0);
       totalStudents += studentCount;
-      totalEarnings += studentCount * course.price;
+      // Since there's no payment system implemented yet, revenue should be 0
+      // totalEarnings += studentCount * course.price;
       totalReviews += reviewCount;
 
       return {
         id: course.id,
         title: course.title,
         students: studentCount,
-        revenue: studentCount * course.price,
+        revenue: 0, // No payment system implemented yet
         rating: 0, // Would need to calculate from reviews
         completionRate: Math.round(completionRate * 100) / 100,
         materials: materialCount,
@@ -3034,15 +3049,15 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
     // Calculate growth rates (would need historical data for real growth)
     const thisMonthStudents = Math.floor(totalStudents * 0.2);
     const lastMonthStudents = Math.floor(totalStudents * 0.18);
-    const thisMonthRevenue = Math.floor(totalEarnings * 0.2);
-    const lastMonthRevenue = Math.floor(totalEarnings * 0.18);
+    const thisMonthRevenue = 0; // No payment system implemented yet
+    const lastMonthRevenue = 0; // No payment system implemented yet
 
     const analytics = {
       revenue: {
-        total: totalEarnings,
-        thisMonth: thisMonthRevenue,
-        lastMonth: lastMonthRevenue,
-        growth: lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
+        total: 0, // No payment system implemented yet
+        thisMonth: 0, // No payment system implemented yet
+        lastMonth: 0, // No payment system implemented yet
+        growth: 0 // No payment system implemented yet
       },
       students: {
         total: totalStudents,
@@ -3065,9 +3080,9 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
     };
 
     const revenueData = [
-      { date: '2024-01', revenue: totalEarnings * 0.2, students: Math.floor(totalStudents * 0.2) },
-      { date: '2024-02', revenue: totalEarnings * 0.3, students: Math.floor(totalStudents * 0.3) },
-      { date: '2024-03', revenue: totalEarnings * 0.5, students: Math.floor(totalStudents * 0.5) }
+      { date: '2024-01', revenue: 0, students: Math.floor(totalStudents * 0.2) }, // No payment system implemented yet
+      { date: '2024-02', revenue: 0, students: Math.floor(totalStudents * 0.3) }, // No payment system implemented yet
+      { date: '2024-03', revenue: 0, students: Math.floor(totalStudents * 0.5) } // No payment system implemented yet
     ];
 
     return res.json({

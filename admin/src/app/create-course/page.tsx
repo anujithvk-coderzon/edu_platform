@@ -68,7 +68,7 @@ const initialFormData: CourseFormData = {
   title: '',
   description: '',
   level: '',
-  price: '0',
+  price: '',
   duration: '',
   tutorName: '',
   thumbnail: null,
@@ -340,6 +340,8 @@ export default function CreateCoursePage() {
         title: formData.title.trim(),
         description: formData.description.trim(),
         price: formData.price ? parseFloat(formData.price) : 0,
+        status: 'PUBLISHED',
+        isPublic: true,
       };
 
       // Only add duration if it's a valid number
@@ -483,8 +485,15 @@ export default function CreateCoursePage() {
 
   const renderStep1 = () => (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">
+          Basic Information
+        </h2>
+        <p className="text-slate-600 text-sm sm:text-base">Let's start with the fundamentals of your course</p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-slate-700">
           Course Title <span className="text-red-500">*</span>
         </label>
         <Input
@@ -495,8 +504,8 @@ export default function CreateCoursePage() {
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-slate-700">
           Course Description <span className="text-red-500">*</span>
         </label>
         <Textarea
@@ -508,15 +517,14 @@ export default function CreateCoursePage() {
         />
       </div>
 
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-slate-700">
           Course Thumbnail
         </label>
         <FileUpload
           accept="image/*"
           onFileSelect={(files) => handleInputChange('thumbnail', files[0] || null)}
-          placeholder="Upload course thumbnail image"
+          placeholder="Upload course thumbnail image (optional)"
           maxSize={5 * 1024 * 1024}
         />
       </div>
@@ -525,9 +533,16 @@ export default function CreateCoursePage() {
 
   const renderStep2 = () => (
     <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">
+          Course Details
+        </h2>
+        <p className="text-slate-600 text-sm sm:text-base">Pricing, level, and requirements</p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Difficulty Level
           </label>
           <Select
@@ -540,7 +555,7 @@ export default function CreateCoursePage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Price (USD) <span className="text-red-500">*</span>
           </label>
           <Input
@@ -556,18 +571,18 @@ export default function CreateCoursePage() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Estimated Duration (hours)
         </label>
         <Input
           value={formData.duration}
           onChange={(e) => handleInputChange('duration', e.target.value)}
-          placeholder="e.g., 10 hours"
+          placeholder="e.g., 10"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Tutor/Organization Name
         </label>
         <Input
@@ -575,39 +590,42 @@ export default function CreateCoursePage() {
           onChange={(e) => handleInputChange('tutorName', e.target.value)}
           placeholder="e.g., CoderZone Academy or Your Name"
         />
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           This will be displayed as "Created by" on the course page
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-3">
           Learning Objectives
         </label>
-        {formData.objectives.map((objective, index) => (
-          <div key={index} className="flex items-center space-x-2 mb-2">
-            <Input
-              value={objective}
-              onChange={(e) => handleArrayChange('objectives', index, e.target.value)}
-              placeholder={`Objective ${index + 1}`}
-            />
-            {formData.objectives.length > 1 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => removeArrayItem('objectives', index)}
-                type="button"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        ))}
+        <div className="space-y-2">
+          {formData.objectives.map((objective, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <Input
+                value={objective}
+                onChange={(e) => handleArrayChange('objectives', index, e.target.value)}
+                placeholder={`Objective ${index + 1}`}
+              />
+              {formData.objectives.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeArrayItem('objectives', index)}
+                  type="button"
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => addArrayItem('objectives')}
           type="button"
+          className="mt-2"
         >
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Objective
@@ -615,33 +633,36 @@ export default function CreateCoursePage() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-3">
           Requirements
         </label>
-        {formData.requirements.map((requirement, index) => (
-          <div key={index} className="flex items-center space-x-2 mb-2">
-            <Input
-              value={requirement}
-              onChange={(e) => handleArrayChange('requirements', index, e.target.value)}
-              placeholder={`Requirement ${index + 1}`}
-            />
-            {formData.requirements.length > 1 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => removeArrayItem('requirements', index)}
-                type="button"
-              >
-                <XMarkIcon className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        ))}
+        <div className="space-y-2">
+          {formData.requirements.map((requirement, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <Input
+                value={requirement}
+                onChange={(e) => handleArrayChange('requirements', index, e.target.value)}
+                placeholder={`Requirement ${index + 1}`}
+              />
+              {formData.requirements.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeArrayItem('requirements', index)}
+                  type="button"
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
         <Button
           variant="outline"
           size="sm"
           onClick={() => addArrayItem('requirements')}
           type="button"
+          className="mt-2"
         >
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Requirement
@@ -652,26 +673,30 @@ export default function CreateCoursePage() {
 
   const renderStep3 = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Course Content</h3>
-          <p className="text-sm text-gray-600">Structure your course like Udemy/Coursera with chapters and materials</p>
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">
+          Course Content
+        </h2>
+        <p className="text-slate-600 text-sm sm:text-base">Structure your course with chapters and materials</p>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <div className="flex-1">
+          {errors.chapters && <p className="text-red-500 text-sm">{errors.chapters}</p>}
         </div>
-        <Button onClick={addChapter} type="button">
+        <Button onClick={addChapter} type="button" size="sm">
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Chapter
         </Button>
       </div>
 
-      {errors.chapters && <p className="text-red-500 text-sm">{errors.chapters}</p>}
-
       <div className="space-y-4">
         {formData.chapters.map((chapter, chapterIndex) => (
-          <Card key={chapter.id} className="border-2 border-gray-200">
+          <Card key={chapter.id} className="bg-white shadow-sm border border-slate-200">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex space-x-1">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -679,7 +704,7 @@ export default function CreateCoursePage() {
                       disabled={chapterIndex === 0}
                       type="button"
                     >
-                      <ArrowUpIcon className="w-4 h-4" />
+                      <ArrowUpIcon className="w-3 h-3" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -688,20 +713,21 @@ export default function CreateCoursePage() {
                       disabled={chapterIndex === formData.chapters.length - 1}
                       type="button"
                     >
-                      <ArrowDownIcon className="w-4 h-4" />
+                      <ArrowDownIcon className="w-3 h-3" />
                     </Button>
                   </div>
                   <div className="flex-1">
-                    <CardTitle className="text-base">Chapter {chapterIndex + 1}</CardTitle>
+                    <CardTitle className="text-sm font-semibold text-slate-900">Chapter {chapterIndex + 1}</CardTitle>
                   </div>
                 </div>
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   size="sm"
                   onClick={() => removeChapter(chapter.id)}
                   type="button"
+                  className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50"
                 >
-                  <XMarkIcon className="w-4 h-4" />
+                  <XMarkIcon className="w-3 h-3" />
                 </Button>
               </div>
             </CardHeader>
@@ -724,16 +750,16 @@ export default function CreateCoursePage() {
               </div>
 
               {/* Materials Section */}
-              <div className="border-t pt-4">
+              <div className="border-t border-slate-200 pt-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900">Materials</h4>
+                  <h4 className="text-sm font-medium text-slate-900">Materials</h4>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => addMaterial(chapter.id)}
                     type="button"
                   >
-                    <PlusIcon className="w-4 h-4 mr-1" />
+                    <PlusIcon className="w-3 h-3 mr-1" />
                     Add Material
                   </Button>
                 </div>
@@ -746,19 +772,20 @@ export default function CreateCoursePage() {
                   {chapter.materials.map((material, materialIndex) => {
                     const MaterialIcon = materialTypes.find(t => t.value === material.type)?.icon || DocumentTextIcon;
                     return (
-                      <div key={material.id} className="border rounded-lg p-3 bg-gray-50">
+                      <div key={material.id} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center space-x-2">
-                            <MaterialIcon className="w-5 h-5 text-gray-600" />
-                            <span className="text-sm font-medium">Material {materialIndex + 1}</span>
+                            <MaterialIcon className="w-4 h-4 text-slate-600" />
+                            <span className="text-xs font-medium text-slate-900">Material {materialIndex + 1}</span>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => removeMaterial(chapter.id, material.id)}
                             type="button"
+                            className="text-red-600 hover:text-red-700"
                           >
-                            <XMarkIcon className="w-4 h-4" />
+                            <XMarkIcon className="w-3 h-3" />
                           </Button>
                         </div>
 
@@ -837,10 +864,15 @@ export default function CreateCoursePage() {
       </div>
 
       {formData.chapters.length === 0 && (
-        <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-          <BookOpenIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600 mb-3">No chapters yet</p>
-          <Button onClick={addChapter} type="button">
+        <div className="text-center py-12 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50">
+          <div className="w-16 h-16 bg-slate-200 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <BookOpenIcon className="w-8 h-8 text-slate-600" />
+          </div>
+          <p className="text-slate-900 font-semibold text-lg mb-4">No chapters yet</p>
+          <Button
+            onClick={addChapter}
+            type="button"
+          >
             <PlusIcon className="w-4 h-4 mr-2" />
             Add Your First Chapter
           </Button>
@@ -851,45 +883,55 @@ export default function CreateCoursePage() {
 
   const renderStep4 = () => (
     <div className="space-y-6">
-      <div className="text-center">
-        <CheckCircleIcon className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Review Your Course</h3>
-        <p className="text-gray-600">Review all the information below and click "Create Course" to publish</p>
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+          <CheckCircleIcon className="w-8 h-8 text-green-600" />
+        </div>
+        <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-2">Review Your Course</h2>
+        <p className="text-slate-600 text-sm sm:text-base">Review all the information below and click "Create Course" to publish</p>
       </div>
 
-      <Card>
+      <Card className="bg-white shadow-sm border border-slate-200">
         <CardHeader>
-          <CardTitle>Course Overview</CardTitle>
+          <CardTitle className="text-lg font-semibold text-slate-900">
+            Course Overview
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <h4 className="font-medium text-gray-900">Title:</h4>
-            <p className="text-gray-600">{formData.title || 'No title provided'}</p>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <h4 className="font-medium text-slate-900 text-sm mb-2">
+              Title:
+            </h4>
+            <p className="text-slate-700">{formData.title || 'No title provided'}</p>
           </div>
-          <div>
-            <h4 className="font-medium text-gray-900">Description:</h4>
-            <p className="text-gray-600">{formData.description || 'No description provided'}</p>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <h4 className="font-medium text-slate-900 text-sm mb-2">
+              Description:
+            </h4>
+            <p className="text-slate-700">{formData.description || 'No description provided'}</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="font-medium text-gray-900">Level:</h4>
-              <p className="text-gray-600">{levelOptions.find(l => l.value === formData.level)?.label || 'Not specified'}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-slate-50 rounded-lg p-4">
+              <h4 className="font-medium text-slate-900 text-sm mb-2">Level:</h4>
+              <p className="text-slate-700">{levelOptions.find(l => l.value === formData.level)?.label || 'Not specified'}</p>
             </div>
-            <div>
-              <h4 className="font-medium text-gray-900">Price:</h4>
-              <p className="text-gray-600">${formData.price || '0.00'}</p>
+            <div className="bg-slate-50 rounded-lg p-4">
+              <h4 className="font-medium text-slate-900 text-sm mb-2">Price:</h4>
+              <p className="text-slate-700">${formData.price || 'Not set'}</p>
             </div>
           </div>
-          <div>
-            <h4 className="font-medium text-gray-900">Chapters:</h4>
-            <p className="text-gray-600">{formData.chapters.length} chapter(s)</p>
-            <ul className="ml-4 mt-2 space-y-1">
-              {formData.chapters.map((chapter, index) => (
-                <li key={chapter.id} className="text-sm text-gray-600">
-                  Chapter {index + 1}: {chapter.title} ({chapter.materials.length} materials)
-                </li>
-              ))}
-            </ul>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <h4 className="font-medium text-slate-900 text-sm mb-2">Chapters:</h4>
+            <p className="text-slate-700 mb-2">{formData.chapters.length} chapter(s)</p>
+            {formData.chapters.length > 0 && (
+              <ul className="space-y-1">
+                {formData.chapters.map((chapter, index) => (
+                  <li key={chapter.id} className="text-sm text-slate-600">
+                    Chapter {index + 1}: {chapter.title} ({chapter.materials.length} materials)
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -904,60 +946,66 @@ export default function CreateCoursePage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Create New Course
-          </h1>
-          <p className="text-gray-600 mt-2">Build your course like Udemy/Coursera with chapters and materials</p>
+        <div className="mb-8 sm:mb-12">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-slate-900 mb-2">
+                Create New Course
+              </h1>
+              <p className="text-slate-600 text-sm sm:text-base">Build your course with chapters and materials</p>
+            </div>
+          </div>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center">
-            {steps.map((step, index) => (
-              <div key={step.number} className="flex-1">
-                <div className="flex items-center">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold
-                    ${currentStep >= step.number 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-200 text-gray-600'
-                    }
-                  `}>
-                    {currentStep > step.number ? (
-                      <CheckCircleIcon className="w-5 h-5" />
-                    ) : (
-                      step.number
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex justify-between items-center">
+              {steps.map((step, index) => (
+                <div key={step.number} className="flex-1">
+                  <div className="flex items-center">
+                    <div className={`
+                      w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-sm sm:text-base font-semibold transition-all duration-200
+                      ${currentStep >= step.number
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-200 text-slate-600'
+                      }
+                    `}>
+                      {currentStep > step.number ? (
+                        <span className="text-sm sm:text-base">✓</span>
+                      ) : (
+                        step.number
+                      )}
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div className={`
+                        flex-1 h-0.5 mx-2 sm:mx-4 rounded-full transition-all duration-300
+                        ${currentStep > step.number ? 'bg-blue-600' : 'bg-slate-200'}
+                      `} />
                     )}
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className={`
-                      flex-1 h-0.5 mx-2
-                      ${currentStep > step.number ? 'bg-blue-600' : 'bg-gray-200'}
-                    `} />
-                  )}
+                  <div className="mt-2 sm:mt-3">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-900">{step.title}</p>
+                    <p className="text-xs text-slate-600 mt-1 hidden sm:block">{step.description}</p>
+                  </div>
                 </div>
-                <div className="mt-2">
-                  <p className="text-sm font-medium text-gray-900">{step.title}</p>
-                  <p className="text-xs text-gray-600">{step.description}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Form Content */}
-        <Card className="shadow-lg">
-          <CardContent className="p-8">
+        <Card className="bg-white shadow-sm border border-slate-200 rounded-xl">
+          <CardContent className="p-4 sm:p-6 lg:p-8">
             {renderStepContent()}
           </CardContent>
         </Card>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center mt-8">
+        <div className="flex justify-between items-center mt-6 sm:mt-8">
           <div>
             {currentStep > 1 && (
               <Button
@@ -965,31 +1013,42 @@ export default function CreateCoursePage() {
                 onClick={prevStep}
                 disabled={isSubmitting}
                 type="button"
+                className="flex items-center space-x-2"
               >
-                <ChevronLeftIcon className="w-4 h-4 mr-2" />
-                Previous
+                <ChevronLeftIcon className="w-4 h-4" />
+                <span>Previous</span>
               </Button>
             )}
           </div>
-          
+
           <div>
             {currentStep < steps.length ? (
               <Button
                 onClick={nextStep}
                 disabled={isSubmitting}
                 type="button"
+                className="flex items-center space-x-2"
               >
-                Next
-                <ChevronRightIcon className="w-4 h-4 ml-2" />
+                <span>Next</span>
+                <ChevronRightIcon className="w-4 h-4" />
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
-                loading={isSubmitting}
                 disabled={isSubmitting}
                 type="button"
+                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
               >
-                {isSubmitting ? 'Creating Course...' : 'Create Course'}
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Creating Course...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Course</span>
+                  </>
+                )}
               </Button>
             )}
           </div>

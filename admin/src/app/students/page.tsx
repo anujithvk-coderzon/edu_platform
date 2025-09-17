@@ -306,7 +306,7 @@ export default function StudentsPage() {
               <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-2">
                 My Students
               </h1>
-              <p className="text-slate-600 text-sm sm:text-base">Track your students' progress and engagement</p>
+              <p className="text-slate-600 text-sm sm:text-base">Track your students&apos; progress and engagement</p>
             </div>
           </div>
         </div>
@@ -412,7 +412,7 @@ export default function StudentsPage() {
               Students ({filteredStudents.length})
             </CardTitle>
             <CardDescription className="text-slate-600 text-sm">
-              Manage and track your students' learning journey
+              Manage and track your students&apos; learning journey
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">

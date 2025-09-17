@@ -196,6 +196,23 @@ class ApiClient {
     getMyReview: (courseId: string) =>
       this.get<ApiResponse>(`/reviews/my-review/${courseId}`),
   };
+
+  // Assignment endpoints
+  assignments = {
+    getByCourse: (courseId: string) =>
+      this.get<ApiResponse>(`/assignments/course/${courseId}`),
+    getById: (assignmentId: string) =>
+      this.get<ApiResponse>(`/assignments/${assignmentId}`),
+    getSubmission: (assignmentId: string) =>
+      this.get<ApiResponse>(`/assignments/${assignmentId}/submission`),
+    submit: (assignmentId: string, data: { content?: string; fileUrl?: string }) =>
+      this.post<ApiResponse>(`/assignments/${assignmentId}/submit`, data),
+    uploadFile: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return this.uploadFile('/assignments/upload', formData);
+    },
+  };
 }
 
 export const api = new ApiClient(API_BASE_URL);

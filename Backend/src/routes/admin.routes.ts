@@ -2130,4 +2130,426 @@ router.delete('/materials/:id', asyncHandler(async (req: express.Request, res: e
   }
 }));
 
+// ===== ASSIGNMENT ENDPOINTS =====
+// Create a new assignment
+router.post('/assignments',
+  [
+    body('title').trim().isLength({ min: 1, max: 200 }).withMessage('Title is required'),
+    body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
+    body('dueDate').optional().isISO8601().withMessage('Invalid due date format'),
+    body('maxScore').optional().isFloat({ min: 0 }).withMessage('Max score must be a positive number'),
+    body('courseId').isLength({ min: 1 }).withMessage('Course ID is required'),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const token = req.cookies.admin_token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Access denied. No token provided.' }
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+      if (decoded.type && decoded.type !== 'admin') {
+        return res.status(401).json({
+          success: false,
+          error: { message: 'Invalid token type.' }
+        });
+      }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Validation failed', details: errors.array() }
+        });
+      }
+
+      const { title, description, dueDate, maxScore, courseId } = req.body;
+
+      // Verify course ownership
+      const course = await prisma.course.findFirst({
+        where: {
+          id: courseId,
+          creatorId: decoded.id
+        }
+      });
+
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          error: { message: 'Course not found or you do not have permission to add assignments to it.' }
+        });
+      }
+
+      const assignment = await prisma.assignment.create({
+        data: {
+          title,
+          description,
+          dueDate: dueDate ? new Date(dueDate) : null,
+          maxScore: maxScore || 100,
+          courseId,
+          creatorId: decoded.id
+        },
+        include: {
+          course: {
+            select: {
+              id: true,
+              title: true
+            }
+          },
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        data: { assignment }
+      });
+    } catch (error) {
+      console.error('Create assignment error:', error);
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to create assignment.' }
+      });
+    }
+  })
+);
+
+// Get assignments for a course
+router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { courseId } = req.params;
+
+    // Verify course ownership
+    const course = await prisma.course.findFirst({
+      where: {
+        id: courseId,
+        creatorId: decoded.id
+      }
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Course not found or you do not have permission to view its assignments.' }
+      });
+    }
+
+    const assignments = await prisma.assignment.findMany({
+      where: { courseId },
+      include: {
+        _count: {
+          select: {
+            submissions: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: { assignments }
+    });
+  } catch (error) {
+    console.error('Get course assignments error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Get assignment submissions
+router.get('/assignments/:assignmentId/submissions', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { assignmentId } = req.params;
+
+    // Verify assignment ownership
+    const assignment = await prisma.assignment.findFirst({
+      where: {
+        id: assignmentId,
+        creatorId: decoded.id
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Assignment not found or you do not have permission to view its submissions.' }
+      });
+    }
+
+    const submissions = await prisma.assignmentSubmission.findMany({
+      where: { assignmentId },
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        assignment: {
+          select: {
+            title: true,
+            maxScore: true
+          }
+        }
+      },
+      orderBy: { submittedAt: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: { submissions }
+    });
+  } catch (error) {
+    console.error('Get assignment submissions error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Grade assignment submission
+router.put('/assignments/submissions/:submissionId/grade',
+  [
+    body('score').isFloat({ min: 0 }).withMessage('Score must be a positive number'),
+    body('feedback').optional().trim(),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const token = req.cookies.admin_token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Access denied. No token provided.' }
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+      if (decoded.type && decoded.type !== 'admin') {
+        return res.status(401).json({
+          success: false,
+          error: { message: 'Invalid token type.' }
+        });
+      }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Validation failed', details: errors.array() }
+        });
+      }
+
+      const { submissionId } = req.params;
+      const { score, feedback } = req.body;
+
+      // Verify submission ownership through assignment
+      const submission = await prisma.assignmentSubmission.findFirst({
+        where: { id: submissionId },
+        include: {
+          assignment: {
+            select: {
+              creatorId: true,
+              maxScore: true
+            }
+          }
+        }
+      });
+
+      if (!submission) {
+        return res.status(404).json({
+          success: false,
+          error: { message: 'Submission not found.' }
+        });
+      }
+
+      if (submission.assignment.creatorId !== decoded.id) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to grade this submission.' }
+        });
+      }
+
+      if (score > submission.assignment.maxScore) {
+        return res.status(400).json({
+          success: false,
+          error: { message: `Score cannot exceed maximum score of ${submission.assignment.maxScore}` }
+        });
+      }
+
+      const gradedSubmission = await prisma.assignmentSubmission.update({
+        where: { id: submissionId },
+        data: {
+          score,
+          feedback: feedback || null,
+          status: 'GRADED',
+          gradedAt: new Date()
+        },
+        include: {
+          student: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          assignment: {
+            select: {
+              title: true,
+              maxScore: true
+            }
+          }
+        }
+      });
+
+      res.json({
+        success: true,
+        data: { submission: gradedSubmission }
+      });
+    } catch (error) {
+      console.error('Grade submission error:', error);
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to grade submission.' }
+      });
+    }
+  })
+);
+
+// Delete assignment
+router.delete('/assignments/:id', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type && decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    const { id } = req.params;
+
+    const assignment = await prisma.assignment.findFirst({
+      where: {
+        id,
+        creatorId: decoded.id
+      },
+      include: {
+        submissions: {
+          select: {
+            fileUrl: true
+          }
+        }
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Assignment not found or you do not have permission to delete it.' }
+      });
+    }
+
+    // Delete submission files
+    let deletedFilesCount = 0;
+    assignment.submissions.forEach(submission => {
+      if (submission.fileUrl) {
+        try {
+          const filename = submission.fileUrl.startsWith('/uploads/')
+            ? submission.fileUrl.replace('/uploads/', '')
+            : path.basename(submission.fileUrl);
+          const uploadDir = process.env.UPLOAD_DIR || './uploads';
+          const filePath = path.join(uploadDir, filename);
+
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            deletedFilesCount++;
+            console.log(`🗑️ Deleted submission file: ${filePath}`);
+          }
+        } catch (error) {
+          console.error(`Failed to delete submission file ${submission.fileUrl}:`, error);
+        }
+      }
+    });
+
+    await prisma.assignment.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: `Assignment and ${assignment.submissions.length} submissions (${deletedFilesCount} files) deleted successfully`
+    });
+  } catch (error) {
+    console.error('Delete assignment error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
 export default router;

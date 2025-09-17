@@ -282,6 +282,28 @@ class ApiClient {
     getAll: () => this.get<ApiResponse>('/students'),
     getById: (id: string) => this.get<ApiResponse>(`/students/${id}`),
   };
+
+  // Assignment endpoints
+  assignments = {
+    create: (data: {
+      title: string;
+      description: string;
+      dueDate?: string;
+      maxScore?: number;
+      courseId: string;
+    }) => this.post<ApiResponse>('/assignments', data),
+
+    getByCourse: (courseId: string) => this.get<ApiResponse>(`/assignments/course/${courseId}`),
+
+    getSubmissions: (assignmentId: string) => this.get<ApiResponse>(`/assignments/${assignmentId}/submissions`),
+
+    gradeSubmission: (submissionId: string, data: {
+      score: number;
+      feedback?: string;
+    }) => this.put<ApiResponse>(`/assignments/submissions/${submissionId}/grade`, data),
+
+    delete: (id: string) => this.delete<ApiResponse>(`/assignments/${id}`)
+  };
 }
 
 export const api = new ApiClient(API_BASE_URL);

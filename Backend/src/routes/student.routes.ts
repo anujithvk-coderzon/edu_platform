@@ -4,12 +4,67 @@ import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, query, validationResult } from 'express-validator';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 // Import prisma and middleware
 import prisma from '../DB/DB_Config';
 import { asyncHandler } from '../middleware/errorHandler';
 
 const router = express.Router();
+
+// ===== MULTER SETUP FOR FILE UPLOADS =====
+const uploadDir = process.env.UPLOAD_DIR || './uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, extension);
+
+    const sanitizedBaseName = baseName
+      .replace(/[^a-zA-Z0-9\-_]/g, '_')
+      .substring(0, 50);
+
+    cb(null, `assignment-${sanitizedBaseName}-${uniqueSuffix}${extension}`);
+  }
+});
+
+const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedMimes = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf', 'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain', 'application/zip'
+  ];
+
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`File type ${file.mimetype} is not allowed for assignments`));
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB for assignments
+    files: 1
+  }
+});
 
 // ===== UTILITY FUNCTIONS =====
 const generateToken = (studentId: string) => {
@@ -1336,6 +1391,263 @@ router.get('/reviews/my-review/:courseId', asyncHandler(async (req: express.Requ
     return res.status(500).json({
       success: false,
       error: { message: 'Failed to fetch review' }
+    });
+  }
+}));
+
+// ===== ASSIGNMENT ENDPOINTS =====
+// Get assignments for enrolled courses
+router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.student_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+    const studentId = decoded.id;
+    const { courseId } = req.params;
+
+    // Verify enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        userId_courseId: {
+          userId: studentId,
+          courseId
+        }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'You are not enrolled in this course.' }
+      });
+    }
+
+    const assignments = await prisma.assignment.findMany({
+      where: { courseId },
+      include: {
+        submissions: {
+          where: { studentId },
+          select: {
+            id: true,
+            status: true,
+            score: true,
+            submittedAt: true,
+            gradedAt: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: { assignments }
+    });
+  } catch (error) {
+    console.error('Get course assignments error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Submit assignment
+router.post('/assignments/:assignmentId/submit',
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const token = req.cookies.student_token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Access denied. No token provided.' }
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+      const studentId = decoded.id;
+      const { assignmentId } = req.params;
+
+      const { content, fileUrl } = req.body;
+
+      // Verify assignment exists and student is enrolled
+      const assignment = await prisma.assignment.findUnique({
+        where: { id: assignmentId },
+        include: {
+          course: {
+            include: {
+              enrollments: {
+                where: { userId: studentId }
+              }
+            }
+          }
+        }
+      });
+
+      if (!assignment) {
+        return res.status(404).json({
+          success: false,
+          error: { message: 'Assignment not found.' }
+        });
+      }
+
+      if (assignment.course.enrollments.length === 0) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'You are not enrolled in this course.' }
+        });
+      }
+
+      // Check if already submitted
+      const existingSubmission = await prisma.assignmentSubmission.findUnique({
+        where: {
+          assignmentId_studentId: {
+            assignmentId,
+            studentId
+          }
+        }
+      });
+
+      if (existingSubmission) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'You have already submitted this assignment.' }
+        });
+      }
+
+      // Check due date
+      if (assignment.dueDate && new Date() > assignment.dueDate) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Assignment due date has passed.' }
+        });
+      }
+
+      const submission = await prisma.assignmentSubmission.create({
+        data: {
+          content: content || '',
+          fileUrl: fileUrl || null,
+          assignmentId,
+          studentId,
+          status: 'SUBMITTED'
+        },
+        include: {
+          assignment: {
+            select: {
+              title: true,
+              maxScore: true,
+              dueDate: true
+            }
+          }
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        data: { submission }
+      });
+    } catch (error) {
+      console.error('Submit assignment error:', error);
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to submit assignment.' }
+      });
+    }
+  })
+);
+
+// Get assignment submission
+router.get('/assignments/:assignmentId/submission', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.student_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+    const studentId = decoded.id;
+    const { assignmentId } = req.params;
+
+    const submission = await prisma.assignmentSubmission.findUnique({
+      where: {
+        assignmentId_studentId: {
+          assignmentId,
+          studentId
+        }
+      },
+      include: {
+        assignment: {
+          select: {
+            title: true,
+            maxScore: true,
+            dueDate: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { submission }
+    });
+  } catch (error) {
+    console.error('Get assignment submission error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Upload assignment file
+router.post('/assignments/upload', upload.single('file'), asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.student_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    jwt.verify(token, process.env.JWT_SECRET as string);
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'No assignment file uploaded' }
+      });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+
+    res.json({
+      success: true,
+      data: {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        fileUrl: fileUrl
+      }
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
     });
   }
 }));

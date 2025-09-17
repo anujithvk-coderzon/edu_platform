@@ -273,14 +273,23 @@ export default function StudentsPage() {
       <div className="min-h-screen bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/2 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6 sm:mb-8">
+              <div className="h-6 sm:h-8 bg-slate-200 rounded w-1/2 sm:w-1/3 mx-auto mb-2"></div>
+              <div className="h-4 bg-slate-200 rounded w-3/4 sm:w-1/2 mx-auto"></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-24 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+                <div key={i} className="h-20 sm:h-24 bg-white rounded-xl shadow-sm border border-slate-200"></div>
               ))}
             </div>
-            <div className="h-96 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6">
+              <div className="h-4 bg-slate-200 rounded w-full mb-4"></div>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <div className="h-10 bg-slate-200 rounded w-full sm:w-1/3"></div>
+                <div className="h-10 bg-slate-200 rounded w-full sm:w-32"></div>
+              </div>
+            </div>
+            <div className="h-80 sm:h-96 bg-white rounded-xl shadow-sm border border-slate-200"></div>
           </div>
         </div>
       </div>
@@ -303,7 +312,7 @@ export default function StudentsPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-white shadow-sm border border-slate-200">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -363,9 +372,9 @@ export default function StudentsPage() {
 
         {/* Filters and Search */}
         <Card className="mb-6 bg-white shadow-sm border border-slate-200 relative z-10">
-          <CardContent className="p-4">
-            <div className="flex flex-col lg:flex-row gap-4 items-center">
-              <div className="flex-1 relative">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col gap-4">
+              <div className="w-full relative">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <MagnifyingGlassIcon className="w-4 h-4 text-slate-400" />
                 </div>
@@ -377,19 +386,19 @@ export default function StudentsPage() {
                 />
               </div>
 
-              <div className="flex gap-3 flex-wrap relative z-20">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 relative z-20">
                 <Select
                   value={filterBy}
                   onChange={setFilterBy}
                   options={filterOptions}
-                  className="min-w-[140px]"
+                  className="w-full sm:w-auto sm:min-w-[140px]"
                 />
 
                 <Select
                   value={sortBy}
                   onChange={setSortBy}
                   options={sortOptions}
-                  className="min-w-[120px]"
+                  className="w-full sm:w-auto sm:min-w-[120px]"
                 />
               </div>
             </div>
@@ -398,7 +407,7 @@ export default function StudentsPage() {
 
         {/* Students List */}
         <Card className="bg-white shadow-sm border border-slate-200">
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-lg font-semibold text-slate-900">
               Students ({filteredStudents.length})
             </CardTitle>
@@ -406,7 +415,7 @@ export default function StudentsPage() {
               Manage and track your students' learning journey
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0">
             {filteredStudents.length > 0 ? (
               <div className="space-y-4">
                 {filteredStudents.map((student) => (
@@ -415,47 +424,47 @@ export default function StudentsPage() {
                     className="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:bg-white hover:shadow-sm transition-all duration-200 cursor-pointer"
                     onClick={() => setSelectedStudent(selectedStudent?.id === student.id ? null : student)}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-10 w-10 rounded-lg bg-slate-200 flex items-center justify-center text-slate-600 font-medium text-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                      <div className="flex items-center space-x-4 flex-1 min-w-0">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-200 flex items-center justify-center text-slate-600 font-medium text-sm flex-shrink-0">
                           {student.firstName.charAt(0)}{student.lastName.charAt(0)}
                         </div>
-                        <div>
-                          <h3 className="text-base font-semibold text-slate-900 mb-1">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-1 truncate">
                             {student.firstName} {student.lastName}
                           </h3>
-                          <p className="text-sm text-slate-600 mb-3">{student.email}</p>
-                          <div className="flex items-center gap-4 text-xs text-slate-600">
+                          <p className="text-sm text-slate-600 mb-3 truncate">{student.email}</p>
+                          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-4 text-xs text-slate-600">
                             <span className="flex items-center">
-                              <BookOpenIcon className="w-3 h-3 mr-1" />
-                              {student.totalCourses} courses
+                              <BookOpenIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">{student.totalCourses} courses</span>
                             </span>
                             <span className="flex items-center">
-                              <CheckCircleIcon className="w-3 h-3 mr-1" />
-                              {student.completedCourses} completed
+                              <CheckCircleIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">{student.completedCourses} completed</span>
                             </span>
                             <span className="flex items-center">
-                              <ClockIcon className="w-3 h-3 mr-1" />
-                              {student.totalSpentHours}h
+                              <ClockIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">{student.totalSpentHours}h</span>
                             </span>
                             <span className="flex items-center">
-                              <CalendarIcon className="w-3 h-3 mr-1" />
-                              {new Date(student.joinedAt).toLocaleDateString()}
+                              <CalendarIcon className="w-3 h-3 mr-1 flex-shrink-0" />
+                              <span className="truncate">{new Date(student.joinedAt).toLocaleDateString()}</span>
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <div className="flex items-center justify-end gap-2 mb-2">
+                      <div className="flex flex-col sm:items-end gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-slate-700">
-                            {(student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length).toFixed(0)}%
+                            {student.enrollments.length > 0 ? (student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length).toFixed(0) : 0}%
                           </span>
-                          <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div className="w-16 sm:w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
                             <div
                               className="h-full bg-blue-600 rounded-full"
                               style={{
-                                width: `${(student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length)}%`
+                                width: `${student.enrollments.length > 0 ? (student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length) : 0}%`
                               }}
                             />
                           </div>
@@ -472,19 +481,19 @@ export default function StudentsPage() {
                         <h4 className="text-base font-semibold text-slate-900 mb-4">
                           Course Enrollments
                         </h4>
-                        <div className="grid gap-4">
+                        <div className="space-y-3 sm:space-y-4">
                           {student.enrollments.map((enrollment, index) => (
-                            <div key={index} className="bg-white border border-slate-200 rounded-lg p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <h5 className="text-sm font-semibold text-slate-900 mb-1">{enrollment.courseTitle}</h5>
+                            <div key={index} className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="text-sm font-semibold text-slate-900 mb-1 truncate">{enrollment.courseTitle}</h5>
                                   <p className="text-xs text-slate-600">
                                     Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
                                   </p>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-right">
-                                    <p className="text-xs font-medium text-slate-700 mb-1">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-shrink-0">
+                                  <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start">
+                                    <p className="text-xs font-medium text-slate-700 mb-0 sm:mb-1">
                                       {enrollment.progressPercentage}% Complete
                                     </p>
                                     <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -494,7 +503,7 @@ export default function StudentsPage() {
                                       />
                                     </div>
                                   </div>
-                                  <span className="px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-700">
+                                  <span className={`px-2 py-1 rounded text-xs font-medium w-fit ${getStatusColor(enrollment.status)}`}>
                                     {enrollment.status}
                                   </span>
                                 </div>
@@ -503,10 +512,10 @@ export default function StudentsPage() {
                           ))}
                         </div>
 
-                        <div className="flex justify-end mt-4">
+                        <div className="flex justify-center sm:justify-end mt-4">
                           <Button
                             onClick={() => handleSendMessage(student.email)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm w-full sm:w-auto"
                           >
                             <EnvelopeIcon className="w-4 h-4 mr-2" />
                             Send Message
@@ -518,12 +527,12 @@ export default function StudentsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+              <div className="text-center py-8 sm:py-12 px-4">
                 <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <UserGroupIcon className="w-8 h-8 text-slate-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">No students found</h3>
-                <p className="text-slate-600 text-sm mb-6 max-w-md mx-auto">
+                <p className="text-slate-600 text-sm mb-6 max-w-md mx-auto leading-relaxed">
                   {searchTerm || filterBy !== 'all'
                     ? 'Try adjusting your search or filter criteria.'
                     : 'Students will appear here once they enroll in your courses.'
@@ -531,7 +540,7 @@ export default function StudentsPage() {
                 </p>
                 {!searchTerm && filterBy === 'all' && (
                   <Link href="/create-course">
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
                       Create Your First Course
                     </Button>
                   </Link>

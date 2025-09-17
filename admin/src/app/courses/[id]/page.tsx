@@ -6,7 +6,7 @@ import { Button } from '../../../components/ui/Button';
 import toast from 'react-hot-toast';
 import { api } from '../../../lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/Card';
-import { 
+import {
   ChevronLeftIcon,
   PencilIcon,
   UsersIcon,
@@ -76,11 +76,13 @@ export default function CourseViewPage() {
   const { user } = useAuth();
   const params = useParams();
   const courseId = params.id as string;
-  
+
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedMaterials, setExpandedMaterials] = useState<Set<string>>(new Set());
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:4000';
 
   useEffect(() => {
     loadCourseData();
@@ -93,7 +95,7 @@ export default function CourseViewPage() {
       if (response.success && response.data?.course) {
         setCourse(response.data.course);
       } else {
-        setError('Course not found or you don\'t have permission to view it');
+        setError('Course not found or you do not have permission to view it');
       }
     } catch (error) {
       console.error('Error loading course:', error);
@@ -187,7 +189,6 @@ export default function CourseViewPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="mb-4">
             <Link href="/my-courses" className="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-sm">
@@ -210,7 +211,6 @@ export default function CourseViewPage() {
               </div>
             </div>
 
-            {/* Course Meta */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                 <div className="flex items-center text-slate-700">
@@ -258,7 +258,6 @@ export default function CourseViewPage() {
               </div>
               </div>
 
-            {/* Course Details */}
             <div className="flex flex-wrap gap-2 mt-4">
               {course.category && (
                 <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
@@ -277,7 +276,7 @@ export default function CourseViewPage() {
               )}
             </div>
             </div>
-            
+
             {isOwner && (
               <div className="mt-4 sm:absolute sm:top-4 sm:right-4">
                 <Link href={`/courses/${courseId}/edit`}>
@@ -291,7 +290,6 @@ export default function CourseViewPage() {
           </div>
         </div>
 
-        {/* Course Content */}
         <div className="space-y-6">
           <Card className="bg-white shadow-sm border border-slate-200">
             <CardHeader>
@@ -326,6 +324,7 @@ export default function CourseViewPage() {
                           <div className="space-y-3">
                             {module.materials.map((material) => {
                               const MaterialIcon = getMaterialIcon(material.type);
+                              const materialUrl = `${baseUrl}${material.fileUrl}`;
                               return (
                                 <div key={material.id} className="p-3 bg-white rounded-lg border border-slate-200">
                                   <div className="flex items-center">
@@ -355,15 +354,14 @@ export default function CourseViewPage() {
                                       </div>
                                     </div>
                                   </div>
-                                  
-                                  {/* Material Content Display */}
+
                                   {material.fileUrl && expandedMaterials.has(material.id) && (
                                     <div className="mt-4">
                                       {material.type === 'VIDEO' && (
-                                        <video 
-                                          controls 
-                                          className="w-full h-64 bg-black rounded-lg"
-                                          src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'}${material.fileUrl}`}
+                                        <video
+                                          controls
+                                          className="w-full max-w-md h-full bg-black rounded-lg object-cover"
+                                          src={materialUrl}
                                           onError={(e) => {
                                             console.error('Video load error:', material.fileUrl);
                                             toast.error(`Failed to load video: ${material.title}`);
@@ -375,9 +373,9 @@ export default function CourseViewPage() {
                                       {material.type === 'PDF' && (
                                         <div className="bg-white border rounded-lg p-4">
                                           <p className="text-sm text-gray-600 mb-2">PDF Document</p>
-                                          <a 
-                                            href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'}${material.fileUrl}`} 
-                                            target="_blank" 
+                                          <a
+                                            href={materialUrl}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-blue-600 hover:text-blue-800 underline"
                                           >
@@ -386,8 +384,8 @@ export default function CourseViewPage() {
                                         </div>
                                       )}
                                       {material.type === 'IMAGE' && (
-                                        <img 
-                                          src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'}${material.fileUrl}`} 
+                                        <img
+                                          src={materialUrl}
                                           alt={material.title}
                                           className="w-full max-h-96 object-contain rounded-lg bg-white"
                                           onError={(e) => {
@@ -397,10 +395,10 @@ export default function CourseViewPage() {
                                         />
                                       )}
                                       {material.type === 'AUDIO' && (
-                                        <audio 
-                                          controls 
+                                        <audio
+                                          controls
                                           className="w-full"
-                                          src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'}${material.fileUrl}`}
+                                          src={materialUrl}
                                           onError={(e) => {
                                             console.error('Audio load error:', e);
                                             toast.error('Failed to load audio. Please check if the file exists.');
@@ -412,9 +410,9 @@ export default function CourseViewPage() {
                                       {(material.type === 'DOCUMENT' || material.type === 'LINK') && (
                                         <div className="bg-white border rounded-lg p-4">
                                           <p className="text-sm text-gray-600 mb-2">{material.type === 'LINK' ? 'External Link' : 'Document'}</p>
-                                          <a 
-                                            href={material.type === 'LINK' ? material.fileUrl : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'}${material.fileUrl}`} 
-                                            target="_blank" 
+                                          <a
+                                            href={material.type === 'LINK' ? material.fileUrl : materialUrl}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-blue-600 hover:text-blue-800 underline"
                                           >
@@ -449,7 +447,7 @@ export default function CourseViewPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-slate-800 mb-4">No content yet ✨</h3>
                   <p className="text-slate-700 mb-8 text-lg font-medium max-w-md mx-auto">
-                    This course doesn't have any modules or materials yet. Start creating amazing content!
+                    This course does not have any modules or materials yet. Start creating amazing content!
                   </p>
                   {isOwner && (
                     <Link href={`/courses/${courseId}/edit`}>
@@ -465,6 +463,5 @@ export default function CourseViewPage() {
           </Card>
         </div>
       </div>
-    </div>
   );
 }

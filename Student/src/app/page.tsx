@@ -14,7 +14,8 @@ import {
   MagnifyingGlassIcon,
   AcademicCapIcon,
   UsersIcon,
-  PlayIcon
+  PlayIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 interface Course {
@@ -225,39 +226,39 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-3xl"></div>
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 backdrop-blur-3xl"></div>
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
 
-        <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10">
           <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-              {user ? `Welcome back, ${user.firstName}!` : 'Learn Without Limits'}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+              {user ? `Welcome back, ${user.firstName}!` : 'Advance Your Career with Expert-Led Courses'}
             </h1>
-            <p className="text-lg md:text-xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
               {user
-                ? 'Continue your learning journey and achieve your goals with our expert-led courses. Your success story starts here! 🚀'
-                : `Discover ${stats.totalCourses > 0 ? `${stats.totalCourses}+` : 'thousands of'} courses from expert instructors and accelerate your career`
+                ? 'Continue your learning journey with our professional courses designed for career growth'
+                : `Access ${stats.totalCourses > 0 ? `${stats.totalCourses}+` : 'premium'} courses from industry experts and transform your career`
               }
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-3xl mx-auto mb-10">
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-10">
               <div className="relative group">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="What do you want to learn today? ✨"
-                  className="w-full px-6 py-5 text-slate-900 bg-white/95 backdrop-blur-sm rounded-2xl focus:outline-none focus:ring-4 focus:ring-white/30 pl-14 text-lg font-medium placeholder:text-slate-500 shadow-2xl border-2 border-white/20 hover:bg-white transition-all duration-300"
+                  placeholder="Search for courses, topics, or skills..."
+                  className="w-full px-6 py-4 text-slate-900 bg-white rounded-xl focus:outline-none focus:ring-4 focus:ring-white/30 pl-14 text-base placeholder:text-slate-400 shadow-xl hover:shadow-2xl transition-all duration-300"
                 />
-                <MagnifyingGlassIcon className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                <MagnifyingGlassIcon className="absolute left-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <button
                   type="submit"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-all duration-300 font-medium"
                 >
                   Search
                 </button>
@@ -267,20 +268,20 @@ export default function Home() {
             {/* CTA Buttons */}
             <div className="flex gap-4 justify-center flex-wrap">
               <Link href="/courses">
-                <button className="bg-white/95 backdrop-blur-sm text-blue-600 px-10 py-4 rounded-2xl font-bold hover:bg-white hover:scale-105 transition-all duration-300 shadow-2xl border-2 border-white/30 hover:shadow-white/20">
-                  🎯 Explore Courses
+                <button className="bg-white text-slate-900 px-8 py-3 rounded-xl font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl">
+                  Browse All Courses
                 </button>
               </Link>
               {user ? (
                 <Link href="/my-courses">
-                  <button className="border-2 border-white/70 text-white px-10 py-4 rounded-2xl font-bold hover:bg-white hover:text-blue-600 transition-all duration-300 backdrop-blur-sm hover:scale-105">
-                    📚 My Learning
+                  <button className="border-2 border-white/80 text-white px-8 py-3 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300">
+                    My Learning Dashboard
                   </button>
                 </Link>
               ) : (
-                <Link href="/login">
-                  <button className="border-2 border-white/70 text-white px-10 py-4 rounded-2xl font-bold hover:bg-white hover:text-blue-600 transition-all duration-300 backdrop-blur-sm hover:scale-105">
-                    🚀 Get Started
+                <Link href="/register">
+                  <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    Start Free Trial
                   </button>
                 </Link>
               )}
@@ -288,78 +289,88 @@ export default function Home() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 text-center">
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group hover:scale-105">
-              <div className="bg-white/20 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <AcademicCapIcon className="h-8 w-8 mx-auto text-white" />
-              </div>
-              <div className="text-3xl font-bold mb-2 text-white">{stats.totalCourses || 0}+</div>
-              <div className="text-blue-100 font-medium">Courses Available</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center mt-16">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <AcademicCapIcon className="h-8 w-8 mx-auto text-white mb-3" />
+              <div className="text-3xl font-bold text-white">{stats.totalCourses || 0}+</div>
+              <div className="text-white/80 text-sm mt-1">Professional Courses</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group hover:scale-105">
-              <div className="bg-white/20 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <UsersIcon className="h-8 w-8 mx-auto text-white" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <UsersIcon className="h-8 w-8 mx-auto text-white mb-3" />
+              <div className="text-3xl font-bold text-white">
+                {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '10,000+'}
               </div>
-              <div className="text-3xl font-bold mb-2 text-white">
-                {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '1,000+'}
-              </div>
-              <div className="text-blue-100 font-medium">Active Students</div>
+              <div className="text-white/80 text-sm mt-1">Active Learners</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300 group hover:scale-105">
-              <div className="bg-white/20 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                <StarIcon className="h-8 w-8 mx-auto text-white" />
-              </div>
-              <div className="text-3xl font-bold mb-2 text-white">{featuredCourses.length > 0 ? (featuredCourses.reduce((sum, course) => sum + (course.averageRating || 0), 0) / featuredCourses.length).toFixed(1) : '4.8'}</div>
-              <div className="text-blue-100 font-medium">Average Rating</div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <StarIcon className="h-8 w-8 mx-auto text-white mb-3" />
+              <div className="text-3xl font-bold text-white">{featuredCourses.length > 0 ? (featuredCourses.reduce((sum, course) => sum + (course.averageRating || 0), 0) / featuredCourses.length).toFixed(1) : '4.9'}</div>
+              <div className="text-white/80 text-sm mt-1">Average Rating</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Personal Stats for logged in users */}
         {user && (
-          <div className="bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/50 rounded-3xl shadow-xl border border-slate-200/50 p-8 mb-12 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                📊 Your Learning Journey
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
+                Your Learning Progress
               </h2>
-              <div className="flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full">
+              <div className="flex items-center space-x-2 bg-green-100 px-3 py-1.5 rounded-full self-start sm:self-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-semibold text-green-800">Active Learner</span>
+                <span className="text-xs font-medium text-green-800">Active</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 hover:shadow-lg transition-all duration-300 group hover:scale-105">
-                <div className="bg-blue-100 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <BookOpenIcon className="h-8 w-8 mx-auto text-blue-600" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <BookOpenIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
+                    <p className="text-xs text-slate-600">Active Courses</p>
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-slate-800 mb-2">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
-                <p className="text-sm font-medium text-slate-600">Active Courses</p>
               </div>
-              <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 hover:shadow-lg transition-all duration-300 group hover:scale-105">
-                <div className="bg-green-100 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <CheckCircleIcon className="h-8 w-8 mx-auto text-green-600" />
+              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900">{stats.completedCourses}</div>
+                    <p className="text-xs text-slate-600">Completed</p>
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-slate-800 mb-2">{stats.completedCourses}</div>
-                <p className="text-sm font-medium text-slate-600">Completed</p>
               </div>
-              <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 hover:shadow-lg transition-all duration-300 group hover:scale-105">
-                <div className="bg-orange-100 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <ClockIcon className="h-8 w-8 mx-auto text-orange-600" />
+              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <ClockIcon className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900">{stats.totalHours}</div>
+                    <p className="text-xs text-slate-600">Hours Studied</p>
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-slate-800 mb-2">{stats.totalHours}</div>
-                <p className="text-sm font-medium text-slate-600">Hours Learned</p>
               </div>
-              <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200/50 hover:shadow-lg transition-all duration-300 group hover:scale-105">
-                <div className="bg-purple-100 rounded-2xl p-4 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <StarIcon className="h-8 w-8 mx-auto text-purple-600" />
+              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <ChartBarIcon className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900">
+                      {myEnrollments.length > 0 ? Math.round(myEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / myEnrollments.length) : 0}%
+                    </div>
+                    <p className="text-xs text-slate-600">Avg Progress</p>
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-slate-800 mb-2">
-                  {myEnrollments.length > 0 ? Math.round(myEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / myEnrollments.length) : 0}%
-                </div>
-                <p className="text-sm font-medium text-slate-600">Avg Progress</p>
               </div>
             </div>
           </div>
@@ -367,43 +378,42 @@ export default function Home() {
 
         {/* Continue Learning Section */}
         {user && myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length > 0 && (
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Continue Learning</h2>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Continue Learning</h2>
               <Link href="/my-courses">
-                <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center">
                   View All
-                  <ArrowRightIcon className="h-4 w-4 ml-1" />
+                  <ArrowRightIcon className="h-3 w-3 ml-1" />
                 </button>
               </Link>
             </div>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-4">
               {myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).slice(0, 2).map((enrollment) => (
-                <div key={enrollment.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900 truncate">{enrollment.course?.title}</h3>
-                    <span className="text-sm font-medium text-blue-600">{Math.round(enrollment.progressPercentage)}%</span>
+                <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium text-slate-900 truncate text-sm">{enrollment.course?.title}</h3>
+                    <span className="text-xs font-medium text-indigo-600">{Math.round(enrollment.progressPercentage)}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                  <div className="w-full bg-slate-200 rounded-full h-2 mb-3">
                     <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${enrollment.progressPercentage}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                    <span>{enrollment.completedMaterials || 0} materials completed</span>
-                    <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h studied</span>
+                  <div className="flex items-center justify-between text-xs text-slate-600 mb-3">
+                    <span>{enrollment.completedMaterials || 0} lessons done</span>
+                    <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h total</span>
                   </div>
                   {(() => {
                     const buttonState = getEnrollmentButtonState(enrollment);
                     return (
                       <Link href={buttonState.href}>
-                        <button className={`w-full py-2 rounded-lg transition-colors flex items-center justify-center ${
+                        <button className={`w-full py-2 rounded-lg transition-colors text-sm font-medium ${
                           buttonState.text === 'Completed'
                             ? 'bg-green-600 text-white hover:bg-green-700'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-slate-900 text-white hover:bg-slate-800'
                         }`}>
-                          <PlayIcon className="h-4 w-4 mr-2" />
                           {buttonState.text}
                         </button>
                       </Link>
@@ -417,12 +427,12 @@ export default function Home() {
 
         {/* Featured Courses */}
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Featured Courses</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Featured Courses</h2>
             <Link href="/courses">
-              <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center">
-                View All
-                <ArrowRightIcon className="h-4 w-4 ml-1" />
+              <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center">
+                View All Courses
+                <ArrowRightIcon className="h-3 w-3 ml-1" />
               </button>
             </Link>
           </div>
@@ -441,10 +451,10 @@ export default function Home() {
               ))}
             </div>
           ) : featuredCourses.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {featuredCourses.map((course) => (
-                <div key={course.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-600 rounded-t-lg flex items-center justify-center relative">
+                <div key={course.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-300">
+                  <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
                     {course.thumbnail ? (
                       <img
                         src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
@@ -452,44 +462,50 @@ export default function Home() {
                         className="w-full h-full object-cover rounded-t-lg"
                       />
                     ) : (
-                      <BookOpenIcon className="h-16 w-16 text-white opacity-80" />
+                      <BookOpenIcon className="h-12 w-12 text-white/80" />
                     )}
                     {(() => {
                       const badge = getCourseStatusBadge(course);
                       return badge && (
-                        <div className={`absolute top-2 right-2 ${badge.color} text-white px-2 py-1 rounded-full text-xs font-medium`}>
+                        <div className={`absolute top-2 right-2 ${badge.color} text-white px-2 py-1 rounded text-xs font-medium`}>
                           {badge.text}
                         </div>
                       );
                     })()}
                   </div>
-                  <div className="p-6">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                        {course.category?.name || course.level}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-slate-900 mb-2 line-clamp-2 text-sm sm:text-base">{course.title}</h3>
+                    <p className="text-slate-600 text-xs sm:text-sm mb-3 line-clamp-2">{course.description}</p>
 
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-                      <span>{course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}</span>
-                      <div className="flex items-center">
-                        <ClockIcon className="h-4 w-4 mr-1" />
-                        {course.duration ? `${course.duration}h` : 'N/A'}
-                      </div>
+                    <div className="flex items-center text-xs text-slate-600 mb-3">
+                      <span className="truncate">{course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}</span>
+                      <span className="mx-2">•</span>
+                      <span>{course.duration ? `${course.duration}h` : 'Variable'}</span>
                     </div>
 
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center">
-                        <div className="flex text-yellow-400">
+                        <div className="flex text-amber-400">
                           {[...Array(5)].map((_, i) => (
                             <StarIcon
                               key={i}
-                              className={`h-4 w-4 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
+                              className={`h-3 w-3 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-gray-600 ml-2">
-                          {course.averageRating?.toFixed(1) || 'N/A'} ({course._count?.enrollments || 0})
+                        <span className="text-xs text-slate-600 ml-1">
+                          {course.averageRating?.toFixed(1) || '0.0'}
+                        </span>
+                        <span className="text-xs text-slate-500 ml-1">
+                          ({course._count?.enrollments || 0})
                         </span>
                       </div>
-                      <span className="font-bold text-lg text-gray-900">
+                      <span className="font-semibold text-slate-900">
                         {course.price === 0 ? 'Free' : `$${course.price}`}
                       </span>
                     </div>
@@ -498,10 +514,10 @@ export default function Home() {
                       const buttonState = getCourseButtonState(course);
                       return (
                         <Link href={buttonState.href}>
-                          <button className={`w-full py-2 rounded-lg transition-colors ${
+                          <button className={`w-full py-2 rounded-lg transition-colors text-sm font-medium ${
                             buttonState.text === 'Completed'
                               ? 'bg-green-600 text-white hover:bg-green-700'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-slate-900 text-white hover:bg-slate-800'
                           }`}>
                             {buttonState.text}
                           </button>

@@ -802,8 +802,8 @@ export default function CourseEditPage() {
         <div className="space-y-6">
           <Card className="bg-white shadow-sm border border-slate-200">
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                <div className="min-w-0 flex-1">
                   <CardTitle className="text-lg font-semibold text-slate-900">
                     Course Content
                   </CardTitle>
@@ -813,7 +813,7 @@ export default function CourseEditPage() {
                 </div>
                 <Button
                   onClick={() => setShowModuleModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium w-full sm:w-auto flex-shrink-0"
                 >
                   <PlusIcon className="w-4 h-4 mr-2" />
                   Add Chapter
@@ -827,19 +827,19 @@ export default function CourseEditPage() {
                   {course.modules.map((module, moduleIndex) => (
                     <Card key={module.id} className="bg-white border border-slate-200 shadow-sm">
                       <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                           <div className="flex items-center">
                             <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mr-3">
                               <FolderIcon className="w-4 h-4 text-slate-600" />
                             </div>
-                            <div>
-                              <CardTitle className="text-base font-semibold text-slate-900">{module.title}</CardTitle>
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-base font-semibold text-slate-900 truncate">{module.title}</CardTitle>
                               {module.description && (
-                                <CardDescription className="text-slate-600 text-sm mt-1">{module.description}</CardDescription>
+                                <CardDescription className="text-slate-600 text-sm mt-1 line-clamp-2">{module.description}</CardDescription>
                               )}
                             </div>
                           </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
                           <Button
                             variant="ghost"
@@ -864,10 +864,11 @@ export default function CourseEditPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setShowMaterialModal({ moduleId: module.id })}
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs sm:text-sm"
                         >
                           <PlusIcon className="w-3 h-3 mr-1" />
-                          Add Material
+                          <span className="hidden sm:inline">Add Material</span>
+                          <span className="sm:hidden">Add</span>
                         </Button>
                         <Button
                           variant="outline"
@@ -891,17 +892,17 @@ export default function CourseEditPage() {
                         {module.materials.map((material, materialIndex) => {
                           const MaterialIcon = getMaterialIcon(material.type);
                           return (
-                            <div key={material.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
-                              <div className="flex items-center">
-                                <MaterialIcon className="w-5 h-5 text-slate-500 mr-3" />
-                                <div>
-                                  <p className="font-medium text-slate-900">{material.title}</p>
-                                  <p className="text-sm text-slate-600">
+                            <div key={material.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 gap-3 sm:gap-0">
+                              <div className="flex items-center min-w-0 flex-1">
+                                <MaterialIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium text-slate-900 truncate">{material.title}</p>
+                                  <p className="text-sm text-slate-600 truncate">
                                     {material.type} {material.description && `• ${material.description}`}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
                                 <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
                                   <Button
                                     variant="ghost"
@@ -960,6 +961,7 @@ export default function CourseEditPage() {
                   </p>
                   <Button
                     onClick={() => setShowModuleModal(true)}
+                    className="w-full sm:w-auto"
                   >
                     <PlusIcon className="w-4 h-4 mr-2" />
                     Create Your First Chapter
@@ -973,8 +975,8 @@ export default function CourseEditPage() {
 
       {/* Add Module Modal */}
       {showModuleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-lg mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Add New Chapter</CardTitle>
               <CardDescription>Create a new chapter to organize your course content</CardDescription>
@@ -1001,11 +1003,11 @@ export default function CourseEditPage() {
                   rows={3}
                 />
               </div>
-              <div className="flex justify-end space-x-4">
-                <Button variant="outline" onClick={() => setShowModuleModal(false)}>
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4 sm:gap-0">
+                <Button variant="outline" onClick={() => setShowModuleModal(false)} className="order-2 sm:order-1">
                   Cancel
                 </Button>
-                <Button onClick={handleAddModule} disabled={!newModule.title.trim() || creatingModule}>
+                <Button onClick={handleAddModule} disabled={!newModule.title.trim() || creatingModule} className="order-1 sm:order-2">
                   {creatingModule ? 'Adding...' : 'Add Module'}
                 </Button>
               </div>
@@ -1016,8 +1018,8 @@ export default function CourseEditPage() {
 
       {/* Add Material Modal */}
       {showMaterialModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-lg mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>Add New Material</CardTitle>
               <CardDescription>Add a new material to this module</CardDescription>
@@ -1096,11 +1098,11 @@ export default function CourseEditPage() {
                   />
                 </div>
               )}
-              <div className="flex justify-end space-x-4">
-                <Button variant="outline" onClick={() => setShowMaterialModal(null)}>
+              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4 sm:gap-0">
+                <Button variant="outline" onClick={() => setShowMaterialModal(null)} className="order-2 sm:order-1">
                   Cancel
                 </Button>
-                <Button onClick={handleAddMaterial} disabled={!newMaterial.title.trim() || creatingMaterial}>
+                <Button onClick={handleAddMaterial} disabled={!newMaterial.title.trim() || creatingMaterial} className="order-1 sm:order-2">
                   {creatingMaterial ? 'Adding...' : 'Add Material'}
                 </Button>
               </div>

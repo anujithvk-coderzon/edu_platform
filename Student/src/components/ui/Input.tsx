@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { cn } from '../../utils/cn';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -18,7 +18,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   id,
   ...props
 }, ref) => {
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const inputId = id || `input-${generatedId}`;
 
   return (
     <div className="space-y-2">
@@ -33,14 +34,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
       <div className="relative group">
         {leftIcon && (
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-            <div className="text-slate-500 group-focus-within:text-blue-600 w-5 h-5 transition-colors duration-200">{leftIcon}</div>
+            <div className="text-slate-500 group-focus-within:text-indigo-600 w-5 h-5 transition-colors duration-200">{leftIcon}</div>
           </div>
         )}
         <input
           id={inputId}
           type={type}
           className={cn(
-            'block w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50',
+            'block w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50',
             leftIcon && 'pl-12',
             rightIcon && 'pr-12',
             error && 'border-red-400 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50',
@@ -51,7 +52,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
         />
         {rightIcon && (
           <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
-            <div className="text-slate-500 group-focus-within:text-blue-600 w-5 h-5 transition-colors duration-200">{rightIcon}</div>
+            <div className="text-slate-500 group-focus-within:text-indigo-600 w-5 h-5 transition-colors duration-200">{rightIcon}</div>
           </div>
         )}
       </div>

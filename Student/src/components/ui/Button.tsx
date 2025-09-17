@@ -21,12 +21,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   ...props
 }, ref) => {
   const baseClasses = 'inline-flex items-center justify-center rounded-2xl font-semibold transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl';
-  
+
   const variants = {
-    default: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 focus:ring-blue-500/50 shadow-2xl hover:shadow-3xl backdrop-blur-sm',
+    default: 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 focus:ring-indigo-500/50 shadow-2xl hover:shadow-3xl backdrop-blur-sm',
     secondary: 'bg-gradient-to-r from-slate-100 via-slate-200 to-slate-300 text-slate-800 hover:from-slate-200 hover:via-slate-300 hover:to-slate-400 focus:ring-slate-500/50 shadow-lg hover:shadow-xl backdrop-blur-sm',
-    outline: 'border-2 border-blue-200 bg-white/80 backdrop-blur-sm text-blue-700 hover:bg-blue-50 hover:border-blue-300 focus:ring-blue-500/50 shadow-lg hover:shadow-xl',
-    ghost: 'text-slate-700 hover:bg-white/50 hover:text-blue-700 focus:ring-slate-500/30 backdrop-blur-sm',
+    outline: 'border-2 border-indigo-200 bg-white/80 backdrop-blur-sm text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 focus:ring-indigo-500/50 shadow-lg hover:shadow-xl',
+    ghost: 'text-slate-700 hover:bg-white/50 hover:text-indigo-700 focus:ring-slate-500/30 backdrop-blur-sm',
     destructive: 'bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white hover:from-red-600 hover:via-red-700 hover:to-red-800 focus:ring-red-500/50 shadow-2xl hover:shadow-3xl backdrop-blur-sm',
   };
 

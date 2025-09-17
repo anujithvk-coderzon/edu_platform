@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import {
   BookOpenIcon,
@@ -135,100 +136,99 @@ export default function MyCoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-white via-blue-50 to-purple-50 shadow-xl border-b border-slate-200/50">
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">
-                📚 My Learning Journey
+              <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
+                My Learning
               </h1>
-              <p className="text-slate-700 mt-3 text-lg font-medium">
+              <p className="text-slate-600 mt-1">
                 {stats.total > 0
-                  ? `🎯 ${stats.active} active • ✅ ${stats.completed} completed • Keep pushing forward! 🚀`
-                  : '🌟 Start your amazing learning adventure by enrolling in courses'
+                  ? `${stats.active} active courses • ${stats.completed} completed`
+                  : 'Start your learning journey by enrolling in courses'
                 }
               </p>
             </div>
 
             <Link href="/courses">
-              <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105">
-                {stats.active > 0 ? '🔍 Explore More Courses' : '🎯 Browse Courses'}
-              </button>
+              <Button className="w-full sm:w-auto">
+                {stats.active > 0 ? 'Browse More Courses' : 'Explore Courses'}
+              </Button>
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-slate-200/50 p-8 hover:shadow-2xl transition-all duration-300 group hover:scale-105">
-            <div className="flex items-center">
-              <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                <BookOpenIcon className="h-8 w-8 text-white" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <BookOpenIcon className="h-5 w-5 text-blue-600" />
               </div>
-              <div className="ml-6">
-                <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">Active Courses</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats.active}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-slate-200/50 p-8 hover:shadow-2xl transition-all duration-300 group hover:scale-105">
-            <div className="flex items-center">
-              <div className="p-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                <ChartBarIcon className="h-8 w-8 text-white" />
-              </div>
-              <div className="ml-6">
-                <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">In Progress</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats.inProgress}</p>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{stats.active}</p>
+                <p className="text-xs text-slate-600">Active</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-slate-200/50 p-8 hover:shadow-2xl transition-all duration-300 group hover:scale-105">
-            <div className="flex items-center">
-              <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                <CheckCircleIcon className="h-8 w-8 text-white" />
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                <ChartBarIcon className="h-5 w-5 text-amber-600" />
               </div>
-              <div className="ml-6">
-                <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">Completed</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats.completed}</p>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{stats.inProgress}</p>
+                <p className="text-xs text-slate-600">In Progress</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-slate-200/50 p-8 hover:shadow-2xl transition-all duration-300 group hover:scale-105">
-            <div className="flex items-center">
-              <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-                <ClockIcon className="h-8 w-8 text-white" />
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircleIcon className="h-5 w-5 text-green-600" />
               </div>
-              <div className="ml-6">
-                <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">Hours Studied</p>
-                <p className="text-3xl font-bold text-slate-900 mt-1">{stats.totalHours}</p>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{stats.completed}</p>
+                <p className="text-xs text-slate-600">Completed</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <ClockIcon className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{stats.totalHours}</p>
+                <p className="text-xs text-slate-600">Hours</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-slate-200/50 p-6 mb-8">
-          <h3 className="text-xl font-bold text-slate-800 mb-4">📂 Filter Courses</h3>
-          <div className="flex flex-wrap gap-3">
+        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
+          <div className="flex flex-wrap gap-2">
             {[
-              { key: 'all', label: '📚 All Courses', count: stats.total, color: 'from-slate-500 to-slate-600' },
-              { key: 'in_progress', label: '🎯 Active', count: stats.active, color: 'from-blue-500 to-indigo-600' },
-              { key: 'completed', label: '✅ Completed', count: stats.completed, color: 'from-green-500 to-emerald-600' }
-            ].map(({ key, label, count, color }) => (
+              { key: 'all', label: 'All Courses', count: stats.total },
+              { key: 'in_progress', label: 'Active', count: stats.active },
+              { key: 'completed', label: 'Completed', count: stats.completed }
+            ].map(({ key, label, count }) => (
               <button
                 key={key}
                 onClick={() => setFilter(key as typeof filter)}
-                className={`px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 hover:scale-105 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === key
-                    ? `bg-gradient-to-r ${color} text-white shadow-lg`
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:shadow-md'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 {label} ({count})
@@ -253,10 +253,10 @@ export default function MyCoursesPage() {
             ))}
           </div>
         ) : filteredEnrollments.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredEnrollments.map((enrollment) => (
-              <div key={enrollment.id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-600 rounded-t-lg flex items-center justify-center relative">
+              <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-300">
+                <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
                   {enrollment.course.thumbnail ? (
                     <img
                       src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${enrollment.course.thumbnail}`}
@@ -264,33 +264,27 @@ export default function MyCoursesPage() {
                       className="w-full h-full object-cover rounded-t-lg"
                     />
                   ) : (
-                    <BookOpenIcon className="h-16 w-16 text-white opacity-80" />
+                    <BookOpenIcon className="h-12 w-12 text-white/80" />
                   )}
 
                   {/* Status Badge */}
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-2 right-2">
                     {enrollment.progressPercentage === 100 ? (
-                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                        <CheckCircleIcon className="h-4 w-4 mr-1" />
+                      <div className="bg-green-600 text-white px-2 py-1 rounded text-xs font-medium">
                         Completed
                       </div>
                     ) : (
-                      <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      <div className="bg-indigo-600 text-white px-2 py-1 rounded text-xs font-medium">
                         {Math.min(100, Math.round(enrollment.progressPercentage))}%
                       </div>
                     )}
                   </div>
-
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 bg-black/40 rounded-t-lg flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <PlayIcon className="h-12 w-12 text-white" />
-                  </div>
                 </div>
 
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
                     {enrollment.course.category && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                      <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">
                         {enrollment.course.category.name}
                       </span>
                     )}
@@ -299,30 +293,30 @@ export default function MyCoursesPage() {
                     </span>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                  <h3 className="font-semibold text-slate-900 mb-2 line-clamp-2 text-sm">
                     {enrollment.course.title}
                   </h3>
 
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-xs text-slate-600 mb-3 line-clamp-2">
                     {enrollment.course.description}
                   </p>
 
-                  <div className="text-sm text-gray-600 mb-4">
+                  <div className="text-xs text-slate-600 mb-3">
                     by {enrollment.course.tutorName || `${enrollment.course.creator.firstName} ${enrollment.course.creator.lastName}`}
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600">Progress</span>
-                      <span className="font-medium text-gray-900">
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className="text-slate-600">Progress</span>
+                      <span className="font-medium text-slate-900">
                         {Math.min(100, Math.round(enrollment.progressPercentage))}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-slate-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${
-                          enrollment.progressPercentage === 100 ? 'bg-green-500' : 'bg-blue-600'
+                          enrollment.progressPercentage === 100 ? 'bg-green-600' : 'bg-indigo-600'
                         }`}
                         style={{ width: `${Math.min(100, enrollment.progressPercentage)}%` }}
                       />
@@ -330,12 +324,12 @@ export default function MyCoursesPage() {
                   </div>
 
                   {/* Stats */}
-                  <div className="flex justify-between text-xs text-gray-600 mb-4">
+                  <div className="flex justify-between text-xs text-slate-600 mb-3">
                     <span>
-                      {enrollment.completedMaterials || 0} of {enrollment.course._count.materials} lessons
+                      {enrollment.completedMaterials || 0} / {enrollment.course._count.materials} lessons
                     </span>
                     <span>
-                      {Math.round((enrollment.totalTimeSpent || 0) / 60)}h studied
+                      {Math.round((enrollment.totalTimeSpent || 0) / 60)}h
                     </span>
                   </div>
 
@@ -344,12 +338,11 @@ export default function MyCoursesPage() {
                     const buttonState = getEnrollmentButtonState(enrollment);
                     return (
                       <Link href={buttonState.href}>
-                        <button className={`w-full py-2 rounded-lg transition-colors flex items-center justify-center ${
+                        <button className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
                           buttonState.text === 'Completed'
                             ? 'bg-green-600 text-white hover:bg-green-700'
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-slate-900 text-white hover:bg-slate-800'
                         }`}>
-                          <PlayIcon className="h-4 w-4 mr-2" />
                           {buttonState.text}
                         </button>
                       </Link>
@@ -357,14 +350,13 @@ export default function MyCoursesPage() {
                   })()}
 
                   {/* Enrollment Date */}
-                  <div className="flex items-center text-xs text-gray-500 mt-4">
-                    <CalendarIcon className="h-4 w-4 mr-1" />
-                    Enrolled {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                  <div className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center">
+                      <CalendarIcon className="h-3 w-3 mr-1" />
+                      Enrolled {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                    </div>
                     {enrollment.completedAt && (
-                      <>
-                        <span className="mx-2">•</span>
-                        Completed {new Date(enrollment.completedAt).toLocaleDateString()}
-                      </>
+                      <div className="mt-1">Completed {new Date(enrollment.completedAt).toLocaleDateString()}</div>
                     )}
                   </div>
                 </div>

@@ -58,8 +58,8 @@ interface CourseFormData {
   duration: string;
   tutorName: string;
   thumbnail: File | null;
-  objectives: string[];
   requirements: string[];
+  prerequisites: string[];
   tags: string[];
   chapters: Chapter[];
 }
@@ -72,8 +72,8 @@ const initialFormData: CourseFormData = {
   duration: '',
   tutorName: '',
   thumbnail: null,
-  objectives: [''],
   requirements: [''],
+  prerequisites: [''],
   tags: [],
   chapters: []
 };
@@ -116,18 +116,18 @@ export default function CreateCoursePage() {
     }
   };
 
-  const handleArrayChange = (field: 'objectives' | 'requirements', index: number, value: string) => {
+  const handleArrayChange = (field: 'requirements' | 'prerequisites', index: number, value: string) => {
     const updatedArray = [...formData[field]];
     updatedArray[index] = value;
     handleInputChange(field, updatedArray);
   };
 
-  const addArrayItem = (field: 'objectives' | 'requirements') => {
+  const addArrayItem = (field: 'requirements' | 'prerequisites') => {
     const updatedArray = [...formData[field], ''];
     handleInputChange(field, updatedArray);
   };
 
-  const removeArrayItem = (field: 'objectives' | 'requirements', index: number) => {
+  const removeArrayItem = (field: 'requirements' | 'prerequisites', index: number) => {
     const updatedArray = formData[field].filter((_, i) => i !== index);
     handleInputChange(field, updatedArray);
   };
@@ -342,6 +342,8 @@ export default function CreateCoursePage() {
         price: formData.price ? parseFloat(formData.price) : 0,
         status: 'PUBLISHED',
         isPublic: true,
+        requirements: formData.requirements.filter(req => req.trim() !== ''),
+        prerequisites: formData.prerequisites.filter(prereq => prereq.trim() !== ''),
       };
 
       // Only add duration if it's a valid number
@@ -597,43 +599,6 @@ export default function CreateCoursePage() {
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-3">
-          Learning Objectives
-        </label>
-        <div className="space-y-2">
-          {formData.objectives.map((objective, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <Input
-                value={objective}
-                onChange={(e) => handleArrayChange('objectives', index, e.target.value)}
-                placeholder={`Objective ${index + 1}`}
-              />
-              {formData.objectives.length > 1 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeArrayItem('objectives', index)}
-                  type="button"
-                >
-                  <XMarkIcon className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => addArrayItem('objectives')}
-          type="button"
-          className="mt-2"
-        >
-          <PlusIcon className="w-4 h-4 mr-2" />
-          Add Objective
-        </Button>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-3">
           Requirements
         </label>
         <div className="space-y-2">
@@ -666,6 +631,43 @@ export default function CreateCoursePage() {
         >
           <PlusIcon className="w-4 h-4 mr-2" />
           Add Requirement
+        </Button>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-3">
+          Prerequisites
+        </label>
+        <div className="space-y-2">
+          {formData.prerequisites.map((prerequisite, index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <Input
+                value={prerequisite}
+                onChange={(e) => handleArrayChange('prerequisites', index, e.target.value)}
+                placeholder={`Prerequisite ${index + 1}`}
+              />
+              {formData.prerequisites.length > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeArrayItem('prerequisites', index)}
+                  type="button"
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => addArrayItem('prerequisites')}
+          type="button"
+          className="mt-2"
+        >
+          <PlusIcon className="w-4 h-4 mr-2" />
+          Add Prerequisite
         </Button>
       </div>
     </div>
@@ -836,7 +838,7 @@ export default function CreateCoursePage() {
                               }
                               onFileSelect={(files) => handleMaterialFileUpload(chapter.id, material.id, files)}
                               placeholder={`Upload ${material.type} file`}
-                              maxSize={material.type === 'video' ? 500 * 1024 * 1024 : 10 * 1024 * 1024}
+                              maxSize={material.type === 'video' ? 30 * 1024 * 1024 : 10 * 1024 * 1024}
                             />
                             {errors[`material-${material.id}-file`] && (
                               <p className="text-red-500 text-sm mt-1">{errors[`material-${material.id}-file`]}</p>

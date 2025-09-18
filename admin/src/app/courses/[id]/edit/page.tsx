@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Button } from '../../../../components/ui/Button';
 import toast from 'react-hot-toast';
 import { api } from '../../../../lib/api';
@@ -22,8 +22,10 @@ import {
   PhotoIcon,
   LinkIcon,
   FolderIcon,
+  FolderPlusIcon,
   ClipboardDocumentListIcon,
   CalendarIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { getImageUrl } from '../../../../utils/imageUtils';
@@ -122,12 +124,25 @@ const materialTypes: SelectOption[] = [
 
 export default function CourseEditPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const courseId = params.id as string;
-  
+
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'content' | 'assignments'>('details');
+
+  // Update tab based on URL parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'assignments') {
+      setActiveTab('assignments');
+    } else if (tabParam === 'content') {
+      setActiveTab('content');
+    } else {
+      setActiveTab('details');
+    }
+  }, [searchParams]);
   const [showModuleModal, setShowModuleModal] = useState(false);
   const [showMaterialModal, setShowMaterialModal] = useState<{moduleId: string} | null>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
@@ -157,6 +172,7 @@ export default function CourseEditPage() {
     fileUrl: '',
     content: ''
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [newAssignment, setNewAssignment] = useState({
     title: '',
@@ -321,22 +337,46 @@ export default function CourseEditPage() {
 
   const handleAddMaterial = async () => {
     if (!newMaterial.title.trim() || !showMaterialModal || !course) return;
-    
+
     try {
       setCreatingMaterial(true);
       const moduleId = showMaterialModal.moduleId;
       const targetModule = course.modules.find(m => m.id === moduleId);
-      
+
       if (!targetModule) {
         toast.error('Module not found');
         return;
+      }
+
+      let fileUrl = newMaterial.fileUrl;
+
+      // Upload file if one was selected (for non-LINK types)
+      if (selectedFile && newMaterial.type !== 'LINK') {
+        try {
+          const uploadResponse = await api.uploads.material(
+            selectedFile,
+            courseId as string,
+            undefined,
+            newMaterial.type
+          );
+          if (uploadResponse.success) {
+            fileUrl = uploadResponse.data.url;
+          } else {
+            toast.error('Failed to upload file');
+            return;
+          }
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast.error('Failed to upload file. Please try again.');
+          return;
+        }
       }
 
       const materialData = {
         title: newMaterial.title,
         description: newMaterial.description,
         type: newMaterial.type,
-        fileUrl: newMaterial.type === 'LINK' ? newMaterial.content : (newMaterial.fileUrl || undefined),
+        fileUrl: newMaterial.type === 'LINK' ? newMaterial.content : fileUrl,
         content: newMaterial.type === 'LINK' ? undefined : (newMaterial.content || undefined),
         orderIndex: targetModule.materials.length,
         courseId: courseId,
@@ -359,6 +399,7 @@ export default function CourseEditPage() {
         }) : prev);
         
         setNewMaterial({ title: '', description: '', type: 'VIDEO', fileUrl: '', content: '' });
+        setSelectedFile(null);
         setShowMaterialModal(null);
         toast.success('Material added successfully!');
       } else {
@@ -1206,7 +1247,7 @@ export default function CourseEditPage() {
                                 )}
                               </div>
 
-                              <p className="text-slate-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+                              <p className="text-slate-600 text-sm mb-4 line-clamp-3 leading-relaxed whitespace-pre-line">
                                 {assignment.description}
                               </p>
 
@@ -1303,13 +1344,20 @@ export default function CourseEditPage() {
 
       {/* Add Module Modal */}
       {showModuleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Add New Chapter</CardTitle>
-              <CardDescription>Create a new chapter to organize your course content</CardDescription>
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-600 rounded-lg shadow-sm">
+                  <FolderPlusIcon className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900">Add New Chapter</CardTitle>
+                  <CardDescription className="text-slate-600">Create a new chapter to organize your course content</CardDescription>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 p-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Chapter Title *
@@ -1332,12 +1380,27 @@ export default function CourseEditPage() {
                   rows={3}
                 />
               </div>
-              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4 sm:gap-0">
-                <Button variant="outline" onClick={() => setShowModuleModal(false)} className="order-2 sm:order-1">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowModuleModal(false)}
+                  className="order-2 sm:order-1 px-6 py-2.5 font-medium hover:bg-slate-50 border-slate-300"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleAddModule} disabled={!newModule.title.trim() || creatingModule} className="order-1 sm:order-2">
-                  {creatingModule ? 'Adding...' : 'Add Module'}
+                <Button
+                  onClick={handleAddModule}
+                  disabled={!newModule.title.trim() || creatingModule}
+                  className="order-1 sm:order-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {creatingModule ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Adding...
+                    </>
+                  ) : (
+                    'Add Chapter'
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -1347,13 +1410,20 @@ export default function CourseEditPage() {
 
       {/* Add Material Modal */}
       {showMaterialModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>Add New Material</CardTitle>
-              <CardDescription>Add a new material to this module</CardDescription>
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-600 rounded-lg shadow-sm">
+                  <DocumentIcon className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-900">Add New Material</CardTitle>
+                  <CardDescription className="text-slate-600">Add a new material to this module</CardDescription>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 p-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Material Title *
@@ -1403,36 +1473,42 @@ export default function CourseEditPage() {
                   </label>
                   <FileUpload
                     accept={newMaterial.type === 'IMAGE' ? 'image/*' : newMaterial.type === 'VIDEO' ? 'video/*' : '*'}
-                    onFileSelect={async (files) => {
-                      if (files.length === 0) return;
-                      try {
-                        const response = await api.uploads.material(
-                          files[0],
-                          courseId as string,
-                          undefined,
-                          newMaterial.type
-                        );
-                        if (response.success) {
-                          setNewMaterial(prev => ({
-                            ...prev,
-                            fileUrl: response.data.url
-                          }));
-                          alert('File uploaded successfully!');
-                        }
-                      } catch (error) {
-                        console.error('Upload error:', error);
-                        alert('Failed to upload file. Please try again.');
+                    maxSize={newMaterial.type === 'VIDEO' ? 30 * 1024 * 1024 : 10 * 1024 * 1024}
+                    onFileSelect={(files) => {
+                      if (files.length === 0) {
+                        setSelectedFile(null);
+                        return;
                       }
+                      setSelectedFile(files[0]);
                     }}
                   />
                 </div>
               )}
-              <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4 sm:gap-0">
-                <Button variant="outline" onClick={() => setShowMaterialModal(null)} className="order-2 sm:order-1">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowMaterialModal(null)}
+                  className="order-2 sm:order-1 px-6 py-2.5 font-medium hover:bg-slate-50 border-slate-300"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleAddMaterial} disabled={!newMaterial.title.trim() || creatingMaterial} className="order-1 sm:order-2">
-                  {creatingMaterial ? 'Adding...' : 'Add Material'}
+                <Button
+                  onClick={handleAddMaterial}
+                  disabled={
+                    !newMaterial.title.trim() ||
+                    creatingMaterial ||
+                    (newMaterial.type !== 'LINK' && !selectedFile && !newMaterial.fileUrl)
+                  }
+                  className="order-1 sm:order-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {creatingMaterial ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Adding...
+                    </>
+                  ) : (
+                    'Add Material'
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -1440,150 +1516,116 @@ export default function CourseEditPage() {
         </div>
       )}
 
-      {/* Assignment Creation Modal */}
+      {/* Assignment Creation Modal - Fully Responsive */}
       {showAssignmentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <ClipboardDocumentListIcon className="h-6 w-6 text-blue-600" />
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+          <Card className="w-full max-w-4xl bg-white shadow-2xl border border-slate-200 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 sticky top-0 z-10 p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                  <div className="p-2 sm:p-2.5 bg-blue-600 rounded-lg shadow-sm flex-shrink-0">
+                    <ClipboardDocumentListIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg sm:text-xl font-semibold text-slate-900 truncate">
+                      Create New Assignment
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 text-xs sm:text-sm mt-0.5 hidden sm:block">
+                      Set up a new assignment for your students
+                    </CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-xl font-bold text-slate-900">
-                    📝 Create New Assignment
-                  </CardTitle>
-                  <CardDescription className="text-slate-600 text-sm mt-1">
-                    Design a comprehensive assignment for your students
-                  </CardDescription>
-                </div>
+                <button
+                  onClick={() => setShowAssignmentModal(false)}
+                  className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                >
+                  <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
+                </button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 p-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
               {/* Assignment Details Section */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-semibold text-sm">1</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900">Assignment Details</h3>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center space-x-2 mb-2 sm:mb-3">
+                  <div className="h-0.5 w-6 sm:w-8 bg-blue-600 rounded-full"></div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">Assignment Information</h3>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      📚 Assignment Title *
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+                      Assignment Title <span className="text-red-500">*</span>
                     </label>
                     <Input
-                      placeholder="e.g., Web Development Project - Portfolio Creation"
+                      placeholder="e.g., Final Project - Web Application Development"
                       value={newAssignment.title}
                       onChange={(e) => setNewAssignment(prev => ({ ...prev, title: e.target.value }))}
-                      className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Make it descriptive and engaging</p>
+                    <p className="text-xs text-slate-500 mt-1">Choose a clear, descriptive title</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      📋 Assignment Description *
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+                      Assignment Instructions <span className="text-red-500">*</span>
                     </label>
                     <Textarea
-                      placeholder="Provide detailed instructions, learning objectives, and requirements...\n\nExample:\n• Create a responsive portfolio website\n• Include at least 5 projects\n• Use modern CSS techniques\n• Ensure mobile compatibility"
+                      placeholder="Describe the assignment objectives, requirements, and evaluation criteria..."
                       value={newAssignment.description}
                       onChange={(e) => setNewAssignment(prev => ({ ...prev, description: e.target.value }))}
-                      rows={6}
-                      className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                      rows={4}
+                      className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base resize-none"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Be specific about requirements and expectations</p>
+                    <p className="text-xs text-slate-500 mt-1">Provide clear instructions and expectations</p>
                   </div>
                 </div>
               </div>
 
               {/* Configuration Section */}
-              <div className="space-y-4 border-t border-slate-200 pt-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <span className="text-indigo-600 font-semibold text-sm">2</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900">Assignment Configuration</h3>
+              <div className="space-y-3 sm:space-y-4 border-t border-slate-200 pt-4 sm:pt-5">
+                <div className="flex items-center space-x-2 mb-2 sm:mb-3">
+                  <div className="h-0.5 w-6 sm:w-8 bg-blue-600 rounded-full"></div>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">Settings</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        ⏰ Due Date
-                      </label>
-                      <Input
-                        type="datetime-local"
-                        value={newAssignment.dueDate}
-                        onChange={(e) => setNewAssignment(prev => ({ ...prev, dueDate: e.target.value }))}
-                        className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">Leave empty for no deadline</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        🎯 Maximum Score
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          min="1"
-                          max="1000"
-                          step="1"
-                          placeholder="100"
-                          value={newAssignment.maxScore}
-                          onChange={(e) => setNewAssignment(prev => ({ ...prev, maxScore: parseInt(e.target.value) || 100 }))}
-                          className="border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-slate-500">points</span>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">Total points for this assignment</p>
-                    </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+                      Due Date
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={newAssignment.dueDate}
+                      onChange={(e) => setNewAssignment(prev => ({ ...prev, dueDate: e.target.value }))}
+                      className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Optional deadline for submission</p>
                   </div>
 
-                  <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                    <h4 className="text-sm font-medium text-slate-700 mb-3">📊 Assignment Preview</h4>
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Title:</span>
-                        <span className="text-slate-900 font-medium">
-                          {newAssignment.title || 'Not set'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Due Date:</span>
-                        <span className="text-slate-900">
-                          {newAssignment.dueDate
-                            ? new Date(newAssignment.dueDate).toLocaleDateString()
-                            : 'No deadline'
-                          }
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Max Score:</span>
-                        <span className="text-slate-900 font-medium">
-                          {newAssignment.maxScore} points
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Description:</span>
-                        <span className="text-slate-900">
-                          {newAssignment.description.length > 0
-                            ? `${newAssignment.description.length} characters`
-                            : 'Empty'
-                          }
-                        </span>
-                      </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+                      Maximum Score
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        step="1"
+                        placeholder="100"
+                        value={newAssignment.maxScore}
+                        onChange={(e) => setNewAssignment(prev => ({ ...prev, maxScore: parseInt(e.target.value) || 100 }))}
+                        className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
+                      />
+                      <span className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">points</span>
                     </div>
+                    <p className="text-xs text-slate-500 mt-1">Total available points</p>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-200">
+              {/* Action Buttons - Fully Responsive */}
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 border-t border-slate-200">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1595,24 +1637,25 @@ export default function CourseEditPage() {
                       maxScore: 100
                     });
                   }}
-                  className="order-2 sm:order-1 border-slate-300 text-slate-700 hover:bg-slate-50"
+                  className="order-2 sm:order-1 w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50 text-sm px-4 py-2"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleAddAssignment}
                   disabled={!newAssignment.title.trim() || !newAssignment.description.trim() || creatingAssignment}
-                  className="order-1 sm:order-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="order-1 sm:order-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white transition-colors text-sm px-4 py-2"
                 >
                   {creatingAssignment ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Creating Assignment...
+                      <span className="hidden sm:inline">Creating...</span>
+                      <span className="sm:hidden">Creating</span>
                     </>
                   ) : (
                     <>
-                      <ClipboardDocumentListIcon className="h-4 w-4 mr-2" />
-                      Create Assignment
+                      <span className="hidden sm:inline">Create Assignment</span>
+                      <span className="sm:hidden">Create</span>
                     </>
                   )}
                 </Button>
@@ -1622,47 +1665,45 @@ export default function CourseEditPage() {
         </div>
       )}
 
-      {/* Assignment Submissions Modal */}
+      {/* Assignment Submissions Modal - Mobile Optimized */}
       {showSubmissionsModal && selectedAssignmentId && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-6xl bg-white max-h-[95vh] overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <DocumentIcon className="h-6 w-6 text-blue-600" />
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-1 sm:p-4 z-50">
+          <Card className="w-full max-w-7xl bg-white shadow-2xl border border-slate-200 max-h-[99vh] sm:max-h-[95vh] overflow-hidden mx-1 sm:mx-4">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 p-2 sm:p-4 lg:p-6">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                  <div className="p-1.5 sm:p-2.5 bg-blue-600 rounded-lg shadow-sm flex-shrink-0">
+                    <DocumentIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
-                  <div>
-                    <CardTitle className="text-xl font-bold text-slate-900">
-                      📋 Assignment Submissions
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base sm:text-xl font-semibold text-slate-900 truncate">
+                      Submissions
                     </CardTitle>
-                    <CardDescription className="text-slate-600 text-sm mt-1">
-                      Review, grade, and provide feedback on student submissions
+                    <CardDescription className="text-slate-600 text-xs sm:text-sm mt-0.5 hidden sm:block">
+                      Review and grade student submissions
                     </CardDescription>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={() => {
                     setShowSubmissionsModal(false);
                     setSelectedAssignmentId(null);
                     setSubmissions([]);
                   }}
-                  className="hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                  className="p-1 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0 ml-1 sm:ml-2"
                 >
-                  ✕ Close
-                </Button>
+                  <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
+                </button>
               </div>
             </CardHeader>
-            <CardContent className="overflow-y-auto max-h-[70vh] p-6">
+            <CardContent className="overflow-y-auto max-h-[85vh] sm:max-h-[70vh] p-2 sm:p-4 lg:p-6">
               {loadingSubmissions ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="ml-3 text-slate-600 font-medium">Loading submissions...</span>
+                <div className="flex items-center justify-center py-8 sm:py-12">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 border-2 sm:border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="ml-2 sm:ml-3 text-slate-600 font-medium text-sm sm:text-base">Loading submissions...</span>
                 </div>
               ) : submissions.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-2 sm:space-y-4">
                   {submissions.map((submission: Submission) => {
                     const currentGrade = submission.score ?? submission.grade;
                     const isGraded = currentGrade !== null && currentGrade !== undefined;
@@ -1671,46 +1712,46 @@ export default function CourseEditPage() {
                       : 0;
 
                     return (
-                      <Card key={submission.id} className={`border-2 transition-all duration-200 hover:shadow-lg ${
+                      <Card key={submission.id} className={`border transition-all duration-200 ${
                         isGraded
-                          ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
-                          : 'bg-white border-slate-200 hover:border-blue-200'
-                      }`}>
-                        <CardContent className="p-6">
-                          {/* Student Info Header */}
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-full ${
-                                isGraded ? 'bg-green-100' : 'bg-blue-100'
+                          ? 'bg-green-50/30 border-green-200'
+                          : 'bg-white border-slate-200 hover:border-blue-300'
+                      } shadow-sm hover:shadow-md`}>
+                        <CardContent className="p-2 sm:p-4 lg:p-5">
+                          {/* Student Info Header - Mobile Optimized */}
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 mb-2 sm:mb-4">
+                            <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                              <div className={`w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                isGraded ? 'bg-green-100' : 'bg-slate-100'
                               }`}>
-                                <span className="text-lg">
-                                  {isGraded ? '✅' : '📝'}
+                                <span className={`text-xs sm:text-base font-semibold ${isGraded ? 'text-green-600' : 'text-slate-600'}`}>
+                                  {submission.student?.firstName?.charAt(0)}{submission.student?.lastName?.charAt(0)}
                                 </span>
                               </div>
-                              <div>
-                                <h4 className="font-bold text-lg text-slate-900">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-xs sm:text-base text-slate-900 leading-tight">
                                   {submission.student ? `${submission.student.firstName} ${submission.student.lastName}` : 'Unknown Student'}
                                 </h4>
-                                <div className="flex items-center space-x-4 text-sm text-slate-600">
-                                  <span>📧 {submission.student?.email}</span>
-                                  <span>🕒 Submitted: {new Date(submission.submittedAt).toLocaleString()}</span>
+                                <div className="flex flex-col text-xs text-slate-500 mt-0.5">
+                                  <span className="truncate">{submission.student?.email}</span>
+                                  <span>{new Date(submission.submittedAt).toLocaleDateString()} {new Date(submission.submittedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                 </div>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right sm:text-right w-full sm:w-auto">
                               {isGraded ? (
                                 <div className="space-y-1">
-                                  <div className="text-lg font-bold text-green-600">
+                                  <div className="text-base sm:text-lg font-bold text-green-600">
                                     {currentGrade}/{submission.assignment?.maxScore} ({gradePercentage}%)
                                   </div>
-                                  <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded-full">
+                                  <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded-full inline-block">
                                     ✓ Graded
                                   </div>
                                 </div>
                               ) : (
-                                <div className="text-center">
-                                  <div className="text-sm text-slate-500 mb-1">Pending Review</div>
-                                  <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                                <div className="text-center sm:text-right">
+                                  <div className="text-xs sm:text-sm text-slate-500 mb-1">Pending Review</div>
+                                  <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-full inline-block">
                                     ⏳ Not graded
                                   </div>
                                 </div>
@@ -1718,16 +1759,38 @@ export default function CourseEditPage() {
                             </div>
                           </div>
 
-                          {/* Submission Content */}
-                          <div className="space-y-4">
+                          {/* Submission Summary - Mobile Optimized */}
+                          <div className="mb-2 sm:mb-4 p-2 sm:p-3 bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg border border-slate-200">
+                            <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                              <span className="font-medium text-slate-700 text-xs sm:text-sm">Includes:</span>
+                              {submission.fileUrl && submission.fileUrl.trim() !== '' && (
+                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                  📎 File
+                                </span>
+                              )}
+                              {submission.content && submission.content.trim() !== '' && (
+                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                                  ✍️ Text
+                                </span>
+                              )}
+                              {(!submission.fileUrl || submission.fileUrl.trim() === '') && (!submission.content || submission.content.trim() === '') && (
+                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                                  ⚠️ Empty
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Submission Content - Mobile Optimized */}
+                          <div className="space-y-2 sm:space-y-4">
                             {/* File Submission */}
-                            {submission.fileUrl && (
-                              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <h5 className="font-semibold text-blue-900 text-lg flex items-center">
-                                    📎 Submitted Document
+                            {submission.fileUrl && submission.fileUrl.trim() !== '' && (
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-4">
+                                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                  <h5 className="font-semibold text-blue-900 text-sm sm:text-lg flex items-center">
+                                    📎 <span className="hidden sm:inline ml-1">Submitted Document</span><span className="sm:hidden ml-1">File</span>
                                   </h5>
-                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-medium">
                                     {(() => {
                                       const extension = submission.fileUrl.split('.').pop()?.toUpperCase();
                                       return extension || 'FILE';
@@ -1735,49 +1798,60 @@ export default function CourseEditPage() {
                                   </span>
                                 </div>
 
-                                <div className="bg-white border border-blue-200 rounded-lg p-3 mb-3">
-                                  <div className="flex items-center space-x-3">
-                                    <div className="p-2 bg-blue-100 rounded-lg">
-                                      <DocumentIcon className="h-5 w-5 text-blue-600" />
+                                <div className="bg-white border border-blue-200 rounded-lg p-2 sm:p-3 mb-2 sm:mb-3">
+                                  <div className="flex items-start space-x-2 sm:space-x-3">
+                                    <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                                      <DocumentIcon className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
                                     </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm font-medium text-slate-900">
-                                        {submission.fileUrl.split('/').pop()?.split('-').slice(1).join('-') || 'Submitted File'}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs sm:text-sm font-medium text-slate-900 break-words leading-tight">
+                                        {(() => {
+                                          const filename = submission.fileUrl.split('/').pop() || 'Submitted File';
+                                          // Remove timestamp prefix if present (format: timestamp-filename)
+                                          const cleanName = filename.includes('-')
+                                            ? filename.split('-').slice(1).join('-')
+                                            : filename;
+                                          return cleanName || filename;
+                                        })()}
                                       </p>
-                                      <p className="text-xs text-slate-500">
-                                        Submitted on {new Date(submission.submittedAt).toLocaleDateString()}
+                                      <p className="text-xs text-slate-500 mt-0.5">
+                                        {new Date(submission.submittedAt).toLocaleDateString()}
                                       </p>
                                     </div>
                                   </div>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="flex">
                                   <a
-                                    href={submission.fileUrl}
+                                    href={(() => {
+                                      const fullUrl = getImageUrl(submission.fileUrl) || submission.fileUrl;
+                                      console.log('Opening document with URL:', fullUrl);
+                                      return fullUrl;
+                                    })()}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1 px-4 py-3 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium text-center flex items-center justify-center space-x-2"
+                                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium text-center flex items-center justify-center space-x-1 sm:space-x-2"
                                   >
                                     <span>👁️</span>
-                                    <span>Open Document</span>
-                                  </a>
-                                  <a
-                                    href={submission.fileUrl}
-                                    download
-                                    className="flex-1 px-4 py-3 bg-slate-600 text-white text-sm rounded-lg hover:bg-slate-700 transition-colors font-medium text-center flex items-center justify-center space-x-2"
-                                  >
-                                    <span>⬇️</span>
-                                    <span>Download</span>
+                                    <span className="hidden sm:inline">Open Document</span>
+                                    <span className="sm:hidden">Open</span>
                                   </a>
                                 </div>
                               </div>
                             )}
 
                             {/* Text Submission */}
-                            {submission.content && (
-                              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                                <h5 className="font-medium text-slate-900 mb-2">📝 Text Submission</h5>
-                                <div className="bg-white p-4 rounded-lg border border-slate-200 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                            {submission.content && submission.content.trim() !== '' && (
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-4">
+                                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                  <h5 className="font-semibold text-amber-900 text-sm sm:text-lg flex items-center">
+                                    ✍️ <span className="hidden sm:inline ml-1">Student&apos;s Written Response</span><span className="sm:hidden ml-1">Text</span>
+                                  </h5>
+                                  <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-medium">
+                                    {submission.content.length} chars
+                                  </span>
+                                </div>
+                                <div className="bg-white p-2 sm:p-4 rounded-lg border border-amber-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap max-h-48 sm:max-h-96 overflow-y-auto">
                                   {submission.content}
                                 </div>
                               </div>
@@ -1793,11 +1867,11 @@ export default function CourseEditPage() {
                               </div>
                             )}
 
-                            {/* Grading Section */}
-                            <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-4">
-                              <h5 className="font-medium text-slate-900 mb-4">🎯 Grade This Submission</h5>
-                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="md:col-span-1">
+                            {/* Grading Section - Mobile Optimized */}
+                            <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-2 sm:p-4">
+                              <h5 className="font-medium text-slate-900 mb-2 sm:mb-4 text-sm sm:text-base">🎯 <span className="hidden sm:inline">Grade This Submission</span><span className="sm:hidden">Grade</span></h5>
+                              <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-1 md:grid-cols-4 sm:gap-4">
+                                <div className="sm:md:col-span-1">
                                   <label className="block text-xs font-medium text-slate-700 mb-1">Score</label>
                                   <div className="relative">
                                     <Input
@@ -1812,17 +1886,17 @@ export default function CourseEditPage() {
                                           s.id === submission.id ? { ...s, grade: newGrade, score: newGrade } : s
                                         ));
                                       }}
-                                      className="text-center font-bold text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                                      className="text-center font-bold text-base sm:text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
                                     />
                                     <div className="text-center text-xs text-slate-500 mt-1">
                                       out of {submission.assignment?.maxScore}
                                     </div>
                                   </div>
                                 </div>
-                                <div className="md:col-span-2">
-                                  <label className="block text-xs font-medium text-slate-700 mb-1">Feedback (Optional)</label>
+                                <div className="sm:md:col-span-2">
+                                  <label className="block text-xs font-medium text-slate-700 mb-1">Feedback <span className="text-slate-500">(Optional)</span></label>
                                   <textarea
-                                    placeholder="Provide constructive feedback to help the student improve..."
+                                    placeholder="Provide feedback to help the student improve..."
                                     value={submission.feedback || ''}
                                     onChange={(e) => {
                                       const newFeedback = e.target.value;
@@ -1830,17 +1904,18 @@ export default function CourseEditPage() {
                                         s.id === submission.id ? { ...s, feedback: newFeedback } : s
                                       ));
                                     }}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                    rows={2}
+                                    className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 text-xs sm:text-sm resize-none"
                                   />
                                 </div>
-                                <div className="md:col-span-1 flex items-end">
+                                <div className="sm:md:col-span-1 flex items-end">
                                   <Button
                                     onClick={() => currentGrade !== undefined && handleGradeSubmission(submission.id, currentGrade, submission.feedback)}
                                     disabled={currentGrade === null || currentGrade === undefined}
-                                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium transition-colors text-xs sm:text-sm py-2"
                                   >
-                                    {isGraded ? '🔄 Update Grade' : '✅ Submit Grade'}
+                                    <span className="hidden sm:inline">{isGraded ? '🔄 Update Grade' : '✅ Submit Grade'}</span>
+                                    <span className="sm:hidden">{isGraded ? 'Update' : 'Grade'}</span>
                                   </Button>
                                 </div>
                               </div>
@@ -1852,12 +1927,12 @@ export default function CourseEditPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <DocumentIcon className="w-8 h-8 text-slate-400" />
+                <div className="text-center py-8 sm:py-12">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <DocumentIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">No submissions yet</h3>
-                  <p className="text-slate-600">Students haven&apos;t submitted any work for this assignment yet.</p>
+                  <h3 className="text-base sm:text-lg font-medium text-slate-900 mb-2">No submissions yet</h3>
+                  <p className="text-sm sm:text-base text-slate-600 px-4">Students haven&apos;t submitted any work for this assignment yet.</p>
                 </div>
               )}
             </CardContent>

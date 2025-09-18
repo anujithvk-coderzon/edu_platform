@@ -1443,7 +1443,7 @@ router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Req
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'asc' }
     });
 
     res.json({
@@ -1477,6 +1477,16 @@ router.post('/assignments/:assignmentId/submit',
       const { assignmentId } = req.params;
 
       const { content, fileUrl } = req.body;
+
+      // Debug logging
+      console.log('📝 Assignment submission received:', {
+        assignmentId,
+        studentId,
+        hasContent: !!content && content.trim() !== '',
+        contentLength: content ? content.length : 0,
+        fileUrl,
+        hasFileUrl: !!fileUrl && fileUrl.trim() !== ''
+      });
 
       // Verify assignment exists and student is enrolled
       const assignment = await prisma.assignment.findUnique({

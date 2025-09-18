@@ -25,6 +25,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface Material {
   id: string;
@@ -43,8 +44,8 @@ interface Material {
   } | null;
   progress: {
     isCompleted: boolean;
-    lastAccessed: string;
-    timeSpent: number;
+    lastAccessed?: string;
+    timeSpent?: number;
   } | null;
 }
 
@@ -121,6 +122,7 @@ export default function LearnPage() {
   const [loadingAssignments, setLoadingAssignments] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [assignmentSubmissions, setAssignmentSubmissions] = useState<Record<string, AssignmentSubmission>>({});
 
   useEffect(() => {
     if (courseId && user) {
@@ -221,6 +223,11 @@ export default function LearnPage() {
         const assignmentData = response.data?.assignments || response.data || [];
         console.log('Setting assignments:', assignmentData);
         setAssignments(Array.isArray(assignmentData) ? assignmentData : []);
+
+        // Fetch submissions for each assignment
+        if (Array.isArray(assignmentData)) {
+          await fetchAssignmentSubmissions(assignmentData);
+        }
       } else {
         console.error('Assignment fetch failed:', response);
         toast.error(response.error?.message || 'Failed to load assignments');
@@ -231,6 +238,58 @@ export default function LearnPage() {
     } finally {
       setLoadingAssignments(false);
     }
+  };
+
+  const fetchAssignmentSubmissions = async (assignmentList: Assignment[]) => {
+    try {
+      const submissions: Record<string, AssignmentSubmission> = {};
+
+      for (const assignment of assignmentList) {
+        try {
+          const response = await api.assignments.getSubmission(assignment.id);
+          if (response.success && response.data?.submission) {
+            submissions[assignment.id] = response.data.submission;
+          }
+        } catch (error) {
+          console.error(`Error fetching submission for assignment ${assignment.id}:`, error);
+        }
+      }
+
+      setAssignmentSubmissions(submissions);
+
+      // Recalculate progress when submissions are loaded
+      if (progress) {
+        recalculateProgress(submissions);
+      }
+    } catch (error) {
+      console.error('Error fetching assignment submissions:', error);
+    }
+  };
+
+  const recalculateProgress = (submissions?: Record<string, AssignmentSubmission>) => {
+    if (!progress) return;
+
+    const currentSubmissions = submissions || assignmentSubmissions;
+    const completedCount = progress.materials.filter(m => m.progress?.isCompleted).length;
+    const completedAssignments = Object.keys(currentSubmissions).length;
+    const totalAssignments = assignments.length;
+
+    // Calculate progress based on both materials and assignments
+    const totalItems = progress.stats.totalMaterials + totalAssignments;
+    const completedItems = completedCount + completedAssignments;
+    const newProgressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+    setProgress(prev => prev ? {
+      ...prev,
+      stats: {
+        ...prev.stats,
+        progressPercentage: newProgressPercentage
+      },
+      enrollment: {
+        ...prev.enrollment,
+        progressPercentage: newProgressPercentage
+      }
+    } : null);
   };
 
   const handleMaterialSelect = (material: Material) => {
@@ -253,19 +312,36 @@ export default function LearnPage() {
         // Update local state
         setCurrentMaterial(prev => prev ? {
           ...prev,
-          progress: { ...(prev.progress || {}), isCompleted: true }
+          progress: {
+            isCompleted: true,
+            lastAccessed: prev.progress?.lastAccessed,
+            timeSpent: prev.progress?.timeSpent
+          }
         } : null);
 
         // Update progress data
         if (progress) {
           const updatedMaterials = progress.materials.map(m =>
             m.id === currentMaterial.id
-              ? { ...m, progress: { ...(m.progress || {}), isCompleted: true } }
+              ? {
+                  ...m,
+                  progress: {
+                    isCompleted: true,
+                    lastAccessed: m.progress?.lastAccessed,
+                    timeSpent: m.progress?.timeSpent
+                  }
+                }
               : m
           );
 
           const completedCount = updatedMaterials.filter(m => m.progress?.isCompleted).length;
-          const newProgressPercentage = Math.round((completedCount / progress.stats.totalMaterials) * 100);
+          const completedAssignments = Object.keys(assignmentSubmissions).length;
+          const totalAssignments = assignments.length;
+
+          // Calculate progress based on both materials and assignments
+          const totalItems = progress.stats.totalMaterials + totalAssignments;
+          const completedItems = completedCount + completedAssignments;
+          const newProgressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
           setProgress(prev => prev ? {
             ...prev,
@@ -286,7 +362,14 @@ export default function LearnPage() {
             ...module,
             materials: module.materials.map(m =>
               m.id === currentMaterial.id
-                ? { ...m, progress: { ...(m.progress || {}), isCompleted: true } }
+                ? {
+                    ...m,
+                    progress: {
+                      isCompleted: true,
+                      lastAccessed: m.progress?.lastAccessed,
+                      timeSpent: m.progress?.timeSpent
+                    }
+                  }
                 : m
             )
           })));
@@ -623,15 +706,18 @@ export default function LearnPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 md:gap-3">
+                  <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3">
                     <div className="bg-slate-50 rounded-lg p-2 md:p-3 border border-slate-200">
                       <div className="text-xl md:text-2xl font-semibold text-slate-900">{progress.stats.completedMaterials}</div>
-                      <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Completed</div>
+                      <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Materials Done</div>
                     </div>
                     <div className="bg-slate-50 rounded-lg p-2 md:p-3 border border-slate-200">
-                      <div className="text-xl md:text-2xl font-semibold text-slate-900">{progress.stats.totalMaterials - progress.stats.completedMaterials}</div>
-                      <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Remaining</div>
+                      <div className="text-xl md:text-2xl font-semibold text-slate-900">{Object.keys(assignmentSubmissions).length}</div>
+                      <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Assignments Done</div>
                     </div>
+                  </div>
+                  <div className="text-xs text-slate-500 text-center">
+                    {progress.stats.totalMaterials + assignments.length - progress.stats.completedMaterials - Object.keys(assignmentSubmissions).length} items remaining
                   </div>
                 </div>
 
@@ -747,7 +833,7 @@ export default function LearnPage() {
                     <span className="ml-2 text-slate-600 text-sm">Loading assignments...</span>
                   </div>
                 ) : assignments.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {assignments.map((assignment) => {
                       return <AssignmentListItem key={assignment.id} assignment={assignment} onSelect={(a) => {
                         setSelectedAssignment(a);
@@ -894,6 +980,10 @@ export default function LearnPage() {
             setShowSubmissionModal(false);
             setSelectedAssignment(null);
           }}
+          onSubmit={async () => {
+            // Refresh submissions after a new submission is made
+            await fetchAssignmentSubmissions(assignments);
+          }}
         />
       )}
     </div>
@@ -934,7 +1024,7 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
   return (
     <button
       onClick={() => onSelect(assignment)}
-      className={`w-full p-4 text-left border rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md ${
+      className={`w-full p-3 sm:p-4 text-left border rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md ${
         hasSubmission
           ? isGraded
             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 hover:from-green-100 hover:to-emerald-100'
@@ -944,9 +1034,9 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
           : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-indigo-200'
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start flex-1">
-          <div className={`p-2 rounded-xl mr-4 flex-shrink-0 ${
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start flex-1 min-w-0">
+          <div className={`p-2 rounded-xl mr-3 flex-shrink-0 ${
             hasSubmission
               ? isGraded
                 ? 'bg-green-100 border border-green-200'
@@ -955,7 +1045,7 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
               ? 'bg-red-100 border border-red-200'
               : 'bg-indigo-100 border border-indigo-200'
           }`}>
-            <ClipboardDocumentListIcon className={`h-5 w-5 ${
+            <ClipboardDocumentListIcon className={`h-4 w-4 sm:h-5 sm:w-5 ${
               hasSubmission
                 ? isGraded
                   ? 'text-green-600'
@@ -966,47 +1056,51 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
             }`} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-2">
-              <h4 className="font-semibold text-base text-slate-900 truncate">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+              <h4 className="font-semibold text-sm sm:text-base text-slate-900 break-words line-clamp-2">
                 {assignment.title}
               </h4>
-              {hasSubmission && (
-                <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                  isGraded
-                    ? 'bg-green-100 text-green-700 border border-green-200'
-                    : 'bg-blue-100 text-blue-700 border border-blue-200'
-                }`}>
-                  {isGraded ? '✓ Graded' : '📤 Submitted'}
-                </span>
-              )}
-              {!hasSubmission && isOverdue && (
-                <span className="text-xs px-3 py-1 rounded-full font-medium bg-red-100 text-red-700 border border-red-200">
-                  ⏰ Overdue
-                </span>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {hasSubmission && (
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ${
+                    isGraded
+                      ? 'bg-green-100 text-green-700 border border-green-200'
+                      : 'bg-blue-100 text-blue-700 border border-blue-200'
+                  }`}>
+                    {isGraded ? '✓ Graded' : '📤 Submitted'}
+                  </span>
+                )}
+                {!hasSubmission && isOverdue && (
+                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700 border border-red-200 flex-shrink-0">
+                    ⏰ Overdue
+                  </span>
+                )}
+              </div>
             </div>
-            <p className="text-sm text-slate-600 mb-3 line-clamp-2">
+            <p className="text-sm text-slate-600 mb-3 line-clamp-2 whitespace-pre-line">
               {assignment.description}
             </p>
-            <div className="flex items-center flex-wrap gap-4 text-xs">
-              {assignment.dueDate && (
-                <div className={`flex items-center px-2 py-1 rounded-lg ${
-                  isOverdue
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-slate-100 text-slate-600'
-                }`}>
-                  <CalendarIcon className="h-3 w-3 mr-1" />
-                  <span className={isOverdue ? 'font-medium' : ''}>
-                    {isOverdue ? 'Was due' : 'Due'} {new Date(assignment.dueDate).toLocaleDateString()}
-                  </span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                {assignment.dueDate && (
+                  <div className={`flex items-center px-2 py-1 rounded-lg flex-shrink-0 ${
+                    isOverdue
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    <CalendarIcon className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className={`truncate ${isOverdue ? 'font-medium' : ''}`}>
+                      {isOverdue ? 'Was due' : 'Due'} {new Date(assignment.dueDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center px-2 py-1 bg-slate-100 text-slate-600 rounded-lg flex-shrink-0">
+                  <span>Max: {assignment.maxScore} pts</span>
                 </div>
-              )}
-              <div className="flex items-center px-2 py-1 bg-slate-100 text-slate-600 rounded-lg">
-                <span>Max: {assignment.maxScore} pts</span>
               </div>
               {isGraded && (
-                <div className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200">
-                  <span>📊 Score: {submissionGrade}/{assignment.maxScore} ({Math.round((submissionGrade! / assignment.maxScore) * 100)}%)</span>
+                <div className="flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200 flex-shrink-0">
+                  <span className="truncate">📊 {submissionGrade}/{assignment.maxScore} ({Math.round((submissionGrade! / assignment.maxScore) * 100)}%)</span>
                 </div>
               )}
             </div>
@@ -1022,9 +1116,10 @@ interface AssignmentSubmissionModalProps {
   assignment: Assignment;
   courseId: string;
   onClose: () => void;
+  onSubmit?: () => Promise<void>;
 }
 
-function AssignmentSubmissionModal({ assignment, courseId, onClose }: AssignmentSubmissionModalProps) {
+function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: AssignmentSubmissionModalProps) {
   const [submission, setSubmission] = useState<AssignmentSubmission | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -1089,8 +1184,11 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
       // Upload file if selected
       if (submissionFile) {
         const uploadResponse = await api.assignments.uploadFile(submissionFile);
+        console.log('Upload response:', uploadResponse); // Debug log
         if (uploadResponse.success) {
-          fileUrl = uploadResponse.data.url;
+          // Fix: Use fileUrl from the response, not url
+          fileUrl = uploadResponse.data.fileUrl || uploadResponse.data.url;
+          console.log('File URL to be submitted:', fileUrl); // Debug log
         } else {
           toast.error('Failed to upload file. Please try again.');
           return;
@@ -1107,12 +1205,16 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
         submissionData.fileUrl = fileUrl;
       }
 
+      console.log('Submitting assignment with data:', submissionData); // Debug log
 
       const response = await api.assignments.submit(assignment.id, submissionData);
 
       if (response.success) {
         toast.success('Assignment submitted successfully!');
         await fetchSubmission(); // Refresh submission data
+        if (onSubmit) {
+          await onSubmit(); // Refresh parent state and recalculate progress
+        }
       }
     } catch (error: any) {
       console.error('Submission error:', error);
@@ -1127,46 +1229,51 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
   const canSubmit = !submission && !isOverdue;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">{assignment.title}</h2>
-              <p className="text-slate-600 mt-1">{assignment.description}</p>
-              <div className="flex items-center space-x-4 mt-3 text-sm text-slate-500">
+    <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[98vh] sm:max-h-[90vh] overflow-hidden mx-2 sm:mx-4">
+        <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-slate-900 truncate pr-2">{assignment.title}</h2>
+              <p className="text-slate-600 mt-1 text-xs sm:text-sm line-clamp-2 sm:line-clamp-none whitespace-pre-line">{assignment.description}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-xs sm:text-sm text-slate-500">
                 {assignment.dueDate && (
                   <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-1" />
-                    <span className={isOverdue ? 'text-red-600' : ''}>
-                      Due {new Date(assignment.dueDate).toLocaleString()}
-                      {isOverdue && ' (Overdue)'}
+                    <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    <span className={`${isOverdue ? 'text-red-600' : ''} truncate`}>
+                      <span className="hidden sm:inline">Due </span>{new Date(assignment.dueDate).toLocaleDateString()}
+                      {isOverdue && <span className="hidden sm:inline"> (Overdue)</span>}
+                      {isOverdue && <span className="sm:hidden text-red-600"> - Overdue</span>}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center">
-                  <span>Max Score: {assignment.maxScore} points</span>
+                  <span className="truncate">
+                    <span className="hidden sm:inline">Max Score: </span>
+                    <span className="sm:hidden">Max: </span>
+                    {assignment.maxScore} pts
+                  </span>
                 </div>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
             >
-              <XMarkIcon className="h-5 w-5 text-slate-600" />
+              <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </button>
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-96">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[50vh]">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-2 text-slate-600">Loading submission...</span>
+            <div className="flex items-center justify-center py-6 sm:py-8">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="ml-2 text-slate-600 text-sm sm:text-base">Loading submission...</span>
             </div>
           ) : submission ? (
             /* Show existing submission */
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <h3 className="font-medium text-green-800 mb-2">Submission Completed</h3>
                 <p className="text-sm text-green-700">
@@ -1195,10 +1302,10 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
                 <div>
                   <h4 className="font-medium text-slate-900 mb-2">File Submission</h4>
                   <a
-                    href={submission.fileUrl}
+                    href={getImageUrl(submission.fileUrl) || submission.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <PaperClipIcon className="h-4 w-4 mr-2" />
                     View Submitted File
@@ -1243,31 +1350,32 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Text Submission (Optional)
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+                  Written Response
                 </label>
                 <textarea
                   value={submissionText}
                   onChange={(e) => setSubmissionText(e.target.value)}
-                  placeholder="Write your submission here..."
-                  rows={6}
+                  placeholder="Type your answer here..."
+                  rows={5}
                   disabled={!canSubmit}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed transition-colors text-sm resize-none"
                 />
+                <p className="text-xs text-slate-500 mt-1">{submissionText.length} characters</p>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <label className="block text-sm font-medium text-slate-700 mb-3">
-                  📎 File Upload (Optional)
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2 sm:mb-3">
+                  File Upload <span className="text-slate-500 font-normal">(Optional)</span>
                 </label>
                 {submissionFile ? (
-                  <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <PaperClipIcon className="h-5 w-5 text-blue-600" />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+                      <div className="p-1.5 sm:p-2 bg-blue-100 rounded-full flex-shrink-0">
+                        <PaperClipIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">{submissionFile.name}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-blue-900 truncate">{submissionFile.name}</p>
                         <p className="text-xs text-blue-700">
                           {(submissionFile.size / 1024 / 1024).toFixed(2)} MB • Ready to submit
                         </p>
@@ -1278,14 +1386,14 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
                         onClick={() => {
                           setSubmissionFile(null);
                         }}
-                        className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1 hover:bg-red-50 rounded transition-colors"
+                        className="text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium px-2 sm:px-3 py-1 hover:bg-red-50 rounded transition-colors flex-shrink-0"
                       >
                         Remove
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center bg-white hover:border-slate-400 transition-colors">
+                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 sm:p-8 text-center bg-white hover:border-slate-400 transition-colors">
                     <input
                       type="file"
                       onChange={(e) => {
@@ -1328,27 +1436,29 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose }: Assignment
         </div>
 
         {!loading && !submission && (
-          <div className="px-6 py-4 border-t border-slate-200 flex justify-end space-x-3">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+              className="order-2 sm:order-1 w-full sm:w-auto px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={!canSubmit || submitting || (!submissionText.trim() && !submissionFile)}
-              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center font-medium shadow-lg hover:shadow-xl"
+              className="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center font-medium text-sm"
             >
               {submitting ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
-                  <span>Submitting Assignment...</span>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <span className="hidden sm:inline">Submitting Assignment...</span>
+                  <span className="sm:hidden">Submitting...</span>
                 </>
               ) : (
                 <>
-                  <PaperClipIcon className="h-5 w-5 mr-2" />
-                  <span>Submit Assignment</span>
+                  <PaperClipIcon className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Submit Assignment</span>
+                  <span className="sm:hidden">Submit</span>
                 </>
               )}
             </button>

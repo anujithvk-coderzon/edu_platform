@@ -298,13 +298,15 @@ export default function Home() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <UsersIcon className="h-8 w-8 mx-auto text-white mb-3" />
               <div className="text-3xl font-bold text-white">
-                {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '10,000+'}
+                {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '-'}
               </div>
               <div className="text-white/80 text-sm mt-1">Active Learners</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <StarIcon className="h-8 w-8 mx-auto text-white mb-3" />
-              <div className="text-3xl font-bold text-white">{featuredCourses.length > 0 ? (featuredCourses.reduce((sum, course) => sum + (course.averageRating || 0), 0) / featuredCourses.length).toFixed(1) : '4.9'}</div>
+              <div className="text-3xl font-bold text-white">
+                {featuredCourses.length > 0 ? (featuredCourses.reduce((sum, course) => sum + (course.averageRating || 0), 0) / featuredCourses.length).toFixed(1) : '-'}
+              </div>
               <div className="text-white/80 text-sm mt-1">Average Rating</div>
             </div>
           </div>

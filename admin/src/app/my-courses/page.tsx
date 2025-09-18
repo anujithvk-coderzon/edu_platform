@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
-import { 
+import {
   PlusIcon,
   MagnifyingGlassIcon,
   EyeIcon,
@@ -14,7 +14,8 @@ import {
   CurrencyDollarIcon,
   StarIcon,
   AcademicCapIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { api } from '../../lib/api';
@@ -380,50 +381,99 @@ const Page = () => {
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-200">
-                      <Link href={`/courses/${course.id}`} className="flex-1 min-w-[70px]">
-                        <Button variant="outline" size="sm" className="w-full text-xs">
-                          <EyeIcon className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                      </Link>
-                      <Link href={`/courses/${course.id}/edit`} className="flex-1 min-w-[70px]">
-                        <Button size="sm" className="w-full text-xs">
-                          <PencilIcon className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                      </Link>
-                      {course.status === 'DRAFT' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handlePublishCourse(course.id, course.title)}
-                          disabled={publishingCourseId === course.id}
-                          variant="outline"
-                          className="flex-1 min-w-[80px] border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs"
-                        >
-                          {publishingCourseId === course.id ? (
-                            <div className="w-3 h-3 mr-1 animate-spin rounded-full border-2 border-green-300 border-t-green-600"></div>
-                          ) : (
-                            <CheckCircleIcon className="w-3 h-3 mr-1" />
-                          )}
-                          {publishingCourseId === course.id ? 'Publishing...' : 'Publish'}
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteCourse(course.id, course.title)}
-                        disabled={deletingCourseId === course.id}
-                        className="flex-shrink-0 border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs"
-                      >
-                        {deletingCourseId === course.id ? (
-                          <div className="w-3 h-3 mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                    {/* Actions - Fully Responsive */}
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-3 border-t border-slate-200">
+                      {/* First Row - View, Edit, Assignments */}
+                      <div className="flex flex-row gap-1.5 sm:gap-2 w-full">
+                        <Link href={`/courses/${course.id}`} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full text-xs px-2 sm:px-3">
+                            <EyeIcon className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">View</span>
+                          </Button>
+                        </Link>
+                        <Link href={`/courses/${course.id}/edit`} className="flex-1">
+                          <Button size="sm" className="w-full text-xs px-2 sm:px-3 bg-blue-600 hover:bg-blue-700 text-white">
+                            <PencilIcon className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Edit</span>
+                          </Button>
+                        </Link>
+                        <Link href={`/courses/${course.id}/edit?tab=assignments`} className="flex-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs px-2 sm:px-3 border-purple-300 text-purple-700 hover:bg-purple-50"
+                          >
+                            <ClipboardDocumentListIcon className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Assignments</span>
+                          </Button>
+                        </Link>
+                      </div>
+
+                      {/* Second Row - Publish (if draft) and Delete */}
+                      <div className="flex flex-row gap-1.5 sm:gap-2 w-full">
+                        {course.status === 'DRAFT' ? (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handlePublishCourse(course.id, course.title)}
+                              disabled={publishingCourseId === course.id}
+                              variant="outline"
+                              className="flex-1 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs px-2 sm:px-3"
+                            >
+                              {publishingCourseId === course.id ? (
+                                <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-green-300 border-t-green-600"></div>
+                              ) : (
+                                <CheckCircleIcon className="w-3 h-3 sm:mr-1" />
+                              )}
+                              <span className="hidden sm:inline">
+                                {publishingCourseId === course.id ? 'Publishing...' : 'Publish'}
+                              </span>
+                              <span className="sm:hidden">
+                                {publishingCourseId === course.id ? '...' : 'Pub'}
+                              </span>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteCourse(course.id, course.title)}
+                              disabled={deletingCourseId === course.id}
+                              className="flex-1 border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs px-2 sm:px-3"
+                            >
+                              {deletingCourseId === course.id ? (
+                                <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                              ) : (
+                                <TrashIcon className="w-3 h-3 sm:mr-1" />
+                              )}
+                              <span className="hidden sm:inline">
+                                {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
+                              </span>
+                              <span className="sm:hidden">
+                                {deletingCourseId === course.id ? '...' : 'Del'}
+                              </span>
+                            </Button>
+                          </>
                         ) : (
-                          <TrashIcon className="w-3 h-3 mr-1" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteCourse(course.id, course.title)}
+                            disabled={deletingCourseId === course.id}
+                            className="w-full sm:w-auto border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs px-2 sm:px-3"
+                          >
+                            {deletingCourseId === course.id ? (
+                              <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                            ) : (
+                              <TrashIcon className="w-3 h-3 sm:mr-1" />
+                            )}
+                            <span className="hidden sm:inline">
+                              {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
+                            </span>
+                            <span className="sm:hidden">
+                              {deletingCourseId === course.id ? '...' : 'Delete'}
+                            </span>
+                          </Button>
                         )}
-                        {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
-                      </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

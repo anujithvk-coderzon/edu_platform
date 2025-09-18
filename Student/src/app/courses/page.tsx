@@ -104,7 +104,7 @@ export default function CoursesPage() {
       if (selectedLevel) params.level = selectedLevel;
 
       const response = await api.courses.getAll(params);
-      if (response.success) {
+      if (response.success && response.data) {
         let filteredCourses = response.data.courses;
 
         // Enrich courses with enrollment data if user is logged in

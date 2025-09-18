@@ -1173,18 +1173,47 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
   ];
 
   if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
+    // Check video file size limit (30MB for videos)
+    if (file.mimetype.startsWith('video/')) {
+      const maxVideoSize = 30 * 1024 * 1024; // 30MB
+      // Note: file.size is not available in fileFilter, size check will be done in multer limits
+      cb(null, true);
+    } else {
+      cb(null, true);
+    }
   } else {
     cb(new Error(`File type ${file.mimetype} is not allowed`));
   }
 };
 
+// Custom multer configuration with dynamic file size limits
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB
+    fileSize: 50 * 1024 * 1024, // Default 50MB (will be overridden for videos)
     files: 5
+  }
+});
+
+// Video-specific upload with 25MB limit
+const uploadVideo = multer({
+  storage,
+  fileFilter: (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (file.mimetype.startsWith('video/')) {
+      const allowedVideoMimes = ['video/mp4', 'video/mpeg', 'video/webm'];
+      if (allowedVideoMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Video type ${file.mimetype} is not allowed`));
+      }
+    } else {
+      cb(new Error('Only video files are allowed for this endpoint'));
+    }
+  },
+  limits: {
+    fileSize: 30 * 1024 * 1024, // 30MB for videos
+    files: 1
   }
 });
 
@@ -1216,8 +1245,26 @@ router.post('/uploads/course-thumbnail', upload.single('thumbnail'), asyncHandle
   });
 }));
 
+// Middleware to check file size based on file type
+const checkFileSizeByType = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.file) {
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const maxSize = isVideo ? 30 * 1024 * 1024 : 50 * 1024 * 1024; // 30MB for videos, 50MB for others
+
+    if (req.file.size > maxSize) {
+      const sizeInMB = isVideo ? '30MB' : '50MB';
+      const fileTypeText = isVideo ? 'Video' : 'File';
+      return res.status(400).json({
+        success: false,
+        error: { message: `${fileTypeText} size exceeds the ${sizeInMB} limit` }
+      });
+    }
+  }
+  next();
+};
+
 // Material file upload
-router.post('/uploads/material', upload.single('file'), asyncHandler(async (req: express.Request, res: express.Response) => {
+router.post('/uploads/material', upload.single('file'), checkFileSizeByType, asyncHandler(async (req: express.Request, res: express.Response) => {
   if (!req.file) {
     return res.status(400).json({
       success: false,
@@ -2271,7 +2318,7 @@ router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Req
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'asc' }
     });
 
     res.json({
@@ -2344,6 +2391,21 @@ router.get('/assignments/:assignmentId/submissions', asyncHandler(async (req: ex
         }
       },
       orderBy: { submittedAt: 'desc' }
+    });
+
+    // Debug logging to check fileUrl values
+    console.log('📋 Fetched submissions for assignment:', assignmentId);
+    submissions.forEach((sub, index) => {
+      console.log(`  Submission ${index + 1}:`, {
+        id: sub.id,
+        studentName: sub.student ? `${sub.student.firstName} ${sub.student.lastName}` : 'Unknown',
+        hasContent: !!sub.content && sub.content.trim() !== '',
+        contentLength: sub.content ? sub.content.length : 0,
+        fileUrl: sub.fileUrl,
+        hasFileUrl: !!sub.fileUrl && sub.fileUrl.trim() !== '',
+        status: sub.status,
+        score: sub.score
+      });
     });
 
     res.json({

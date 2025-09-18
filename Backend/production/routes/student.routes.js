@@ -1272,7 +1272,7 @@ router.get('/assignments/course/:courseId', (0, errorHandler_1.asyncHandler)(asy
                     }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'asc' }
         });
         res.json({
             success: true,
@@ -1288,16 +1288,7 @@ router.get('/assignments/course/:courseId', (0, errorHandler_1.asyncHandler)(asy
     }
 }));
 // Submit assignment
-router.post('/assignments/:assignmentId/submit', [
-    (0, express_validator_1.body)('content').optional().trim(),
-    (0, express_validator_1.body)('fileUrl').optional().isURL().withMessage('File URL must be valid'),
-    (0, express_validator_1.body)().custom((value, { req }) => {
-        if (!req.body.content && !req.body.fileUrl) {
-            throw new Error('Either content or file submission is required');
-        }
-        return true;
-    }),
-], (0, errorHandler_1.asyncHandler)(async (req, res) => {
+router.post('/assignments/:assignmentId/submit', (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const token = req.cookies.student_token;
     if (!token) {
         return res.status(401).json({
@@ -1309,14 +1300,16 @@ router.post('/assignments/:assignmentId/submit', [
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         const studentId = decoded.id;
         const { assignmentId } = req.params;
-        const errors = (0, express_validator_1.validationResult)(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                success: false,
-                error: { message: 'Validation failed', details: errors.array() }
-            });
-        }
         const { content, fileUrl } = req.body;
+        // Debug logging
+        console.log('📝 Assignment submission received:', {
+            assignmentId,
+            studentId,
+            hasContent: !!content && content.trim() !== '',
+            contentLength: content ? content.length : 0,
+            fileUrl,
+            hasFileUrl: !!fileUrl && fileUrl.trim() !== ''
+        });
         // Verify assignment exists and student is enrolled
         const assignment = await DB_Config_1.default.assignment.findUnique({
             where: { id: assignmentId },
@@ -1366,7 +1359,7 @@ router.post('/assignments/:assignmentId/submit', [
         }
         const submission = await DB_Config_1.default.assignmentSubmission.create({
             data: {
-                content,
+                content: content || '',
                 fileUrl: fileUrl || null,
                 assignmentId,
                 studentId,

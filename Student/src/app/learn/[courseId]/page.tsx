@@ -1034,9 +1034,9 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
           : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-indigo-200'
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col">
         <div className="flex items-start flex-1 min-w-0">
-          <div className={`p-2 rounded-xl mr-3 flex-shrink-0 ${
+          <div className={`p-1.5 sm:p-2 rounded-xl mr-2 sm:mr-3 flex-shrink-0 ${
             hasSubmission
               ? isGraded
                 ? 'bg-green-100 border border-green-200'
@@ -1056,13 +1056,13 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
             }`} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-              <h4 className="font-semibold text-sm sm:text-base text-slate-900 break-words line-clamp-2">
+            <div className="mb-2">
+              <h4 className="font-semibold text-sm sm:text-base text-slate-900 break-words line-clamp-2 mb-1">
                 {assignment.title}
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {hasSubmission && (
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ${
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium inline-block ${
                     isGraded
                       ? 'bg-green-100 text-green-700 border border-green-200'
                       : 'bg-blue-100 text-blue-700 border border-blue-200'
@@ -1071,7 +1071,7 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
                   </span>
                 )}
                 {!hasSubmission && isOverdue && (
-                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700 border border-red-200 flex-shrink-0">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700 border border-red-200 inline-block">
                     ⏰ Overdue
                   </span>
                 )}
@@ -1080,27 +1080,32 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
             <p className="text-sm text-slate-600 mb-3 line-clamp-2 whitespace-pre-line">
               {assignment.description}
             </p>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+            <div className="flex flex-col gap-2 text-xs">
               <div className="flex flex-wrap items-center gap-2">
                 {assignment.dueDate && (
-                  <div className={`flex items-center px-2 py-1 rounded-lg flex-shrink-0 ${
+                  <div className={`inline-flex items-center px-2 py-1 rounded-lg ${
                     isOverdue
                       ? 'bg-red-100 text-red-700'
                       : 'bg-slate-100 text-slate-600'
                   }`}>
                     <CalendarIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className={`truncate ${isOverdue ? 'font-medium' : ''}`}>
+                    <span className={`${isOverdue ? 'font-medium' : ''}`}>
                       {isOverdue ? 'Was due' : 'Due'} {new Date(assignment.dueDate).toLocaleDateString()}
                     </span>
                   </div>
                 )}
-                <div className="flex items-center px-2 py-1 bg-slate-100 text-slate-600 rounded-lg flex-shrink-0">
+                <div className="inline-flex items-center px-2 py-1 bg-slate-100 text-slate-600 rounded-lg">
                   <span>Max: {assignment.maxScore} pts</span>
                 </div>
               </div>
               {isGraded && (
-                <div className="flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200 flex-shrink-0">
-                  <span className="truncate">📊 {submissionGrade}/{assignment.maxScore} ({Math.round((submissionGrade! / assignment.maxScore) * 100)}%)</span>
+                <div className="inline-flex items-center gap-1 flex-wrap">
+                  <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200">
+                    <span>📊 Score: {submissionGrade}/{assignment.maxScore}</span>
+                  </div>
+                  <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200">
+                    <span>{Math.round((submissionGrade! / assignment.maxScore) * 100)}%</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -1230,8 +1235,8 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
 
   return (
     <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[98vh] sm:max-h-[90vh] overflow-hidden mx-2 sm:mx-4">
-        <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
+      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[98vh] sm:max-h-[90vh] mx-2 sm:mx-4 flex flex-col">
+        <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 flex-shrink-0">
           <div className="flex justify-between items-start gap-3">
             <div className="flex-1 min-w-0">
               <h2 className="text-lg sm:text-xl font-semibold text-slate-900 truncate pr-2">{assignment.title}</h2>
@@ -1265,7 +1270,7 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[50vh]">
+        <div className="flex-1 p-4 sm:p-6 overflow-y-auto min-h-0">
           {loading ? (
             <div className="flex items-center justify-center py-6 sm:py-8">
               <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -1436,32 +1441,34 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
         </div>
 
         {!loading && !submission && (
-          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-            <button
-              onClick={onClose}
-              className="order-2 sm:order-1 w-full sm:w-auto px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={!canSubmit || submitting || (!submissionText.trim() && !submissionFile)}
-              className="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center font-medium text-sm"
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  <span className="hidden sm:inline">Submitting Assignment...</span>
-                  <span className="sm:hidden">Submitting...</span>
-                </>
-              ) : (
-                <>
-                  <PaperClipIcon className="h-4 w-4 mr-1 sm:mr-2" />
-                  <span className="hidden sm:inline">Submit Assignment</span>
-                  <span className="sm:hidden">Submit</span>
-                </>
-              )}
-            </button>
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
+              <button
+                onClick={onClose}
+                className="order-2 sm:order-1 w-full sm:w-auto px-4 py-2.5 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium min-h-[42px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!canSubmit || submitting || (!submissionText.trim() && !submissionFile)}
+                className="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center font-medium text-sm min-h-[42px]"
+              >
+                {submitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <span className="hidden sm:inline">Submitting Assignment...</span>
+                    <span className="sm:hidden">Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <PaperClipIcon className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Submit Assignment</span>
+                    <span className="sm:hidden">Submit</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>

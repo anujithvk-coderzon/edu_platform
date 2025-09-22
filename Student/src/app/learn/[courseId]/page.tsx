@@ -64,9 +64,12 @@ interface Progress {
     status: string;
   };
   materials: Material[];
+  assignments?: Assignment[];
   stats: {
     totalMaterials: number;
     completedMaterials: number;
+    totalAssignments?: number;
+    submittedAssignments?: number;
     progressPercentage: number;
     totalTimeSpent: number;
   };
@@ -166,6 +169,19 @@ export default function LearnPage() {
       const progressResponse = await api.enrollments.getProgress(courseId);
       if (progressResponse.success) {
         setProgress(progressResponse.data);
+
+        // Set assignments if available from the progress response
+        if (progressResponse.data.assignments) {
+          setAssignments(progressResponse.data.assignments);
+          // Update assignment submissions
+          const submissions: Record<string, AssignmentSubmission> = {};
+          progressResponse.data.assignments.forEach((assignment: Assignment & { submission?: AssignmentSubmission }) => {
+            if (assignment.submission) {
+              submissions[assignment.id] = assignment.submission;
+            }
+          });
+          setAssignmentSubmissions(submissions);
+        }
 
         // Organize materials by chapters, excluding unassigned materials
         const materialsWithProgress = progressResponse.data.materials.filter((material: Material) => material.moduleId);
@@ -272,7 +288,7 @@ export default function LearnPage() {
     const currentSubmissions = submissions || assignmentSubmissions;
     const completedCount = progress.materials.filter(m => m.progress?.isCompleted).length;
     const completedAssignments = Object.keys(currentSubmissions).length;
-    const totalAssignments = assignments.length;
+    const totalAssignments = progress.stats.totalAssignments || assignments.length;
 
     // Calculate progress based on both materials and assignments
     const totalItems = progress.stats.totalMaterials + totalAssignments;
@@ -283,6 +299,9 @@ export default function LearnPage() {
       ...prev,
       stats: {
         ...prev.stats,
+        completedMaterials: completedCount,
+        submittedAssignments: completedAssignments,
+        totalAssignments: totalAssignments,
         progressPercentage: newProgressPercentage
       },
       enrollment: {
@@ -712,12 +731,12 @@ export default function LearnPage() {
                       <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Materials Done</div>
                     </div>
                     <div className="bg-slate-50 rounded-lg p-2 md:p-3 border border-slate-200">
-                      <div className="text-xl md:text-2xl font-semibold text-slate-900">{Object.keys(assignmentSubmissions).length}</div>
+                      <div className="text-xl md:text-2xl font-semibold text-slate-900">{progress.stats.submittedAssignments || Object.keys(assignmentSubmissions).length}</div>
                       <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Assignments Done</div>
                     </div>
                   </div>
                   <div className="text-xs text-slate-500 text-center">
-                    {progress.stats.totalMaterials + assignments.length - progress.stats.completedMaterials - Object.keys(assignmentSubmissions).length} items remaining
+                    {(progress.stats.totalMaterials + (progress.stats.totalAssignments || assignments.length)) - progress.stats.completedMaterials - (progress.stats.submittedAssignments || Object.keys(assignmentSubmissions).length)} items remaining
                   </div>
                 </div>
 

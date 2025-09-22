@@ -817,19 +817,71 @@ router.get('/enrollments/progress/:courseId', asyncHandler(async (req: express.R
       progress: progressMap.get(material.id) || null
     }));
 
+    // Get assignments for this course
+    const [assignments, assignmentSubmissions] = await Promise.all([
+      prisma.assignment.findMany({
+        where: { courseId },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          dueDate: true,
+          maxScore: true,
+          createdAt: true
+        },
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.assignmentSubmission.findMany({
+        where: {
+          studentId: userId,
+          assignment: { courseId }
+        },
+        select: {
+          id: true,
+          assignmentId: true,
+          submittedAt: true,
+          status: true,
+          score: true,
+          feedback: true
+        }
+      })
+    ]);
+
+    const submissionMap = new Map(
+      assignmentSubmissions.map(s => [s.assignmentId, s])
+    );
+
+    const assignmentsWithSubmissions = assignments.map(assignment => ({
+      ...assignment,
+      submission: submissionMap.get(assignment.id) || null
+    }));
+
     const totalMaterials = materials.length;
     const completedMaterials = progressRecords.filter(p => p.isCompleted).length;
+    const totalAssignments = assignments.length;
+    const submittedAssignments = assignmentSubmissions.length;
     const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
+
+    // Calculate overall progress including assignments
+    const totalItems = totalMaterials + totalAssignments;
+    const completedItems = completedMaterials + submittedAssignments;
+    const overallProgressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
     res.json({
       success: true,
       data: {
-        enrollment,
+        enrollment: {
+          ...enrollment,
+          progressPercentage: overallProgressPercentage
+        },
         materials: materialsWithProgress,
+        assignments: assignmentsWithSubmissions,
         stats: {
           totalMaterials,
           completedMaterials,
-          progressPercentage: totalMaterials > 0 ? Math.round((completedMaterials / totalMaterials) * 100) : 0,
+          totalAssignments,
+          submittedAssignments,
+          progressPercentage: overallProgressPercentage,
           totalTimeSpent
         }
       }
@@ -1018,20 +1070,29 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
       }
     });
 
-    // Update enrollment progress
-    const totalMaterials = await prisma.material.count({
-      where: { courseId: material.courseId }
-    });
+    // Update enrollment progress including assignments
+    const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
+      prisma.material.count({ where: { courseId: material.courseId } }),
+      prisma.progress.count({
+        where: {
+          userId: studentId,
+          courseId: material.courseId,
+          isCompleted: true
+        }
+      }),
+      prisma.assignment.count({ where: { courseId: material.courseId } }),
+      prisma.assignmentSubmission.count({
+        where: {
+          studentId,
+          assignment: { courseId: material.courseId }
+        }
+      })
+    ]);
 
-    const completedMaterials = await prisma.progress.count({
-      where: {
-        userId: studentId,
-        courseId: material.courseId,
-        isCompleted: true
-      }
-    });
-
-    const progressPercentage = Math.round((completedMaterials / totalMaterials) * 100);
+    // Calculate progress including both materials and assignments
+    const totalItems = totalMaterials + totalAssignments;
+    const completedItems = completedMaterials + submittedAssignments;
+    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
     await prisma.enrollment.update({
       where: {
@@ -1042,7 +1103,7 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
       },
       data: {
         progressPercentage,
-        ...(progressPercentage === 100 && { completedAt: new Date() })
+        ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
       }
     });
 
@@ -1050,7 +1111,9 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
       success: true,
       data: {
         progressPercentage,
-        isCompleted: true
+        isCompleted: true,
+        totalItems: totalMaterials + totalAssignments,
+        completedItems: completedMaterials + submittedAssignments
       }
     });
   } catch (error) {
@@ -1560,9 +1623,53 @@ router.post('/assignments/:assignmentId/submit',
         }
       });
 
+      // Update enrollment progress to include this new assignment submission
+      const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
+        prisma.material.count({ where: { courseId: assignment.courseId } }),
+        prisma.progress.count({
+          where: {
+            userId: studentId,
+            courseId: assignment.courseId,
+            isCompleted: true
+          }
+        }),
+        prisma.assignment.count({ where: { courseId: assignment.courseId } }),
+        prisma.assignmentSubmission.count({
+          where: {
+            studentId,
+            assignment: { courseId: assignment.courseId }
+          }
+        })
+      ]);
+
+      // Calculate progress including both materials and assignments
+      const totalItems = totalMaterials + totalAssignments;
+      const completedItems = completedMaterials + submittedAssignments;
+      const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+      await prisma.enrollment.update({
+        where: {
+          userId_courseId: {
+            userId: studentId,
+            courseId: assignment.courseId
+          }
+        },
+        data: {
+          progressPercentage,
+          ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
+        }
+      });
+
       res.status(201).json({
         success: true,
-        data: { submission }
+        data: {
+          submission,
+          progressUpdate: {
+            progressPercentage,
+            totalItems,
+            completedItems
+          }
+        }
       });
     } catch (error) {
       console.error('Submit assignment error:', error);

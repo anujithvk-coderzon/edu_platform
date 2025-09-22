@@ -59,6 +59,7 @@ interface Assignment {
   _count?: {
     submissions: number;
   };
+  ungradedSubmissions?: number;
 }
 
 interface Submission {
@@ -1225,6 +1226,7 @@ export default function CourseEditPage() {
                   {assignments.map((assignment) => {
                     const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date();
                     const submissionCount = assignment._count?.submissions || 0;
+                    const ungradedCount = assignment.ungradedSubmissions || 0;
 
                     return (
                       <Card key={assignment.id} className={`border transition-all duration-200 hover:shadow-lg ${
@@ -1269,14 +1271,23 @@ export default function CourseEditPage() {
                                   <span>🎯 Max: {assignment.maxScore} pts</span>
                                 </div>
 
-                                <div className={`flex items-center px-3 py-1 rounded-lg text-xs font-medium ${
-                                  submissionCount > 0
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-600'
-                                }`}>
-                                  <span>
-                                    📄 {submissionCount} submission{submissionCount !== 1 ? 's' : ''}
-                                  </span>
+                                <div className="flex items-center gap-2">
+                                  <div className={`flex items-center px-3 py-1 rounded-lg text-xs font-medium ${
+                                    submissionCount > 0
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    <span>
+                                      📄 {submissionCount} total
+                                    </span>
+                                  </div>
+                                  {ungradedCount > 0 && (
+                                    <div className="flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-orange-100 text-orange-700 border border-orange-300">
+                                      <span>
+                                        ⚠️ {ungradedCount} ungraded
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
 
                                 <div className="flex items-center px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs">
@@ -1290,15 +1301,21 @@ export default function CourseEditPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleViewSubmissions(assignment.id)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 font-medium"
+                                className={ungradedCount > 0
+                                  ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300 font-medium"
+                                  : "text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 font-medium"}
                               >
-                                <DocumentIcon className="h-4 w-4 mr-2" />
+                                <DocumentIcon className={`h-4 w-4 mr-2 ${ungradedCount > 0 ? 'text-orange-600' : ''}`} />
                                 Review Submissions
-                                {submissionCount > 0 && (
-                                  <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs">
-                                    {submissionCount}
+                                {ungradedCount > 0 ? (
+                                  <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                    {ungradedCount} new
                                   </span>
-                                )}
+                                ) : submissionCount > 0 ? (
+                                  <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                                    ✓ All graded
+                                  </span>
+                                ) : null}
                               </Button>
 
                               <Button

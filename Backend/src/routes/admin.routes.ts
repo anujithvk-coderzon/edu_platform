@@ -1356,11 +1356,54 @@ router.get('/students', asyncHandler(async (req: express.Request, res: express.R
           select: {
             id: true,
             title: true,
-            price: true
+            price: true,
+            _count: {
+              select: {
+                materials: true,
+                assignments: true
+              }
+            }
           }
         }
       },
       orderBy: { enrolledAt: 'desc' }
+    });
+
+    // Get all assignments for admin's courses
+    const assignments = await prisma.assignment.findMany({
+      where: {
+        courseId: { in: courseIds }
+      },
+      select: {
+        id: true,
+        courseId: true,
+        maxScore: true
+      }
+    });
+
+    // Get all assignment submissions with assignment details
+    const submissions = await prisma.assignmentSubmission.findMany({
+      where: {
+        assignmentId: {
+          in: assignments.map(a => a.id)
+        }
+      },
+      select: {
+        id: true,
+        studentId: true,
+        assignmentId: true,
+        status: true,
+        score: true,
+        submittedAt: true,
+        assignment: {
+          select: {
+            id: true,
+            title: true,
+            courseId: true,
+            maxScore: true
+          }
+        }
+      }
     });
 
     // Group enrollments by student
@@ -1387,7 +1430,9 @@ router.get('/students', asyncHandler(async (req: express.Request, res: express.R
         courseTitle: enrollment.course.title,
         enrolledAt: enrollment.enrolledAt,
         status: enrollment.status,
-        progressPercentage: enrollment.progressPercentage
+        progressPercentage: enrollment.progressPercentage,
+        totalMaterials: enrollment.course._count.materials,
+        totalAssignments: enrollment.course._count.assignments
       });
     });
 
@@ -1420,11 +1465,128 @@ router.get('/students', asyncHandler(async (req: express.Request, res: express.R
         });
       }
 
+      // Get completed materials details for each enrollment
+      const completedMaterialsDetails = await Promise.all(
+        student.enrollments.map(async (enrollment: any) => {
+          const completedProgress = await prisma.progress.findMany({
+            where: {
+              userId: student.id,
+              courseId: enrollment.courseId,
+              isCompleted: true,
+              materialId: { not: null }
+            },
+            orderBy: { lastAccessed: 'asc' }
+          });
+
+          // Get material details for completed materials
+          const materialIds = completedProgress.map(p => p.materialId).filter(Boolean);
+          const materials = await prisma.material.findMany({
+            where: {
+              id: { in: materialIds }
+            },
+            include: {
+              module: {
+                select: {
+                  id: true,
+                  title: true,
+                  orderIndex: true
+                }
+              }
+            },
+            orderBy: [
+              { module: { orderIndex: 'asc' } },
+              { orderIndex: 'asc' }
+            ]
+          });
+
+          // Create a map of materialId to progress
+          const progressMap = new Map(completedProgress.map(p => [p.materialId, p]));
+
+          const completedMaterialsCount = completedProgress.length;
+
+          return {
+            courseId: enrollment.courseId,
+            completed: completedMaterialsCount,
+            completedMaterials: materials.map(material => {
+              const progress = progressMap.get(material.id);
+              return {
+                id: material.id,
+                title: material.title,
+                type: material.type,
+                completedAt: progress?.lastAccessed || new Date(),
+                chapter: material.module ? {
+                  id: material.module.id,
+                  title: material.module.title,
+                  orderIndex: material.module.orderIndex
+                } : null
+              };
+            })
+          };
+        })
+      );
+
+      // Calculate assignment submissions for this student
+      const studentSubmissions = submissions.filter((s: any) => s.studentId === student.id);
+      const courseAssignmentStats: any = {};
+
+      // Group submissions by course
+      student.enrollments.forEach((enrollment: any) => {
+        const courseAssignments = assignments.filter((a: any) => a.courseId === enrollment.courseId);
+        const courseSubmissions = studentSubmissions.filter((s: any) =>
+          courseAssignments.some((a: any) => a.id === s.assignmentId)
+        );
+
+        courseAssignmentStats[enrollment.courseId] = {
+          totalAssignments: courseAssignments.length,
+          submittedAssignments: courseSubmissions.length,
+          gradedAssignments: courseSubmissions.filter((s: any) => s.status === 'GRADED').length,
+          submittedAssignmentsList: courseSubmissions.map((submission: any) => ({
+            id: submission.id,
+            assignmentId: submission.assignmentId,
+            title: submission.assignment.title,
+            submittedAt: submission.submittedAt,
+            status: submission.status,
+            score: submission.score,
+            maxScore: submission.assignment.maxScore
+          }))
+        };
+      });
+
+      // Add assignment and material completion data to enrollments
+      const enrichedEnrollments = student.enrollments.map((enrollment: any) => {
+        const materialStats = completedMaterialsDetails.find((m: any) => m.courseId === enrollment.courseId);
+        const assignmentStats = courseAssignmentStats[enrollment.courseId];
+
+        return {
+          ...enrollment,
+          completedMaterials: materialStats?.completed || 0,
+          completedMaterialsList: materialStats?.completedMaterials || [],
+          ...assignmentStats
+        };
+      });
+
+      // Calculate totals
+      const totalMaterials = enrichedEnrollments.reduce((sum: number, e: any) => sum + (e.totalMaterials || 0), 0);
+      const totalCompletedMaterials = enrichedEnrollments.reduce((sum: number, e: any) => sum + (e.completedMaterials || 0), 0);
+      const totalAssignments = enrichedEnrollments.reduce((sum: number, e: any) => sum + (e.totalAssignments || 0), 0);
+      const totalSubmittedAssignments = enrichedEnrollments.reduce((sum: number, e: any) => sum + (e.submittedAssignments || 0), 0);
+      const totalGradedAssignments = enrichedEnrollments.reduce((sum: number, e: any) => sum + (e.gradedAssignments || 0), 0);
+
       return {
         ...student,
+        enrollments: enrichedEnrollments,
         totalCourses: student.enrollments.length,
-        completedCourses: student.enrollments.filter((e: any) => e.status === 'COMPLETED' || e.progressPercentage >= 100).length,
-        totalSpentHours: Math.round((totalTimeSpent > 0 ? totalTimeSpent : estimatedTimeSpent) / 60) // Convert minutes to hours
+        completedCourses: enrichedEnrollments.filter((e: any) => {
+          const materialsCompleted = e.completedMaterials === e.totalMaterials && e.totalMaterials > 0;
+          const assignmentsCompleted = e.submittedAssignments === e.totalAssignments && e.totalAssignments > 0;
+          return e.status === 'COMPLETED' || (materialsCompleted && (!e.totalAssignments || assignmentsCompleted));
+        }).length,
+        totalSpentHours: Math.round((totalTimeSpent > 0 ? totalTimeSpent : estimatedTimeSpent) / 60), // Convert minutes to hours
+        totalMaterials,
+        completedMaterials: totalCompletedMaterials,
+        totalAssignments,
+        submittedAssignments: totalSubmittedAssignments,
+        gradedAssignments: totalGradedAssignments
       };
     }));
 
@@ -2316,14 +2478,30 @@ router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Req
           select: {
             submissions: true
           }
+        },
+        submissions: {
+          select: {
+            id: true,
+            status: true
+          }
         }
       },
       orderBy: { createdAt: 'asc' }
     });
 
+    // Calculate ungraded submissions for each assignment
+    const assignmentsWithCounts = assignments.map(assignment => {
+      const ungradedCount = assignment.submissions.filter(s => s.status !== 'GRADED').length;
+      const { submissions, ...assignmentData } = assignment;
+      return {
+        ...assignmentData,
+        ungradedSubmissions: ungradedCount
+      };
+    });
+
     res.json({
       success: true,
-      data: { assignments }
+      data: { assignments: assignmentsWithCounts }
     });
   } catch (error) {
     console.error('Get course assignments error:', error);

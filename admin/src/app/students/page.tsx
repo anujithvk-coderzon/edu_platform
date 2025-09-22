@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import type { SelectOption } from '../../components/ui/Select';
-import { 
+import {
   MagnifyingGlassIcon,
   UserIcon,
   AcademicCapIcon,
@@ -24,7 +24,16 @@ import {
   FunnelIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  ClipboardDocumentListIcon,
+  DocumentTextIcon,
+  PlayIcon,
+  DocumentIcon,
+  PhotoIcon,
+  MusicalNoteIcon,
+  LinkIcon,
+  ChevronDownIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
 import { Course } from '../../types/api';
@@ -41,12 +50,42 @@ interface Student {
   totalSpentHours: number;
   joinedAt: string;
   lastActive: string;
+  totalMaterials?: number;
+  completedMaterials?: number;
+  totalAssignments?: number;
+  submittedAssignments?: number;
+  gradedAssignments?: number;
   enrollments: {
     courseId: string;
     courseTitle: string;
     enrolledAt: string;
     status: 'ACTIVE' | 'COMPLETED' | 'DROPPED';
     progressPercentage: number;
+    totalMaterials?: number;
+    completedMaterials?: number;
+    completedMaterialsList?: {
+      id: string;
+      title: string;
+      type: string;
+      completedAt: string;
+      chapter: {
+        id: string;
+        title: string;
+        orderIndex: number;
+      } | null;
+    }[];
+    totalAssignments?: number;
+    submittedAssignments?: number;
+    gradedAssignments?: number;
+    submittedAssignmentsList?: {
+      id: string;
+      assignmentId: string;
+      title: string;
+      submittedAt: string;
+      status: string;
+      score: number | null;
+      maxScore: number;
+    }[];
   }[];
 }
 
@@ -74,6 +113,24 @@ const sortOptions: SelectOption[] = [
   { value: 'courses', label: 'Courses Enrolled' },
   { value: 'lastActive', label: 'Last Active' }
 ];
+
+const getMaterialIcon = (type: string) => {
+  switch (type.toUpperCase()) {
+    case 'VIDEO':
+      return <PlayIcon className="w-3 h-3" />;
+    case 'PDF':
+    case 'DOCUMENT':
+      return <DocumentIcon className="w-3 h-3" />;
+    case 'IMAGE':
+      return <PhotoIcon className="w-3 h-3" />;
+    case 'AUDIO':
+      return <MusicalNoteIcon className="w-3 h-3" />;
+    case 'LINK':
+      return <LinkIcon className="w-3 h-3" />;
+    default:
+      return <DocumentTextIcon className="w-3 h-3" />;
+  }
+};
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -452,6 +509,73 @@ export default function StudentsPage() {
                               <span className="truncate">{new Date(student.joinedAt).toLocaleDateString()}</span>
                             </span>
                           </div>
+
+                          {/* Enhanced completion statistics */}
+                          {(student.totalMaterials !== undefined || student.totalAssignments !== undefined) && (
+                            <div className="mt-3 pt-3 border-t border-slate-200">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+                                {/* Materials Stats */}
+                                <div className="bg-blue-50 rounded-lg p-2 text-center border border-blue-100">
+                                  <DocumentTextIcon className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                                  <div className="text-xs font-medium text-blue-700">
+                                    {student.completedMaterials || 0}/{student.totalMaterials || 0}
+                                  </div>
+                                  <div className="text-xs text-blue-600">Materials</div>
+                                </div>
+
+                                {/* Assignments Stats */}
+                                <div className="bg-green-50 rounded-lg p-2 text-center border border-green-100">
+                                  <ClipboardDocumentListIcon className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                                  <div className="text-xs font-medium text-green-700">
+                                    {student.submittedAssignments || 0}/{student.totalAssignments || 0}
+                                  </div>
+                                  <div className="text-xs text-green-600">Assignments</div>
+                                </div>
+
+                                {/* Graded Stats */}
+                                {student.gradedAssignments !== undefined && student.gradedAssignments > 0 && (
+                                  <div className="bg-emerald-50 rounded-lg p-2 text-center border border-emerald-100">
+                                    <CheckCircleIcon className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
+                                    <div className="text-xs font-medium text-emerald-700">
+                                      {student.gradedAssignments}
+                                    </div>
+                                    <div className="text-xs text-emerald-600">Graded</div>
+                                  </div>
+                                )}
+
+                                {/* Remaining Items */}
+                                {(() => {
+                                  const totalItems = (student.totalMaterials || 0) + (student.totalAssignments || 0);
+                                  const completedItems = (student.completedMaterials || 0) + (student.submittedAssignments || 0);
+                                  const remaining = totalItems - completedItems;
+                                  return remaining > 0 ? (
+                                    <div className="bg-orange-50 rounded-lg p-2 text-center border border-orange-100">
+                                      <ClockIcon className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+                                      <div className="text-xs font-medium text-orange-700">
+                                        {remaining}
+                                      </div>
+                                      <div className="text-xs text-orange-600">Remaining</div>
+                                    </div>
+                                  ) : (
+                                    <div className="bg-green-50 rounded-lg p-2 text-center border border-green-100">
+                                      <TrophyIcon className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                                      <div className="text-xs font-medium text-green-700">
+                                        All Done!
+                                      </div>
+                                      <div className="text-xs text-green-600">Complete</div>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+
+                              {/* Progress Summary */}
+                              <div className="text-center">
+                                <div className="text-xs text-slate-600">
+                                  Overall completion across all courses
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -479,37 +603,268 @@ export default function StudentsPage() {
                     {selectedStudent?.id === student.id && (
                       <div className="mt-4 pt-4 border-t border-slate-200">
                         <h4 className="text-base font-semibold text-slate-900 mb-4">
-                          Course Enrollments
+                          Course Enrollments ({student.enrollments.length})
                         </h4>
                         <div className="space-y-3 sm:space-y-4">
-                          {student.enrollments.map((enrollment, index) => (
-                            <div key={index} className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4">
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <h5 className="text-sm font-semibold text-slate-900 mb-1 truncate">{enrollment.courseTitle}</h5>
-                                  <p className="text-xs text-slate-600">
-                                    Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                                  </p>
-                                </div>
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 flex-shrink-0">
-                                  <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start">
-                                    <p className="text-xs font-medium text-slate-700 mb-0 sm:mb-1">
-                                      {enrollment.progressPercentage}% Complete
-                                    </p>
-                                    <div className="w-20 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                      <div
-                                        className="h-full bg-blue-600 rounded-full"
-                                        style={{ width: `${enrollment.progressPercentage}%` }}
-                                      />
+                          {student.enrollments.map((enrollment, index) => {
+                            const materialCompletionRate = enrollment.totalMaterials ?
+                              Math.round(((enrollment.completedMaterials || 0) / enrollment.totalMaterials) * 100) : 0;
+                            const assignmentCompletionRate = enrollment.totalAssignments ?
+                              Math.round(((enrollment.submittedAssignments || 0) / enrollment.totalAssignments) * 100) : 0;
+
+                            const totalItems = (enrollment.totalMaterials || 0) + (enrollment.totalAssignments || 0);
+                            const completedItems = (enrollment.completedMaterials || 0) + (enrollment.submittedAssignments || 0);
+                            const remainingItems = totalItems - completedItems;
+
+                            // Calculate ungraded assignments (submitted but not graded)
+                            const ungradedAssignments = (enrollment.submittedAssignments || 0) - (enrollment.gradedAssignments || 0);
+
+                            return (
+                              <div key={index} className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-sm transition-shadow">
+                                <div className="flex flex-col gap-4">
+                                  {/* Header */}
+                                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="text-sm font-semibold text-slate-900 mb-1 truncate">{enrollment.courseTitle}</h5>
+                                      <p className="text-xs text-slate-600">
+                                        Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                      <div className="text-center">
+                                        <p className="text-xs font-medium text-slate-700">
+                                          Overall Progress
+                                        </p>
+                                        <p className="text-lg font-semibold text-indigo-600">
+                                          {enrollment.progressPercentage}%
+                                        </p>
+                                      </div>
+                                      <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(enrollment.status)}`}>
+                                        {enrollment.status}
+                                      </span>
                                     </div>
                                   </div>
-                                  <span className={`px-2 py-1 rounded text-xs font-medium w-fit ${getStatusColor(enrollment.status)}`}>
-                                    {enrollment.status}
-                                  </span>
+
+                                  {/* Detailed Progress Breakdown */}
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg">
+                                    {/* Materials Progress */}
+                                    <div className="text-center">
+                                      <div className="flex items-center justify-center mb-1">
+                                        <DocumentTextIcon className="w-4 h-4 text-slate-500 mr-1" />
+                                        <span className="text-xs font-medium text-slate-700">Materials</span>
+                                      </div>
+                                      <div className="text-sm font-semibold text-slate-900 mb-1">
+                                        {enrollment.completedMaterials || 0}/{enrollment.totalMaterials || 0}
+                                      </div>
+                                      <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
+                                        <div
+                                          className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                                          style={{ width: `${materialCompletionRate}%` }}
+                                        />
+                                      </div>
+                                      <div className="text-xs text-slate-500">
+                                        {materialCompletionRate}% complete
+                                      </div>
+                                      {(enrollment.totalMaterials || 0) > (enrollment.completedMaterials || 0) && (
+                                        <div className="text-xs text-orange-600 mt-1">
+                                          {(enrollment.totalMaterials || 0) - (enrollment.completedMaterials || 0)} remaining
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    {/* Assignments Progress */}
+                                    <div className="text-center">
+                                      <div className="flex items-center justify-center mb-1">
+                                        <ClipboardDocumentListIcon className="w-4 h-4 text-slate-500 mr-1" />
+                                        <span className="text-xs font-medium text-slate-700">Assignments</span>
+                                      </div>
+                                      {(enrollment.totalAssignments || 0) > 0 ? (
+                                        <>
+                                          <div className="text-sm font-semibold text-slate-900 mb-1">
+                                            {enrollment.submittedAssignments || 0}/{enrollment.totalAssignments || 0}
+                                          </div>
+                                          <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
+                                            <div
+                                              className="bg-green-500 h-1.5 rounded-full transition-all duration-300"
+                                              style={{ width: `${assignmentCompletionRate}%` }}
+                                            />
+                                          </div>
+                                          <div className="text-xs text-slate-500">
+                                            {assignmentCompletionRate}% submitted
+                                          </div>
+                                          {ungradedAssignments > 0 && (
+                                            <div className="text-xs text-orange-600 mt-1 font-medium">
+                                              ⚠️ {ungradedAssignments} need grading
+                                            </div>
+                                          )}
+                                          {enrollment.gradedAssignments !== undefined && enrollment.gradedAssignments > 0 && (
+                                            <div className="text-xs text-green-600 mt-1">
+                                              ✅ {enrollment.gradedAssignments} graded
+                                            </div>
+                                          )}
+                                          {(enrollment.totalAssignments || 0) > (enrollment.submittedAssignments || 0) && (
+                                            <div className="text-xs text-slate-600 mt-1">
+                                              {(enrollment.totalAssignments || 0) - (enrollment.submittedAssignments || 0)} not submitted
+                                            </div>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <div className="text-sm text-slate-500 mb-1">No assignments</div>
+                                          <div className="text-xs text-slate-400">None created yet</div>
+                                        </>
+                                      )}
+                                    </div>
+
+                                    {/* Overall Summary */}
+                                    <div className="text-center">
+                                      <div className="flex items-center justify-center mb-1">
+                                        <ChartBarIcon className="w-4 h-4 text-slate-500 mr-1" />
+                                        <span className="text-xs font-medium text-slate-700">Summary</span>
+                                      </div>
+                                      <div className="text-sm font-semibold text-slate-900 mb-1">
+                                        {completedItems}/{totalItems} items
+                                      </div>
+                                      <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
+                                        <div
+                                          className="bg-indigo-500 h-1.5 rounded-full transition-all duration-300"
+                                          style={{ width: `${enrollment.progressPercentage}%` }}
+                                        />
+                                      </div>
+                                      <div className="text-xs text-slate-500">
+                                        {enrollment.progressPercentage}% overall
+                                      </div>
+                                      {remainingItems > 0 && (
+                                        <div className="text-xs text-orange-600 mt-1">
+                                          {remainingItems} remaining
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Specific Completed Materials */}
+                                  {enrollment.completedMaterialsList && enrollment.completedMaterialsList.length > 0 && (
+                                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                      <div className="flex items-center mb-3">
+                                        <DocumentTextIcon className="w-4 h-4 text-blue-600 mr-2" />
+                                        <h6 className="text-sm font-semibold text-blue-800">
+                                          📚 Completed Materials ({enrollment.completedMaterialsList.length})
+                                        </h6>
+                                      </div>
+                                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                                          {enrollment.completedMaterialsList
+                                            .sort((a, b) => {
+                                              // Sort by chapter order, then by completion date
+                                              if (a.chapter && b.chapter) {
+                                                if (a.chapter.orderIndex !== b.chapter.orderIndex) {
+                                                  return a.chapter.orderIndex - b.chapter.orderIndex;
+                                                }
+                                              }
+                                              return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime();
+                                            })
+                                            .map((material, idx) => (
+                                            <div key={idx} className="flex items-start gap-3 text-sm p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                                              <div className="text-blue-600 mt-1 flex-shrink-0">
+                                                {getMaterialIcon(material.type)}
+                                              </div>
+                                              <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-slate-900 mb-1">{material.title}</div>
+                                                {material.chapter && (
+                                                  <div className="text-blue-700 text-sm font-medium mb-1">
+                                                    📖 Chapter: {material.chapter.title}
+                                                  </div>
+                                                )}
+                                                <div className="text-slate-500 text-sm">
+                                                  ✅ Completed: {new Date(material.completedAt).toLocaleDateString()}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                    </div>
+                                  )}
+
+                                  {/* Specific Submitted Assignments - Show section if there are any assignments */}
+                                  {enrollment.submittedAssignmentsList && enrollment.submittedAssignmentsList.length > 0 && (
+                                    <div className={`mt-4 p-3 rounded-lg border ${ungradedAssignments > 0 ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200'}`}>
+                                      <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center">
+                                          <ClipboardDocumentListIcon className={`w-4 h-4 mr-2 ${ungradedAssignments > 0 ? 'text-orange-600' : 'text-green-600'}`} />
+                                          <h6 className={`text-sm font-semibold ${ungradedAssignments > 0 ? 'text-orange-800' : 'text-green-800'}`}>
+                                            📝 Assignment Status
+                                          </h6>
+                                        </div>
+                                        {ungradedAssignments > 0 && (
+                                          <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                            {ungradedAssignments} needs grading
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                                          {enrollment.submittedAssignmentsList
+                                            .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+                                            .map((assignment, idx) => (
+                                            <div key={idx} className="flex items-start gap-3 text-sm p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                                              <div className="text-green-600 mt-1 flex-shrink-0">
+                                                <ClipboardDocumentListIcon className="w-4 h-4" />
+                                              </div>
+                                              <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-slate-900 mb-1">{assignment.title}</div>
+                                                <div className="flex items-center gap-3 text-sm">
+                                                  <div className="text-slate-500">
+                                                    📤 Submitted: {new Date(assignment.submittedAt).toLocaleDateString()}
+                                                  </div>
+                                                  {assignment.status === 'GRADED' && assignment.score !== null && (
+                                                    <div className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
+                                                      Score: {assignment.score}/{assignment.maxScore}
+                                                    </div>
+                                                  )}
+                                                  {assignment.status === 'SUBMITTED' && (
+                                                    <div className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                                                      ⏳ Pending Review
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                    </div>
+                                  )}
+
+                                  {/* Quick Stats Row */}
+                                  <div className="flex flex-wrap gap-2 text-xs mt-3">
+                                    <div className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                      📚 {enrollment.completedMaterials || 0} materials done
+                                    </div>
+                                    {/* Show ungraded assignments with priority */}
+                                    {ungradedAssignments > 0 && (
+                                      <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded font-medium border border-orange-300">
+                                        ⚠️ {ungradedAssignments} need grading
+                                      </div>
+                                    )}
+                                    {/* Show graded assignments count if any */}
+                                    {(enrollment.gradedAssignments || 0) > 0 && (
+                                      <div className="px-2 py-1 bg-green-100 text-green-700 rounded">
+                                        ✅ {enrollment.gradedAssignments} assignments graded
+                                      </div>
+                                    )}
+                                    {/* Show remaining items only if no urgent grading needed */}
+                                    {remainingItems > 0 && ungradedAssignments === 0 && (
+                                      <div className="px-2 py-1 bg-slate-100 text-slate-700 rounded">
+                                        ⏳ {remainingItems} items left
+                                      </div>
+                                    )}
+                                    {enrollment.progressPercentage === 100 && (
+                                      <div className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                                        🏆 Course Completed!
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
 
                         <div className="flex justify-center sm:justify-end mt-4">

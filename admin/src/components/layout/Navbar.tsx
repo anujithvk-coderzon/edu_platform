@@ -6,16 +6,17 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  BookOpenIcon, 
-  HomeIcon, 
-  UserIcon, 
-  Bars3Icon, 
+import {
+  BookOpenIcon,
+  HomeIcon,
+  UserIcon,
+  Bars3Icon,
   XMarkIcon,
   ChevronDownIcon,
   ArrowRightOnRectangleIcon,
   ChartBarIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  UserPlusIcon
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -29,11 +30,14 @@ interface NavbarState {
   userMenuOpen: boolean;
 }
 
-const navigation: NavItem[] = [
+const baseNavigation: NavItem[] = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'My Courses', href: '/my-courses', icon: BookOpenIcon },
   { name: 'Create Course', href: '/create-course', icon: UserIcon },
   { name: 'Students', href: '/students', icon: UserGroupIcon },
+];
+
+const adminOnlyNavigation: NavItem[] = [
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
 ];
 
@@ -48,6 +52,18 @@ const Navbar = () => {
 
   // Destructure state for easier access
   const { mobileMenuOpen, userMenuOpen } = state;
+
+  // Debug logging
+  console.log('Navbar - User object:', user);
+  console.log('Navbar - User role:', user?.role);
+  console.log('Navbar - Role toLowerCase:', user?.role?.toLowerCase());
+  console.log('Navbar - Is tutor check:', user?.role?.toLowerCase() === 'tutor');
+
+  // Dynamic navigation based on user role
+  const navigation = user?.role?.toLowerCase() !== 'tutor'
+    ? [...baseNavigation, ...adminOnlyNavigation]
+    : baseNavigation;
+
 
   const handleLogout = async () => {
     try {
@@ -142,7 +158,6 @@ const Navbar = () => {
                   </div>
                   <div className="ml-3 text-left hidden lg:block">
                     <p className="text-sm font-medium text-slate-900">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-slate-500 font-medium">{user?.role}</p>
                   </div>
                   <ChevronDownIcon className="ml-2 h-4 w-4 text-slate-500" />
                 </Button>
@@ -153,12 +168,17 @@ const Navbar = () => {
                   <div className="px-4 py-3 border-b border-slate-200">
                     <p className="text-sm font-medium text-slate-900">{user?.firstName} {user?.lastName}</p>
                     <p className="text-xs text-slate-500">{user?.email}</p>
-                    <p className="text-xs text-blue-600 font-medium mt-1">{user?.role}</p>
                   </div>
                   <Link href="/profile" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                     <UserIcon className="h-4 w-4 mr-3 text-slate-400" />
                     Your Profile
                   </Link>
+                  {user?.role?.toLowerCase() !== 'tutor' && (
+                    <Link href="/create-user" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      <UserPlusIcon className="h-4 w-4 mr-3 text-slate-400" />
+                      Create User
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
@@ -230,7 +250,6 @@ const Navbar = () => {
               <div className="ml-3">
                 <div className="text-sm font-medium text-slate-900">{user?.firstName} {user?.lastName}</div>
                 <div className="text-xs text-slate-500">{user?.email}</div>
-                <div className="text-xs text-blue-600 font-medium mt-1">{user?.role}</div>
               </div>
             </div>
             <div className="mt-3 space-y-1 px-2">
@@ -242,6 +261,16 @@ const Navbar = () => {
                 <UserIcon className="h-5 w-5 mr-3 text-slate-400" />
                 Your Profile
               </Link>
+              {user?.role?.toLowerCase() !== 'tutor' && (
+                <Link
+                  href="/create-user"
+                  className="flex items-center px-4 py-3 text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg"
+                  onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
+                >
+                  <UserPlusIcon className="h-5 w-5 mr-3 text-slate-400" />
+                  Create User
+                </Link>
+              )}
               <button
                 onClick={handleLogout}
                 className="flex items-center w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg"

@@ -251,6 +251,7 @@ router.get('/auth/me', asyncHandler(async (req: express.Request, res: express.Re
         email: true,
         firstName: true,
         lastName: true,
+        role: true,
         avatar: true,
         isVerified: true,
         isActive: true,
@@ -440,14 +441,38 @@ router.get('/courses/my-courses', asyncHandler(async (req: express.Request, res:
       });
     }
 
-    // Get courses created by this admin
+    // First get the current user to check their role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    if (!currentUser) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'User not found.' }
+      });
+    }
+
+    // Get courses based on user role
+    // Admin: All courses, Tutor: Only their assigned courses
+    const whereClause = currentUser.role === 'Admin' ? {} : { creatorId: decoded.id };
+
     const courses = await prisma.course.findMany({
-      where: {
-        creatorId: decoded.id
-      },
+      where: whereClause,
       include: {
+        creator: {
+          select: {
+            firstName: true,
+            lastName: true,
+            role: true
+          }
+        },
         enrollments: {
-          select: { id: true }
+          select: {
+            id: true,
+            studentId: true  // Include studentId for unique count calculations
+          }
         },
         reviews: {
           select: { rating: true }
@@ -498,7 +523,11 @@ router.post('/courses',
     body('level').optional().isIn(['Beginner', 'Intermediate', 'Advanced']),
     body('duration').optional().isInt({ min: 1 }),
     body('isPublic').optional().isBoolean(),
-    body('tutorName').optional().trim().isLength({ min: 1 }),
+    body('tutorId').trim().isLength({ min: 1 }).withMessage('Tutor selection is required'),
+    body('tutorName').optional().custom((value) => {
+      if (value === null || value === undefined || value === '') return true;
+      return typeof value === 'string' && value.trim().length >= 1;
+    }).withMessage('Tutor name must be a non-empty string if provided'),
     body('requirements').optional().isArray(),
     body('prerequisites').optional().isArray(),
   ],
@@ -530,7 +559,7 @@ router.post('/courses',
         });
       }
 
-      const { title, description, price, level, duration, isPublic, tutorName, requirements, prerequisites } = req.body;
+      const { title, description, price, level, duration, isPublic, tutorId, tutorName, requirements, prerequisites } = req.body;
 
       const course = await prisma.course.create({
         data: {
@@ -543,7 +572,7 @@ router.post('/courses',
           tutorName: tutorName || null,
           requirements: requirements || [],
           prerequisites: prerequisites || [],
-          creatorId: decoded.id,
+          creatorId: tutorId,
           // categoryId is null by default (no category requirement)
         },
         include: {
@@ -681,7 +710,14 @@ router.put('/courses/:id',
     body('level').optional().isIn(['Beginner', 'Intermediate', 'Advanced']),
     body('duration').optional().isInt({ min: 1 }),
     body('isPublic').optional().isBoolean(),
-    body('tutorName').optional().trim().isLength({ min: 1 }),
+    body('tutorName').optional().custom((value) => {
+      if (value === null || value === undefined || value === '') return true;
+      return typeof value === 'string' && value.trim().length >= 1;
+    }).withMessage('Tutor name must be a non-empty string if provided'),
+    body('thumbnail').optional().custom((value) => {
+      if (value === null || value === undefined || value === '') return true;
+      return typeof value === 'string' && value.trim().length > 0;
+    }).withMessage('Thumbnail must be a non-empty string if provided'),
     body('categoryId').optional().custom((value) => value === null || value === '' || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)),
     body('requirements').optional().isArray().withMessage('Requirements must be an array'),
     body('requirements.*').optional().isString().trim(),
@@ -717,11 +753,10 @@ router.put('/courses/:id',
         });
       }
 
-      // Check if course exists and belongs to this admin
+      // Check if course exists (admins can update any course)
       const existingCourse = await prisma.course.findFirst({
         where: {
-          id: req.params.id,
-          creatorId: decoded.id
+          id: req.params.id
         }
       });
 
@@ -916,8 +951,14 @@ router.put('/courses/:id/publish', asyncHandler(async (req: express.Request, res
       });
     }
 
-    // Check if the admin owns this course
-    if (course.creatorId !== decoded.id) {
+    // Get current user's role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    // Admins have full access, Tutors can only manage their own courses
+    if (currentUser?.role !== 'Admin' && course.creatorId !== decoded.id) {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to publish this course' }
@@ -1310,13 +1351,35 @@ router.get('/students', asyncHandler(async (req: express.Request, res: express.R
       });
     }
 
-    // Get admin's courses first
-    const adminCourses = await prisma.course.findMany({
-      where: { creatorId: decoded.id },
-      select: { id: true }
+    // Get admin info to check role
+    const admin = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
     });
 
-    const courseIds = adminCourses.map(course => course.id);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Admin not found.' }
+      });
+    }
+
+    // Role-based course filtering
+    let courseIds: string[];
+    if (admin.role === 'Admin') {
+      // Admins can see all courses
+      const allCourses = await prisma.course.findMany({
+        select: { id: true }
+      });
+      courseIds = allCourses.map(course => course.id);
+    } else {
+      // Tutors can only see their courses
+      const tutorCourses = await prisma.course.findMany({
+        where: { creatorId: decoded.id },
+        select: { id: true }
+      });
+      courseIds = tutorCourses.map(course => course.id);
+    }
 
     if (courseIds.length === 0) {
       return res.json({
@@ -1440,7 +1503,7 @@ router.get('/students', asyncHandler(async (req: express.Request, res: express.R
       // Calculate actual time spent from Progress records
       const progressRecords = await prisma.progress.findMany({
         where: {
-          userId: student.id,
+          studentId: student.id,
           courseId: { in: student.enrollments.map((e: any) => e.courseId) }
         }
       });
@@ -1470,7 +1533,7 @@ router.get('/students', asyncHandler(async (req: express.Request, res: express.R
         student.enrollments.map(async (enrollment: any) => {
           const completedProgress = await prisma.progress.findMany({
             where: {
-              userId: student.id,
+              studentId: student.id,
               courseId: enrollment.courseId,
               isCompleted: true,
               materialId: { not: null }
@@ -1666,15 +1729,37 @@ router.get('/students/:id', asyncHandler(async (req: express.Request, res: expre
 
     const { id } = req.params;
 
-    // Get admin's courses first
-    const adminCourses = await prisma.course.findMany({
-      where: { creatorId: decoded.id },
-      select: { id: true }
+    // Get admin info to check role
+    const admin = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
     });
 
-    const courseIds = adminCourses.map(course => course.id);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Admin not found.' }
+      });
+    }
 
-    // Get student with their enrollments in admin's courses
+    // Role-based course filtering
+    let courseIds: string[];
+    if (admin.role === 'Admin') {
+      // Admins can see all courses
+      const allCourses = await prisma.course.findMany({
+        select: { id: true }
+      });
+      courseIds = allCourses.map(course => course.id);
+    } else {
+      // Tutors can only see their courses
+      const tutorCourses = await prisma.course.findMany({
+        where: { creatorId: decoded.id },
+        select: { id: true }
+      });
+      courseIds = tutorCourses.map(course => course.id);
+    }
+
+    // Get student with their enrollments in accessible courses
     const student = await prisma.student.findUnique({
       where: { id },
       select: {
@@ -1719,7 +1804,7 @@ router.get('/students/:id', asyncHandler(async (req: express.Request, res: expre
     // Calculate actual time spent from Progress records
     const progressRecords = await prisma.progress.findMany({
       where: {
-        userId: student.id,
+        studentId: student.id,
         courseId: { in: student.enrollments.map(e => e.courseId) }
       }
     });
@@ -1800,15 +1885,37 @@ router.get('/students/:id/email', asyncHandler(async (req: express.Request, res:
 
     const { id } = req.params;
 
-    // Get admin's courses first to verify student access
-    const adminCourses = await prisma.course.findMany({
-      where: { creatorId: decoded.id },
-      select: { id: true }
+    // Get admin info to check role
+    const admin = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
     });
 
-    const courseIds = adminCourses.map(course => course.id);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Admin not found.' }
+      });
+    }
 
-    // Get student and verify they are enrolled in admin's courses
+    // Role-based course filtering
+    let courseIds: string[];
+    if (admin.role === 'Admin') {
+      // Admins can see all courses
+      const allCourses = await prisma.course.findMany({
+        select: { id: true }
+      });
+      courseIds = allCourses.map(course => course.id);
+    } else {
+      // Tutors can only see their courses
+      const tutorCourses = await prisma.course.findMany({
+        where: { creatorId: decoded.id },
+        select: { id: true }
+      });
+      courseIds = tutorCourses.map(course => course.id);
+    }
+
+    // Get student and verify they are enrolled in accessible courses
     const student = await prisma.student.findUnique({
       where: { id },
       select: {
@@ -1881,11 +1988,27 @@ router.get('/analytics/tutor', asyncHandler(async (req: express.Request, res: ex
 
     const tutorId = decoded.id;
 
-    // Get tutor's courses with enrollment counts
+    // Get admin info to check role
+    const admin = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Admin not found.' }
+      });
+    }
+
+    // Role-based course filtering for analytics
+    const courseFilter = admin.role === 'Admin'
+      ? {} // Admins can see all courses
+      : { creatorId: tutorId }; // Tutors can only see their courses
+
+    // Get courses with enrollment counts based on role
     const courses = await prisma.course.findMany({
-      where: {
-        creatorId: tutorId
-      },
+      where: courseFilter,
       include: {
         _count: {
           select: {
@@ -1935,7 +2058,8 @@ router.get('/analytics/tutor', asyncHandler(async (req: express.Request, res: ex
 
       totalMaterials += materialCount * studentCount;
       totalCompletedMaterials += course.enrollments.reduce((sum, enrollment) => sum + enrollment.progressRecords.length, 0);
-      totalStudents += studentCount;
+      // This is now tracked correctly above as totalEnrollmentCount
+      // totalStudents += studentCount;
 
       // Add to overall rating calculation
       if (course.reviews.length > 0) {
@@ -1961,12 +2085,51 @@ router.get('/analytics/tutor', asyncHandler(async (req: express.Request, res: ex
       };
     });
 
+    // Calculate UNIQUE students using a more robust approach
+    const uniqueStudentIds = new Set<string>();
+    let totalEnrollmentCount = 0;
+
+    courses.forEach(course => {
+      if (course.enrollments && Array.isArray(course.enrollments)) {
+        course.enrollments.forEach(enrollment => {
+          totalEnrollmentCount++;
+          if (enrollment.studentId) {
+            uniqueStudentIds.add(enrollment.studentId.toString());
+          }
+        });
+      }
+    });
+
+    const totalUniqueStudents = uniqueStudentIds.size;
+
+    // Debug logging
+    console.log('Analytics Debug:');
+    console.log('- Total courses found:', courses.length);
+    console.log('- Total enrollment records:', totalEnrollmentCount);
+    console.log('- Unique student IDs:', Array.from(uniqueStudentIds));
+    console.log('- Total unique students:', totalUniqueStudents);
+
     // Calculate overall completion rate
     const overallCompletionRate = totalMaterials > 0 ? (totalCompletedMaterials / totalMaterials) * 100 : 0;
 
-    // Calculate growth rates (would need historical data for real growth)
-    const thisMonthStudents = Math.floor(totalStudents * 0.2);
-    const lastMonthStudents = Math.floor(totalStudents * 0.18);
+    // Calculate growth rates based on actual enrollment dates
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+    const thisMonthEnrollments = courses.reduce((count, course) => {
+      return count + course.enrollments.filter(e => new Date(e.enrolledAt) > oneMonthAgo).length;
+    }, 0);
+
+    const lastMonthEnrollments = courses.reduce((count, course) => {
+      return count + course.enrollments.filter(e =>
+        new Date(e.enrolledAt) > twoMonthsAgo && new Date(e.enrolledAt) <= oneMonthAgo
+      ).length;
+    }, 0);
+
+    const growthRate = lastMonthEnrollments > 0 ?
+      ((thisMonthEnrollments - lastMonthEnrollments) / lastMonthEnrollments) * 100 : 0;
 
     const analytics = {
       revenue: {
@@ -1976,10 +2139,11 @@ router.get('/analytics/tutor', asyncHandler(async (req: express.Request, res: ex
         growth: 0 // No payment system implemented yet
       },
       students: {
-        total: totalStudents,
-        thisMonth: thisMonthStudents,
-        lastMonth: lastMonthStudents,
-        growth: lastMonthStudents > 0 ? ((thisMonthStudents - lastMonthStudents) / lastMonthStudents) * 100 : 0
+        total: totalUniqueStudents, // Using unique students now!
+        enrollments: totalEnrollmentCount, // Track total enrollments separately
+        thisMonth: thisMonthEnrollments,
+        lastMonth: lastMonthEnrollments,
+        growth: growthRate
       },
       courses: {
         total: courses.length,
@@ -1988,18 +2152,28 @@ router.get('/analytics/tutor', asyncHandler(async (req: express.Request, res: ex
         archived: courses.filter(c => c.status === 'ARCHIVED').length
       },
       engagement: {
-        totalViews: totalStudents * 2, // Estimate based on student engagement
-        avgRating: totalReviews > 0 ? weightedRating / totalReviews : 0,
+        totalViews: totalUniqueStudents * 3, // More realistic view estimate per unique student
+        avgRating: totalReviews > 0 ? Math.round((weightedRating / totalReviews) * 10) / 10 : 0,
         totalReviews: totalReviews,
-        completionRate: Math.round(overallCompletionRate * 100) / 100
+        completionRate: Math.round(overallCompletionRate * 10) / 10
       }
     };
 
-    const revenueData = [
-      { date: '2024-01', revenue: 0, students: Math.floor(totalStudents * 0.2) }, // No payment system implemented yet
-      { date: '2024-02', revenue: 0, students: Math.floor(totalStudents * 0.3) }, // No payment system implemented yet
-      { date: '2024-03', revenue: 0, students: Math.floor(totalStudents * 0.5) } // No payment system implemented yet
-    ];
+    // Generate realistic month-over-month growth data
+    const currentMonth = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const month = new Date(currentMonth);
+      month.setMonth(currentMonth.getMonth() - i);
+      months.push(month.toLocaleDateString('en-US', { month: '2-digit', year: 'numeric' }));
+    }
+
+    const revenueData = months.map((month, index) => ({
+      date: month,
+      revenue: 0, // No payment system implemented yet
+      students: Math.floor(totalUniqueStudents * (0.1 + (index * 0.15))), // Gradual growth simulation
+      enrollments: Math.floor(totalEnrollmentCount * (0.1 + (index * 0.15))) // Track enrollments separately
+    }));
 
     res.json({
       success: true,
@@ -2082,7 +2256,7 @@ router.get('/analytics/course/:courseId/completion', asyncHandler(async (req: ex
       const completionRate = materialCount > 0 ? (completedMaterials / materialCount) * 100 : 0;
 
       return {
-        studentId: enrollment.userId,
+        studentId: enrollment.studentId,
         studentName: `${enrollment.student.firstName} ${enrollment.student.lastName}`,
         completedMaterials,
         totalMaterials: materialCount,
@@ -2159,7 +2333,14 @@ router.delete('/modules/:id', asyncHandler(async (req: express.Request, res: exp
       });
     }
 
-    if (module.course.creatorId !== decoded.id) {
+    // Get current user's role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    // Admins have full access, Tutors can only manage their own courses
+    if (currentUser?.role !== 'Admin' && module.course.creatorId !== decoded.id) {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to delete this module' }
@@ -2247,7 +2428,14 @@ router.delete('/materials/:id', asyncHandler(async (req: express.Request, res: e
       });
     }
 
-    if (material.course.creatorId !== decoded.id) {
+    // Get current user's role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    // Admins have full access, Tutors can only manage their own courses
+    if (currentUser?.role !== 'Admin' && material.course.creatorId !== decoded.id) {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to delete this material' }
@@ -2298,7 +2486,7 @@ router.delete('/materials/:id', asyncHandler(async (req: express.Request, res: e
       // Get completed materials for this student
       const completedMaterials = await prisma.progress.findMany({
         where: {
-          userId: enrollment.userId,
+          studentId: enrollment.studentId,
           courseId,
           isCompleted: true
         }
@@ -2314,8 +2502,8 @@ router.delete('/materials/:id', asyncHandler(async (req: express.Request, res: e
       // Update enrollment progress
       await prisma.enrollment.update({
         where: {
-          userId_courseId: {
-            userId: enrollment.userId,
+          studentId_courseId: {
+            studentId: enrollment.studentId,
             courseId
           }
         },
@@ -2380,11 +2568,19 @@ router.post('/assignments',
       const { title, description, dueDate, maxScore, courseId } = req.body;
 
       // Verify course ownership
+      // Get current user's role
+      const currentUser = await prisma.admin.findUnique({
+        where: { id: decoded.id },
+        select: { role: true }
+      });
+
+      // Check course exists and user has permission
+      const courseFilter = currentUser?.role === 'Admin'
+        ? { id: courseId }
+        : { id: courseId, creatorId: decoded.id };
+
       const course = await prisma.course.findFirst({
-        where: {
-          id: courseId,
-          creatorId: decoded.id
-        }
+        where: courseFilter
       });
 
       if (!course) {
@@ -2457,11 +2653,19 @@ router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Req
     const { courseId } = req.params;
 
     // Verify course ownership
+    // Get current user's role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    // Check course exists and user has permission
+    const courseFilter = currentUser?.role === 'Admin'
+      ? { id: courseId }
+      : { id: courseId, creatorId: decoded.id };
+
     const course = await prisma.course.findFirst({
-      where: {
-        id: courseId,
-        creatorId: decoded.id
-      }
+      where: courseFilter
     });
 
     if (!course) {
@@ -2536,11 +2740,19 @@ router.get('/assignments/:assignmentId/submissions', asyncHandler(async (req: ex
     const { assignmentId } = req.params;
 
     // Verify assignment ownership
+    // Get current user's role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    // Check assignment exists and user has permission
+    const assignmentFilter = currentUser?.role === 'Admin'
+      ? { id: assignmentId }
+      : { id: assignmentId, creatorId: decoded.id };
+
     const assignment = await prisma.assignment.findFirst({
-      where: {
-        id: assignmentId,
-        creatorId: decoded.id
-      }
+      where: assignmentFilter
     });
 
     if (!assignment) {
@@ -2656,7 +2868,14 @@ router.put('/assignments/submissions/:submissionId/grade',
         });
       }
 
-      if (submission.assignment.creatorId !== decoded.id) {
+      // Get current user's role
+      const currentUser = await prisma.admin.findUnique({
+        where: { id: decoded.id },
+        select: { role: true }
+      });
+
+      // Admins have full access, Tutors can only grade their own assignments
+      if (currentUser?.role !== 'Admin' && submission.assignment.creatorId !== decoded.id) {
         return res.status(403).json({
           success: false,
           error: { message: 'Not authorized to grade this submission.' }
@@ -2732,11 +2951,19 @@ router.delete('/assignments/:id', asyncHandler(async (req: express.Request, res:
 
     const { id } = req.params;
 
+    // Get current user's role
+    const currentUser = await prisma.admin.findUnique({
+      where: { id: decoded.id },
+      select: { role: true }
+    });
+
+    // Check assignment exists and user has permission
+    const assignmentFilter = currentUser?.role === 'Admin'
+      ? { id }
+      : { id, creatorId: decoded.id };
+
     const assignment = await prisma.assignment.findFirst({
-      where: {
-        id,
-        creatorId: decoded.id
-      },
+      where: assignmentFilter,
       include: {
         submissions: {
           select: {
@@ -2785,6 +3012,51 @@ router.delete('/assignments/:id', asyncHandler(async (req: express.Request, res:
     });
   } catch (error) {
     console.error('Delete assignment error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// Get all tutors
+router.get('/tutors', asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.admin_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    // Get only users with role 'Tutor'
+    const tutors = await prisma.admin.findMany({
+      where: {
+        isActive: true,
+        role: 'Tutor'
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true
+      },
+      orderBy: {
+        firstName: 'asc'
+      }
+    });
+
+    res.json({
+      success: true,
+      data: tutors
+    });
+  } catch (error) {
+    console.error('Get tutors error:', error);
     return res.status(401).json({
       success: false,
       error: { message: 'Invalid token.' }

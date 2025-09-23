@@ -8,6 +8,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
+  role: string;
   avatar?: string;
   bio?: string;
   timezone?: string;
@@ -44,6 +45,7 @@ const authApi = {
           email: response.data.user.email,
           firstName: response.data.user.firstName,
           lastName: response.data.user.lastName,
+          role: response.data.user.role,
           avatar: response.data.user.avatar,
           isVerified: response.data.user.isVerified
         };
@@ -65,6 +67,7 @@ const authApi = {
           email: response.data.user.email,
           firstName: response.data.user.firstName,
           lastName: response.data.user.lastName,
+          role: response.data.user.role,
           avatar: response.data.user.avatar,
           isVerified: response.data.user.isVerified
         };
@@ -91,6 +94,7 @@ const authApi = {
         email: response.data.user.email,
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
+        role: response.data.user.role,
         avatar: response.data.user.avatar,
         isVerified: response.data.user.isVerified
       };

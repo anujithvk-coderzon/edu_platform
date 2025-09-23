@@ -151,6 +151,16 @@ router.post('/auth/register',
         email: true,
         firstName: true,
         lastName: true,
+        phone: true,
+        dateOfBirth: true,
+        gender: true,
+        country: true,
+        city: true,
+        education: true,
+        institution: true,
+        occupation: true,
+        company: true,
+        avatar: true,
         createdAt: true
       }
     });
@@ -472,7 +482,7 @@ router.get('/courses',
             if (decoded.type === 'student') {
               const enrollment = await prisma.enrollment.findFirst({
                 where: {
-                  userId: decoded.id,
+                  studentId: decoded.id,
                   courseId: course.id,
                   status: 'ACTIVE'
                 }
@@ -550,7 +560,7 @@ router.get('/enrollments/my-enrollments', asyncHandler(async (req: express.Reque
     const userId = decoded.id;
 
     const enrollments = await prisma.enrollment.findMany({
-      where: { userId: userId },
+      where: { studentId: userId },
       select: {
         id: true,
         status: true,
@@ -599,9 +609,9 @@ router.get('/enrollments/my-enrollments', asyncHandler(async (req: express.Reque
         // Check if user has reviewed this course
         const userReview = await prisma.review.findUnique({
           where: {
-            courseId_userId: {
+            courseId_studentId: {
               courseId: enrollment.course.id,
-              userId
+              studentId: userId
             }
           }
         });
@@ -609,7 +619,7 @@ router.get('/enrollments/my-enrollments', asyncHandler(async (req: express.Reque
         // Get progress data to calculate time spent and completed materials
         const progressRecords = await prisma.progress.findMany({
           where: {
-            userId,
+            studentId: userId,
             courseId: enrollment.course.id
           }
         });
@@ -618,7 +628,7 @@ router.get('/enrollments/my-enrollments', asyncHandler(async (req: express.Reque
         const completedMaterials = progressRecords.filter(record => record.isCompleted).length;
 
         // If no time is recorded but there's progress, estimate based on course duration and progress
-        const courseDurationMinutes = (enrollment.course.duration || 10) * 60; // Convert hours to minutes
+        const courseDurationMinutes = (enrollment.course?.duration || 10) * 60; // Convert hours to minutes
         const estimatedTimeSpent = totalTimeSpent > 0 ? totalTimeSpent :
           (enrollment.progressPercentage > 0 ?
             Math.floor((enrollment.progressPercentage / 100) * courseDurationMinutes) : 0);
@@ -691,8 +701,8 @@ router.post('/enrollments/enroll', asyncHandler(async (req: express.Request, res
     // Check if already enrolled
     const existingEnrollment = await prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId: userId,
+        studentId_courseId: {
+          studentId: userId,
           courseId: courseId
         }
       }
@@ -708,7 +718,7 @@ router.post('/enrollments/enroll', asyncHandler(async (req: express.Request, res
     // Create enrollment
     const enrollment = await prisma.enrollment.create({
       data: {
-        userId: userId,
+        studentId: userId,
         courseId: courseId,
         progressPercentage: 0,
         status: 'ACTIVE'
@@ -756,8 +766,8 @@ router.get('/enrollments/progress/:courseId', asyncHandler(async (req: express.R
 
     const enrollment = await prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId,
+        studentId_courseId: {
+          studentId: userId,
           courseId
         }
       }
@@ -798,7 +808,7 @@ router.get('/enrollments/progress/:courseId', asyncHandler(async (req: express.R
       }),
       prisma.progress.findMany({
         where: {
-          userId,
+          studentId: userId,
           courseId
         }
       })
@@ -936,8 +946,8 @@ router.get('/materials/:id', asyncHandler(async (req: express.Request, res: expr
     // Check if student is enrolled in the course
     const enrollment = await prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId: studentId,
+        studentId_courseId: {
+          studentId: studentId,
           courseId: material.courseId
         }
       }
@@ -953,8 +963,8 @@ router.get('/materials/:id', asyncHandler(async (req: express.Request, res: expr
     // Track material access
     await prisma.progress.upsert({
       where: {
-        userId_courseId_materialId: {
-          userId: studentId,
+        studentId_courseId_materialId: {
+          studentId: studentId,
           courseId: material.courseId,
           materialId: material.id
         }
@@ -964,7 +974,7 @@ router.get('/materials/:id', asyncHandler(async (req: express.Request, res: expr
         timeSpent: { increment: 1 }
       },
       create: {
-        userId: studentId,
+        studentId: studentId,
         courseId: material.courseId,
         materialId: material.id,
         lastAccessed: new Date(),
@@ -1034,8 +1044,8 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
     // Check if student is enrolled in the course
     const enrollment = await prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId: studentId,
+        studentId_courseId: {
+          studentId: studentId,
           courseId: material.courseId
         }
       }
@@ -1051,8 +1061,8 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
     // Mark material as complete
     await prisma.progress.upsert({
       where: {
-        userId_courseId_materialId: {
-          userId: studentId,
+        studentId_courseId_materialId: {
+          studentId: studentId,
           courseId: material.courseId,
           materialId: material.id
         }
@@ -1062,7 +1072,7 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
         lastAccessed: new Date()
       },
       create: {
-        userId: studentId,
+        studentId: studentId,
         courseId: material.courseId,
         materialId: material.id,
         isCompleted: true,
@@ -1075,7 +1085,7 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
       prisma.material.count({ where: { courseId: material.courseId } }),
       prisma.progress.count({
         where: {
-          userId: studentId,
+          studentId: studentId,
           courseId: material.courseId,
           isCompleted: true
         }
@@ -1096,8 +1106,8 @@ router.post('/materials/:id/complete', asyncHandler(async (req: express.Request,
 
     await prisma.enrollment.update({
       where: {
-        userId_courseId: {
-          userId: studentId,
+        studentId_courseId: {
+          studentId: studentId,
           courseId: material.courseId
         }
       },
@@ -1232,8 +1242,8 @@ router.get('/courses/:id', asyncHandler(async (req: express.Request, res: expres
 
         const enrollment = await prisma.enrollment.findUnique({
           where: {
-            userId_courseId: {
-              userId,
+            studentId_courseId: {
+              studentId: userId,
               courseId: id
             }
           }
@@ -1248,9 +1258,9 @@ router.get('/courses/:id', asyncHandler(async (req: express.Request, res: expres
         // Check if user has reviewed this course
         const userReview = await prisma.review.findUnique({
           where: {
-            courseId_userId: {
+            courseId_studentId: {
               courseId: id,
-              userId
+              studentId: userId
             }
           }
         });
@@ -1322,8 +1332,8 @@ router.post('/reviews', asyncHandler(async (req: express.Request, res: express.R
     // Check if student is enrolled in the course
     const enrollment = await prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId: studentId,
+        studentId_courseId: {
+          studentId: studentId,
           courseId
         }
       }
@@ -1339,9 +1349,9 @@ router.post('/reviews', asyncHandler(async (req: express.Request, res: express.R
     // Create or update review
     const review = await prisma.review.upsert({
       where: {
-        courseId_userId: {
+        courseId_studentId: {
           courseId,
-          userId: studentId
+          studentId: studentId
         }
       },
       update: {
@@ -1350,7 +1360,7 @@ router.post('/reviews', asyncHandler(async (req: express.Request, res: express.R
       },
       create: {
         courseId,
-        userId: studentId,
+        studentId: studentId,
         rating,
         comment: comment || null
       }
@@ -1438,9 +1448,9 @@ router.get('/reviews/my-review/:courseId', asyncHandler(async (req: express.Requ
 
     const review = await prisma.review.findUnique({
       where: {
-        courseId_userId: {
+        courseId_studentId: {
           courseId,
-          userId: studentId
+          studentId: studentId
         }
       }
     });
@@ -1478,8 +1488,8 @@ router.get('/assignments/course/:courseId', asyncHandler(async (req: express.Req
     // Verify enrollment
     const enrollment = await prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId: studentId,
+        studentId_courseId: {
+          studentId: studentId,
           courseId
         }
       }
@@ -1558,7 +1568,7 @@ router.post('/assignments/:assignmentId/submit',
           course: {
             include: {
               enrollments: {
-                where: { userId: studentId }
+                where: { studentId: studentId }
               }
             }
           }
@@ -1628,7 +1638,7 @@ router.post('/assignments/:assignmentId/submit',
         prisma.material.count({ where: { courseId: assignment.courseId } }),
         prisma.progress.count({
           where: {
-            userId: studentId,
+            studentId: studentId,
             courseId: assignment.courseId,
             isCompleted: true
           }
@@ -1649,8 +1659,8 @@ router.post('/assignments/:assignmentId/submit',
 
       await prisma.enrollment.update({
         where: {
-          userId_courseId: {
-            userId: studentId,
+          studentId_courseId: {
+            studentId: studentId,
             courseId: assignment.courseId
           }
         },
@@ -1765,6 +1775,97 @@ router.post('/assignments/upload', upload.single('file'), asyncHandler(async (re
     return res.status(401).json({
       success: false,
       error: { message: 'Invalid token.' }
+    });
+  }
+}));
+
+// ===== PUBLIC PLATFORM STATISTICS =====
+// Get platform-wide statistics (public endpoint)
+router.get('/platform/stats', asyncHandler(async (req: express.Request, res: express.Response) => {
+  try {
+    // Get all published courses with enrollment data
+    const courses = await prisma.course.findMany({
+      where: {
+        status: 'PUBLISHED' // Only count published courses
+      },
+      include: {
+        enrollments: {
+          select: {
+            studentId: true,
+            enrolledAt: true
+          }
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
+        },
+        _count: {
+          select: {
+            enrollments: true,
+            reviews: true
+          }
+        }
+      }
+    });
+
+    // Calculate unique students across all courses
+    const uniqueStudentIds = new Set<string>();
+    let totalEnrollments = 0;
+
+    courses.forEach(course => {
+      course.enrollments.forEach(enrollment => {
+        uniqueStudentIds.add(enrollment.studentId);
+        totalEnrollments++;
+      });
+    });
+
+    const totalUniqueStudents = uniqueStudentIds.size;
+
+    // Calculate average rating across all courses
+    let totalRatings = 0;
+    let totalReviews = 0;
+
+    courses.forEach(course => {
+      if (course.reviews.length > 0) {
+        const courseRating = course.reviews.reduce((sum, review) => sum + review.rating, 0);
+        totalRatings += courseRating;
+        totalReviews += course.reviews.length;
+      }
+    });
+
+    const averageRating = totalReviews > 0 ? totalRatings / totalReviews : 0;
+
+    // Calculate recent activity (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const recentEnrollments = courses.reduce((count, course) => {
+      return count + course.enrollments.filter(e =>
+        new Date(e.enrolledAt) > thirtyDaysAgo
+      ).length;
+    }, 0);
+
+    const stats = {
+      totalCourses: courses.length,
+      totalStudents: totalUniqueStudents,
+      totalEnrollments: totalEnrollments,
+      averageRating: Math.round(averageRating * 10) / 10,
+      totalReviews: totalReviews,
+      recentActivity: recentEnrollments,
+      lastUpdated: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('Platform stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch platform statistics' }
     });
   }
 }));

@@ -283,6 +283,11 @@ class ApiClient {
     getById: (id: string) => this.get<ApiResponse>(`/students/${id}`),
   };
 
+  // Tutors endpoints
+  tutors = {
+    getAll: () => this.get<ApiResponse>('/tutors'),
+  };
+
   // Assignment endpoints
   assignments = {
     create: (data: {

@@ -12,7 +12,8 @@ import {
   CheckCircleIcon,
   AcademicCapIcon,
   ChartBarIcon,
-  CalendarIcon
+  CalendarIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -89,7 +90,7 @@ export default function MyCoursesPage() {
       if (enrollment.hasReviewed) {
         return { text: 'Completed', href: `/courses/${courseId}` };
       } else {
-        return { text: 'Rate Course', href: `/courses/${courseId}` };
+        return { text: 'Rate Course', href: `/courses/${courseId}/rate` };
       }
     } else {
       return { text: 'Continue Learning', href: `/learn/${courseId}` };
@@ -338,12 +339,15 @@ export default function MyCoursesPage() {
                     const buttonState = getEnrollmentButtonState(enrollment);
                     return (
                       <Link href={buttonState.href}>
-                        <button className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                        <button className={`w-full py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-1 ${
                           buttonState.text === 'Completed'
                             ? 'bg-green-600 text-white hover:bg-green-700'
+                            : buttonState.text === 'Rate Course'
+                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                         }`}>
-                          {buttonState.text}
+                          {buttonState.text === 'Rate Course' && <StarIcon className="h-4 w-4" />}
+                          <span>{buttonState.text}</span>
                         </button>
                       </Link>
                     );

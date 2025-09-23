@@ -37,6 +37,11 @@ interface Course {
   duration?: number;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   tutorName?: string;
+  creator?: {
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
   _count?: {
     enrollments: number;
     materials: number;
@@ -217,10 +222,13 @@ const Page = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-1">
-                  My Courses
+                  {user?.role?.toLowerCase() !== 'tutor' ? 'All Courses' : 'My Courses'}
                 </h1>
                 <p className="text-slate-600 text-sm sm:text-base">
-                  Manage and track your courses
+                  {user?.role?.toLowerCase() !== 'tutor'
+                    ? 'Manage all courses in your organization'
+                    : 'Manage and track your courses'
+                  }
                 </p>
               </div>
               <Link href="/create-course">
@@ -322,6 +330,11 @@ const Page = () => {
                       <CardDescription className="line-clamp-3 mt-1 text-slate-600 text-sm">
                         {course.description}
                       </CardDescription>
+                      {user?.role?.toLowerCase() !== 'tutor' && course.creator && (
+                        <div className="mt-2 text-xs text-slate-500">
+                          Assigned to: {course.creator.firstName} {course.creator.lastName}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardHeader>

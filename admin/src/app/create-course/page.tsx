@@ -10,7 +10,7 @@ import { Textarea } from '../../components/ui/Textarea';
 import { Select } from '../../components/ui/Select';
 import type { SelectOption } from '../../components/ui/Select';
 import { FileUpload } from '../../components/ui/FileUpload';
-import { 
+import {
   ChevronRightIcon,
   ChevronLeftIcon,
   CheckCircleIcon,
@@ -32,6 +32,8 @@ import {
   DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import apiClient from '../../lib/apiClient';
 
 interface Material {
   id: string;
@@ -56,7 +58,7 @@ interface CourseFormData {
   level: string;
   price: string;
   duration: string;
-  tutorName: string;
+  tutorId: string;
   thumbnail: File | null;
   requirements: string[];
   prerequisites: string[];
@@ -64,13 +66,14 @@ interface CourseFormData {
   chapters: Chapter[];
 }
 
+
 const initialFormData: CourseFormData = {
   title: '',
   description: '',
   level: '',
   price: '',
   duration: '',
-  tutorName: '',
+  tutorId: '',
   thumbnail: null,
   requirements: [''],
   prerequisites: [''],
@@ -97,7 +100,10 @@ export default function CreateCoursePage() {
   const [errors, setErrors] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tutors, setTutors] = useState<SelectOption[]>([]);
   const router = useRouter();
+  const { user } = useAuth();
+
 
   const steps = [
     { number: 1, title: 'Basic Information', description: 'Course title and description' },
@@ -106,6 +112,33 @@ export default function CreateCoursePage() {
     { number: 4, title: 'Review & Publish', description: 'Final review and publish your course' }
   ];
 
+  // Auto-assign tutor ID for logged-in Tutors, fetch tutors list for Admins
+  useEffect(() => {
+    // If user is a Tutor, auto-assign their ID
+    if (user?.role?.toLowerCase() === 'tutor' && user.id) {
+      setFormData(prev => ({ ...prev, tutorId: user.id }));
+    }
+
+    // Only fetch tutors list if user is Admin (for tutor selection)
+    if (user?.role?.toLowerCase() === 'admin') {
+      const fetchTutors = async () => {
+        try {
+          const response = await api.tutors.getAll();
+          if (response.success) {
+            const tutorOptions = response.data.map((tutor: any) => ({
+              value: tutor.id,
+              label: `${tutor.firstName} ${tutor.lastName} (${tutor.email})`
+            }));
+            setTutors(tutorOptions);
+          }
+        } catch (error) {
+          console.error('Error fetching tutors:', error);
+        }
+      };
+
+      fetchTutors();
+    }
+  }, [user]);
 
 
   const handleInputChange = (field: keyof CourseFormData, value: any) => {
@@ -250,7 +283,20 @@ export default function CreateCoursePage() {
         } else {
           console.log('Description validation passed:', formData.description);
         }
-        
+
+        // Only validate tutor selection for Admin users (Tutors have auto-assigned tutorId)
+        if (user?.role?.toLowerCase() === 'admin') {
+          if (!formData.tutorId || !formData.tutorId.trim()) {
+            console.log('VALIDATION ERROR: Tutor is not selected');
+            newErrors.tutorId = 'Please select a tutor for this course';
+          } else {
+            console.log('Tutor validation passed:', formData.tutorId);
+          }
+        } else {
+          // For Tutor users, tutorId should be auto-assigned
+          console.log('Tutor validation skipped (auto-assigned):', formData.tutorId);
+        }
+
         console.log('Step 1 validation complete');
         break;
       case 2:
@@ -340,6 +386,7 @@ export default function CreateCoursePage() {
         title: formData.title.trim(),
         description: formData.description.trim(),
         price: formData.price ? parseFloat(formData.price) : 0,
+        tutorId: formData.tutorId,
         status: 'PUBLISHED',
         isPublic: true,
         requirements: formData.requirements.filter(req => req.trim() !== ''),
@@ -357,10 +404,6 @@ export default function CreateCoursePage() {
         courseData.level = formData.level.trim();
       }
 
-      // Only add tutorName if it has a value
-      if (formData.tutorName && formData.tutorName.trim()) {
-        courseData.tutorName = formData.tutorName.trim();
-      }
 
       // Log the data being sent for debugging
       console.log('Course data before sending:', courseData);
@@ -392,10 +435,13 @@ export default function CreateCoursePage() {
         if (formData.thumbnail) {
           const thumbnailResponse = await api.uploads.courseThumbnail(formData.thumbnail, courseId);
           if (thumbnailResponse.success && thumbnailResponse.data?.url) {
-            // Update the course with the thumbnail URL
-            await api.courses.update(courseId, {
-              thumbnail: thumbnailResponse.data.url
-            });
+            // Update the course with the thumbnail URL - only include valid thumbnail URL
+            const thumbnailUrl = thumbnailResponse.data.url;
+            if (thumbnailUrl && thumbnailUrl.trim().length > 0) {
+              await api.courses.update(courseId, {
+                thumbnail: thumbnailUrl.trim()
+              });
+            }
           }
         }
 
@@ -519,6 +565,39 @@ export default function CreateCoursePage() {
         />
       </div>
 
+      {/* Only show tutor selection for Admin users */}
+      {user?.role?.toLowerCase() === 'admin' && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700">
+            Assign Tutor <span className="text-red-500">*</span>
+          </label>
+          <Select
+            value={formData.tutorId}
+            onChange={(value) => handleInputChange('tutorId', value)}
+            options={tutors}
+            placeholder="Select a tutor for this course..."
+            error={errors.tutorId}
+          />
+        </div>
+      )}
+
+      {/* Show assigned tutor info for Tutor users */}
+      {user?.role?.toLowerCase() === 'tutor' && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-slate-700">
+            Course Instructor
+          </label>
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="text-sm text-blue-800">
+              <strong>{user.firstName} {user.lastName}</strong> (You)
+            </div>
+            <div className="text-xs text-blue-600 mt-1">
+              You will be assigned as the instructor for this course
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         <label className="block text-sm font-medium text-slate-700">
           Course Thumbnail
@@ -583,19 +662,7 @@ export default function CreateCoursePage() {
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Tutor/Organization Name
-        </label>
-        <Input
-          value={formData.tutorName}
-          onChange={(e) => handleInputChange('tutorName', e.target.value)}
-          placeholder="e.g., CoderZone Academy or Your Name"
-        />
-        <p className="text-xs text-slate-500 mt-1">
-          This will be displayed as "Created by" on the course page
-        </p>
-      </div>
+
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-3">

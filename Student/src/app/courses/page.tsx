@@ -123,6 +123,7 @@ export default function CoursesPage() {
                 const enrollment = enrollmentMap.get(course.id);
                 return {
                   ...course,
+                  isEnrolled: !!enrollment,
                   enrollmentStatus: enrollment?.status,
                   progressPercentage: enrollment?.progressPercentage,
                   hasReviewed: enrollment?.hasReviewed
@@ -224,7 +225,7 @@ export default function CoursesPage() {
       if (course.hasReviewed) {
         return { text: 'Completed', href: `/courses/${course.id}` };
       } else {
-        return { text: 'Rate Course', href: `/courses/${course.id}` };
+        return { text: 'Rate Course', href: `/courses/${course.id}/rate` };
       }
     } else {
       return { text: 'Continue Learning', href: `/learn/${course.id}` };
@@ -492,12 +493,15 @@ export default function CoursesPage() {
                         const buttonState = getCourseButtonState(course);
                         return (
                           <Link href={buttonState.href}>
-                            <button className={`w-full py-3 rounded-lg transition-colors font-medium ${
+                            <button className={`w-full py-3 rounded-lg transition-colors font-medium flex items-center justify-center space-x-1 ${
                               buttonState.text === 'Completed'
                                 ? 'bg-green-600 text-white hover:bg-green-700'
+                                : buttonState.text === 'Rate Course'
+                                ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
                             }`}>
-                              {buttonState.text}
+                              {buttonState.text === 'Rate Course' && <StarIcon className="h-4 w-4" />}
+                              <span>{buttonState.text}</span>
                             </button>
                           </Link>
                         );

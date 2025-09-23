@@ -238,7 +238,7 @@ export default function CourseEditPage() {
         }
       }
 
-      const updateData = {
+      const updateData: any = {
         title: course.title,
         description: course.description,
         price: course.price,
@@ -246,11 +246,19 @@ export default function CourseEditPage() {
         isPublic: course.isPublic,
         categoryId: course.categoryId,
         level: course.level,
-        tutorName: course.tutorName,
         requirements: course.requirements || [],
-        prerequisites: course.prerequisites || [],
-        thumbnail: thumbnailUrl
+        prerequisites: course.prerequisites || []
       };
+
+      // Only include tutorName if it has a valid value
+      if (course.tutorName && course.tutorName.trim()) {
+        updateData.tutorName = course.tutorName;
+      }
+
+      // Only include thumbnail if it has a valid value
+      if (thumbnailUrl && thumbnailUrl.trim()) {
+        updateData.thumbnail = thumbnailUrl;
+      }
 
       console.log('Saving course with data:', updateData);
       console.log('Requirements:', updateData.requirements);

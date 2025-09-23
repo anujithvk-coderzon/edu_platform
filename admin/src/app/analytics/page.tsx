@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Select } from '../../components/ui/Select';
 import type { SelectOption } from '../../components/ui/Select';
-import { 
+import {
   ChartBarIcon,
   CurrencyDollarIcon,
   UserGroupIcon,
@@ -14,10 +15,12 @@ import {
   ArrowDownIcon,
   CalendarIcon,
   EyeIcon,
-  StarIcon
+  StarIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
 import { Course } from '../../types/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AnalyticsData {
   revenue: {
@@ -27,7 +30,8 @@ interface AnalyticsData {
     growth: number;
   };
   students: {
-    total: number;
+    total: number;        // Unique students
+    enrollments: number;  // Total enrollments (for comparison)
     thisMonth: number;
     lastMonth: number;
     growth: number;
@@ -81,10 +85,48 @@ export default function AnalyticsPage() {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
+  const router = useRouter();
+  const { user } = useAuth();
+
+  // Redirect tutors to dashboard
+  useEffect(() => {
+    if (user && user.role === 'Tutor') {
+      router.push('/');
+    }
+  }, [user, router]);
 
   useEffect(() => {
-    fetchAnalyticsData();
-  }, [selectedPeriod]);
+    if (user?.role?.toLowerCase() !== 'tutor') {
+      fetchAnalyticsData();
+    }
+  }, [selectedPeriod, user]);
+
+  // Show access denied for tutors
+  if (user?.role?.toLowerCase() === 'tutor') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-md mx-auto text-center">
+          <div className="h-16 w-16 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <ExclamationTriangleIcon className="h-8 w-8 text-orange-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">Access Restricted</h2>
+          <p className="text-slate-600 mb-6">
+            Analytics and financial information are only available to administrators.
+          </p>
+          <Button
+            onClick={() => router.push('/')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.role === 'Tutor') {
+    return null;
+  }
 
   const fetchAnalyticsData = async () => {
     try {
@@ -233,7 +275,10 @@ export default function AnalyticsPage() {
                   <div className="text-2xl font-semibold text-slate-900 mb-1">
                     {analytics.students.total.toLocaleString()}
                   </div>
-                  <p className="text-sm font-medium text-slate-600 mb-2">Total Students</p>
+                  <p className="text-sm font-medium text-slate-600 mb-1">Unique Students</p>
+                  <p className="text-xs text-slate-500 mb-2">
+                    {analytics.students.enrollments?.toLocaleString() || 0} total enrollments
+                  </p>
                   {formatGrowth(analytics.students.growth)}
                 </div>
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

@@ -39,9 +39,31 @@ enum AssignmentStatus {
   GRADED
 }
 
-model Student {
+model Admin {
   id          String   @id @default(cuid())
   email       String   @unique
+  password    String
+  firstName   String
+  lastName    String
+  role        String   @default("Tutor") // admin or tutor
+  avatar      String?
+  isVerified  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Admin relations
+  createdCourses Course[] @relation("CourseCreator")
+  materials     Material[]
+  assignments   Assignment[]
+  announcements Announcement[]
+
+  @@map("admins")
+}
+
+model Student {
+  id          String    @id @default(cuid())
+  email       String    @unique
   password    String
   firstName   String
   lastName    String
@@ -51,14 +73,14 @@ model Student {
   gender      String?
   country     String?
   city        String?
-  education   String? // Highest education level
-  institution String? // Current or last educational institution
+  education   String?
+  institution String?
   occupation  String?
   company     String?
-  isVerified  Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isVerified  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Student relations
   enrollments Enrollment[]
@@ -70,29 +92,6 @@ model Student {
 
   @@map("students")
 }
-
-model Admin {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  password    String
-  firstName   String
-  lastName    String
-  avatar      String?
-  isVerified  Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Admin/Tutor relations
-  createdCourses Course[] @relation("CourseCreator")
-  materials     Material[]
-  assignments   Assignment[]
-  announcements Announcement[]
-
-  @@map("admins")
-}
-
-
 
 model Course {
   id          String       @id @default(cuid())
@@ -176,24 +175,24 @@ model Material {
 
 model Enrollment {
   id          String           @id @default(cuid())
-  userId      String
+  studentId   String
   courseId    String
   status      EnrollmentStatus @default(ACTIVE)
   enrolledAt  DateTime         @default(now())
   completedAt DateTime?
   progressPercentage Float      @default(0) // percentage
 
-  student         Student    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  student         Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   progressRecords Progress[]
 
-  @@unique([userId, courseId])
+  @@unique([studentId, courseId])
   @@map("enrollments")
 }
 
 model Progress {
   id           String   @id @default(cuid())
-  userId       String
+  studentId    String
   courseId     String
   materialId   String?
   isCompleted  Boolean  @default(false)
@@ -201,10 +200,10 @@ model Progress {
   lastAccessed DateTime @default(now())
   createdAt    DateTime @default(now())
 
-  student    Student     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enrollment Enrollment  @relation(fields: [userId, courseId], references: [userId, courseId], onDelete: Cascade)
+  student    Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment Enrollment  @relation(fields: [studentId, courseId], references: [studentId, courseId], onDelete: Cascade)
 
-  @@unique([userId, courseId, materialId])
+  @@unique([studentId, courseId, materialId])
   @@map("progress")
 }
 
@@ -286,7 +285,7 @@ model QuizAttempt {
   studentId   String
   createdAt   DateTime @default(now())
 
-  quiz    Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz    Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@map("quiz_attempts")
@@ -329,14 +328,14 @@ model Review {
   rating    Int // 1-5
   comment   String?
   courseId  String
-  userId    String
+  studentId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  student Student @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([courseId, userId])
+  @@unique([courseId, studentId])
   @@map("reviews")
 }
 

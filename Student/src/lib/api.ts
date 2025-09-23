@@ -55,6 +55,15 @@ class ApiClient {
         if (endpoint === '/auth/me' && response.status === 401) {
           return data;
         }
+
+        // Enhanced error handling for validation errors
+        if (data.error?.message === 'Validation failed' && data.error?.details) {
+          const validationDetails = data.error.details.map((detail: any) =>
+            `${detail.path || detail.param}: ${detail.msg}`
+          ).join(', ');
+          throw new Error(`Validation failed: ${validationDetails}`);
+        }
+
         throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
       }
 
@@ -213,6 +222,7 @@ class ApiClient {
       return this.uploadFile('/assignments/upload', formData);
     },
   };
+
 }
 
 export const api = new ApiClient(API_BASE_URL);

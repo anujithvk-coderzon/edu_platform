@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
-import { 
-  BookOpenIcon, 
+import {
+  BookOpenIcon,
   UserGroupIcon,
   ChartBarIcon,
   CurrencyDollarIcon,
@@ -14,11 +14,13 @@ import {
 import Link from 'next/link';
 import { api } from '../lib/api';
 import { Course, User } from '../types/api';
+import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 interface DashboardStats {
   totalCourses: number;
-  activeStudents: number;
+  activeStudents: number; // Unique students
+  totalEnrollments: number; // Total enrollments for comparison
   totalEarnings: number;
   monthlyViews: number;
   coursesProgress: number;
@@ -42,6 +44,7 @@ const Page = () => {
     stats: {
       totalCourses: 0,
       activeStudents: 0,
+      totalEnrollments: 0,
       totalEarnings: 0,
       monthlyViews: 0,
       coursesProgress: 0,
@@ -52,6 +55,7 @@ const Page = () => {
     myCourses: [],
     recentActivities: []
   });
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,29 +73,44 @@ const Page = () => {
           if (coursesResponse.success) {
             const courses = coursesResponse.data.courses || [];
             
-            // Calculate stats from courses
-            const totalStudents = courses.reduce((sum: number, course: any) => 
-              sum + (course._count?.enrollments || 0), 0);
+            // Calculate UNIQUE students (the correct way!)
+            const uniqueStudentIds = new Set<string>();
+            let totalEnrollments = 0;
+
+            courses.forEach((course: any) => {
+              totalEnrollments += course._count?.enrollments || 0;
+              // If course has enrollment data with student IDs, collect unique students
+              if (course.enrollments && Array.isArray(course.enrollments)) {
+                course.enrollments.forEach((enrollment: any) => {
+                  if (enrollment.studentId) {
+                    uniqueStudentIds.add(enrollment.studentId);
+                  }
+                });
+              }
+            });
+
+            const totalUniqueStudents = uniqueStudentIds.size;
             // Since there's no payment system implemented yet, earnings should be 0
             const totalEarnings = 0;
             
-            // Calculate progress percentages based on dynamic goals
+            // Calculate progress percentages based on dynamic goals (using unique students!)
             const courseGoal = Math.max(10, courses.length * 2);
-            const studentGoal = Math.max(100, totalStudents * 3);
+            const studentGoal = Math.max(50, totalUniqueStudents * 2); // Goal based on unique students
             const earningsGoal = 1000; // Static goal since no payment system
-            const viewsGoal = Math.max(500, totalStudents * 2);
-            
-            // Calculate monthly views based on course engagement
-            const avgViewsPerStudent = courses.length > 0 ? 2 : 0;
-            const monthlyViews = Math.floor(totalStudents * avgViewsPerStudent);
+            const viewsGoal = Math.max(200, totalUniqueStudents * 4); // Views per unique student
+
+            // Calculate monthly views based on unique student engagement
+            const avgViewsPerStudent = courses.length > 0 ? 3 : 0; // More views per unique student
+            const monthlyViews = Math.floor(totalUniqueStudents * avgViewsPerStudent);
             
             const stats: DashboardStats = {
               totalCourses: courses.length,
-              activeStudents: totalStudents,
+              activeStudents: totalUniqueStudents, // Using unique students now!
+              totalEnrollments: totalEnrollments, // Track total enrollments separately
               totalEarnings: totalEarnings,
               monthlyViews: monthlyViews,
               coursesProgress: Math.min((courses.length / courseGoal) * 100, 100),
-              studentsProgress: Math.min((totalStudents / studentGoal) * 100, 100),
+              studentsProgress: Math.min((totalUniqueStudents / studentGoal) * 100, 100), // Using unique students
               earningsProgress: Math.min((totalEarnings / earningsGoal) * 100, 100),
               viewsProgress: Math.min((monthlyViews / viewsGoal) * 100, 100)
             };
@@ -151,7 +170,13 @@ const Page = () => {
   }
 
   // Destructure data for easier access
-  const { user, stats, myCourses } = data;
+  const { user: dashboardUser, stats, myCourses } = data;
+
+  // Debug logging
+  console.log('Dashboard - User object:', user);
+  console.log('Dashboard - User role:', user?.role);
+  console.log('Dashboard - Role toLowerCase:', user?.role?.toLowerCase());
+  console.log('Dashboard - Is tutor check:', user?.role?.toLowerCase() === 'tutor');
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -268,22 +293,27 @@ const Page = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.activeStudents}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Active Students</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Unique Students</div>
+                    <div className="text-xs text-slate-500">
+                      {stats.totalEnrollments} total enrollments
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <CurrencyDollarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">${stats.totalEarnings}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Earnings</div>
+              {user?.role?.toLowerCase() !== 'tutor' && (
+                <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <CurrencyDollarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xl sm:text-2xl font-bold text-slate-900">${stats.totalEarnings}</div>
+                      <div className="text-xs sm:text-sm text-slate-600 truncate">Total Earnings</div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                 <div className="flex items-center space-x-3">

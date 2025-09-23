@@ -9,7 +9,7 @@ import fs from 'fs';
 // Import prisma and types
 import prisma from '../DB/DB_Config';
 import { AuthRequest } from '../middleware/auth';
-import { UserRole, CourseStatus, MaterialType, EnrollmentStatus } from '@prisma/client';
+import { CourseStatus, MaterialType, EnrollmentStatus } from '@prisma/client';
 
 // Import utilities
 import { deleteUploadedFile, deleteMultipleFiles } from '../utils/fileUtils';
@@ -34,9 +34,7 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
       });
     }
 
-    const adminExists = await prisma.user.findFirst({
-      where: { role: UserRole.ADMIN }
-    });
+    const adminExists = await prisma.admin.findFirst();
 
     if (adminExists) {
       return res.status(400).json({
@@ -47,20 +45,20 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
 
     const { email, password, firstName, lastName } = req.body;
 
-    const existingUser = await prisma.user.findUnique({
+    const existingAdmin = await prisma.admin.findUnique({
       where: { email }
     });
 
-    if (existingUser) {
+    if (existingAdmin) {
       return res.status(400).json({
         success: false,
-        error: { message: 'User already exists with this email' }
+        error: { message: 'Admin already exists with this email' }
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await prisma.user.create({
+    const user = await prisma.admin.create({
       data: {
         email,
         password: hashedPassword,
@@ -169,6 +167,71 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
   }
 };
 
+export const RegisterTutor = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can register tutors
+    if (req.user!.role !== UserRole.ADMIN) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can register tutors' }
+      });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email, password, firstName, lastName } = req.body;
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'User already exists with this email' }
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const tutor = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        role: UserRole.TUTOR,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: { tutor },
+      message: 'Tutor registered successfully'
+    });
+  } catch (error) {
+    console.error('RegisterTutor error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
 export const LoginUser = async (req: express.Request, res: express.Response) => {
   try {
     const errors = validationResult(req);
@@ -202,7 +265,7 @@ export const LoginUser = async (req: express.Request, res: express.Response) => 
     const token = GenerateToken(user.id);
 
     // Set role-specific cookie names
-    const cookieName = user.role === 'ADMIN' ? 'admin_token' : 'student_token';
+    const cookieName = user.role === UserRole.ADMIN || user.role === UserRole.TUTOR ? 'admin_token' : 'student_token';
 
     res.cookie(cookieName, token, {
       httpOnly: true,
@@ -230,7 +293,7 @@ export const LoginUser = async (req: express.Request, res: express.Response) => 
 
 export const LogoutUser = (req: AuthRequest, res: express.Response) => {
   // Only clear the cookie for the current user's role
-  const cookieName = req.user!.role === 'ADMIN' ? 'admin_token' : 'student_token';
+  const cookieName = req.user!.role === UserRole.ADMIN || req.user!.role === UserRole.TUTOR ? 'admin_token' : 'student_token';
   res.clearCookie(cookieName);
 
   return res.json({
@@ -710,14 +773,41 @@ export const GetAllCourses = async (req: AuthRequest, res: express.Response) => 
 export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
   try {
     const userId = req.user!.id;
+    const userRole = req.user!.role;
+
+    let whereClause: any = {};
+
+    if (userRole === UserRole.ADMIN) {
+      // Admin can see all courses
+      whereClause = {};
+    } else if (userRole === UserRole.TUTOR) {
+      // Tutor can see courses they created or are assigned to
+      whereClause = {
+        OR: [
+          { creatorId: userId },
+          { tutorId: userId }
+        ]
+      };
+    } else {
+      // Students see only courses they created (if any)
+      whereClause = { creatorId: userId };
+    }
 
     const courses = await prisma.course.findMany({
-      where: { creatorId: userId },
+      where: whereClause,
       include: {
         category: {
           select: {
             id: true,
             name: true
+          }
+        },
+        tutor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
           }
         },
         _count: {
@@ -737,6 +827,49 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
     });
   } catch (error) {
     console.error('GetMyCourses error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can get all tutors
+    if (req.user!.role !== UserRole.ADMIN) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Access denied' }
+      });
+    }
+
+    const tutors = await prisma.admin.findMany({
+      where: { role: UserRole.TUTOR },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        isActive: true,
+        createdAt: true,
+        _count: {
+          select: {
+            assignedCourses: true,
+            createdCourses: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return res.json({
+      success: true,
+      data: { tutors }
+    });
+  } catch (error) {
+    console.error('GetAllTutors error:', error);
     return res.status(500).json({
       success: false,
       error: { message: 'Internal server error' }
@@ -870,10 +1003,25 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
       categoryId,
       thumbnail,
       tutorName,
+      tutorId,
       objectives = [],
       requirements = [],
       tags = []
     } = req.body;
+
+    // If tutorId is provided, verify it's a valid tutor
+    if (tutorId) {
+      const tutor = await prisma.admin.findUnique({
+        where: { id: tutorId }
+      });
+
+      if (!tutor || tutor.role !== UserRole.TUTOR) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Invalid tutor ID' }
+        });
+      }
+    }
 
     const course = await prisma.course.create({
       data: {
@@ -886,6 +1034,7 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
         thumbnail,
         tutorName: tutorName || `${req.user!.firstName} ${req.user!.lastName}`,
         creatorId: req.user!.id,
+        tutorId: tutorId || (req.user!.role === UserRole.TUTOR ? req.user!.id : null),
         status: CourseStatus.DRAFT
       },
       include: {
@@ -895,6 +1044,14 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
             firstName: true,
             lastName: true,
             avatar: true
+          }
+        },
+        tutor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
           }
         },
         category: {
@@ -931,7 +1088,7 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
 
     const { id } = req.params;
     const updates: any = {};
-    
+
     const {
       title,
       description,
@@ -941,6 +1098,7 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
       categoryId,
       thumbnail,
       tutorName,
+      tutorId,
       status,
       isPublic
     } = req.body;
@@ -953,8 +1111,23 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
     if (categoryId) updates.categoryId = categoryId;
     if (thumbnail) updates.thumbnail = thumbnail;
     if (tutorName) updates.tutorName = tutorName;
+    if (tutorId !== undefined) updates.tutorId = tutorId;
     if (status) updates.status = status;
     if (typeof isPublic === 'boolean') updates.isPublic = isPublic;
+
+    // If tutorId is provided, verify it's a valid tutor
+    if (tutorId) {
+      const tutor = await prisma.admin.findUnique({
+        where: { id: tutorId }
+      });
+
+      if (!tutor || tutor.role !== UserRole.TUTOR) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Invalid tutor ID' }
+        });
+      }
+    }
 
     const existingCourse = await prisma.course.findUnique({
       where: { id }

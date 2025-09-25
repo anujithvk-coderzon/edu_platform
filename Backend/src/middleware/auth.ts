@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
     type: 'admin' | 'student';
+    role?: string; // Admin role: "admin" or "tutor"
     firstName: string;
     lastName: string;
   };
@@ -62,6 +63,7 @@ export const authMiddleware = async (
           email: true,
           firstName: true,
           lastName: true,
+          role: true,
           isActive: true,
           isVerified: true
         }
@@ -102,7 +104,7 @@ export const authMiddleware = async (
       });
     }
 
-    req.user = { ...user, type: userType };
+    req.user = { ...user, type: userType, role: userType === 'admin' ? user.role : undefined };
     next();
   } catch (error) {
     return res.status(401).json({

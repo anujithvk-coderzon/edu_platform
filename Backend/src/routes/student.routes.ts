@@ -11,6 +11,7 @@ import fs from 'fs';
 // Import prisma and middleware
 import prisma from '../DB/DB_Config';
 import { asyncHandler } from '../middleware/errorHandler';
+import { generateOTP, storeOTP, verifyOTP, sendVerificationEmail, WelcomeEmail, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
 
 const router = express.Router();
 
@@ -76,6 +77,95 @@ const generateToken = (studentId: string) => {
 };
 
 // ===== STUDENT AUTH ROUTES =====
+
+// Step 1: Verify email and send OTP (before showing full registration form)
+router.post('/auth/verify-email',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Please provide a valid email address', details: errors.array() }
+      });
+    }
+
+    const { email } = req.body;
+
+    // Check if email already exists
+    const existingStudent = await prisma.student.findUnique({
+      where: { email }
+    });
+
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'An account with this email already exists' }
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Store just the email and OTP (no user data yet)
+    storeOTP(email, otp, null);
+
+    // Send OTP via email
+    const emailResult = await sendVerificationEmail(email, otp);
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: { message: emailResult.error || 'Failed to send verification email. Please try again.' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Verification code sent to your email. Please check your inbox.',
+      data: { email }
+    });
+  })
+);
+
+// Step 2: Verify OTP (before showing full registration form)
+router.post('/auth/verify-otp-email',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').trim().isLength({ min: 6, max: 6 }),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email, otp } = req.body;
+
+    // Verify OTP
+    const verification = verifyOTP(email, otp);
+
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        error: { message: verification.message || 'Invalid or expired OTP. Please try again.' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully! You can now complete your registration.',
+      data: { email, verified: true }
+    });
+  })
+);
+
+// Step 3: Complete registration with user details
 router.post('/auth/register',
   [
     body('email').isEmail().normalizeEmail(),
@@ -91,6 +181,7 @@ router.post('/auth/register',
     body('institution').optional().trim().isLength({ min: 1 }),
     body('occupation').optional().trim().isLength({ min: 1 }),
     body('company').optional().trim().isLength({ min: 1 }),
+    // Remove emailVerified requirement for OTP flow
   ],
   asyncHandler(async (req: express.Request, res: express.Response) => {
     const errors = validationResult(req);
@@ -117,6 +208,7 @@ router.post('/auth/register',
       company
     } = req.body;
 
+    // Check if email already exists
     const existingStudent = await prisma.student.findUnique({
       where: { email }
     });
@@ -128,24 +220,89 @@ router.post('/auth/register',
       });
     }
 
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Hash password for storage with OTP
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Store user data temporarily with OTP
+    const userData = {
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone: phone || null,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      gender: gender || null,
+      country: country || null,
+      city: city || null,
+      education: education || null,
+      institution: institution || null,
+      occupation: occupation || null,
+      company: company || null,
+    };
+
+    storeOTP(email, otp, userData);
+
+    // Send OTP via email
+    const emailResult = await sendVerificationEmail(email, otp);
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: { message: emailResult.error || 'Failed to send verification email. Please try again.' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent to your email. Please verify to complete registration.',
+      data: { email }
+    });
+  })
+);
+
+// Step 2: Verify OTP and create account
+router.post('/auth/verify-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').trim().isLength({ min: 6, max: 6 }),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    console.log(`📝 /auth/verify-otp request received`);
+    console.log(`📝 Request body:`, req.body);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(`❌ Validation errors:`, errors.array());
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email, otp } = req.body;
+
+    console.log(`🔍 OTP Verification Request:`);
+    console.log(`   Email: ${email}`);
+    console.log(`   OTP from request: "${otp}" (length: ${otp?.length}, type: ${typeof otp})`);
+
+    // Verify OTP
+    const verification = verifyOTP(email, otp);
+
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        error: { message: verification.message || 'Invalid or expired OTP. Please try again.' }
+      });
+    }
+
+    // Create the student account with verified data
+    const userData = verification.userData;
+
     const student = await prisma.student.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        phone: phone || null,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-        gender: gender || null,
-        country: country || null,
-        city: city || null,
-        education: education || null,
-        institution: institution || null,
-        occupation: occupation || null,
-        company: company || null,
-      },
+      data: userData,
       select: {
         id: true,
         email: true,
@@ -165,17 +322,84 @@ router.post('/auth/register',
       }
     });
 
+    // Generate JWT token
     const token = generateToken(student.id);
-
+    console.log('🚀 About to send welcome email with data:', {
+      email: userData.email,
+      firstName: userData.firstName,
+      hasEmail: !!userData.email,
+      hasFirstName: !!userData.firstName
+    });
+    // Set cookie
     res.cookie('student_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+    // Send welcome email (don't block registration if it fails)
+
+
+    try {
+      const welcomeEmailResult = await WelcomeEmail(userData.email, userData.firstName);
+      console.log('📧 Welcome email result:', welcomeEmailResult);
+
+      if (welcomeEmailResult.success) {
+        console.log('✅ Welcome email sent successfully');
+      } else {
+        console.error('⚠️ Welcome email failed but registration continues:', welcomeEmailResult.error);
+      }
+    } catch (error) {
+      console.error('⚠️ Welcome email error but registration continues:', error);
+    }
 
     res.status(201).json({
       success: true,
+      message: 'Email verified successfully. Account created!',
       data: { user: student, token }
+    });
+   
+  })
+);
+
+// Resend OTP endpoint
+router.post('/auth/resend-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email } = req.body;
+
+    // Check if there's an existing OTP request for this email
+    // Note: In production, you might want to add rate limiting here
+
+    // Generate new OTP
+    const otp = generateOTP();
+
+    // Get existing user data if available (for resend case)
+    // This is a simplified version - in production you'd handle this more carefully
+
+    // Send OTP via email
+    const emailResult = await sendVerificationEmail(email, otp);
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: { message: emailResult.error || 'Failed to send verification email. Please try again.' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'New OTP sent to your email.',
+      data: { email }
     });
   })
 );
@@ -243,6 +467,153 @@ router.post('/auth/logout', (req: express.Request, res: express.Response) => {
   });
 });
 
+// Forgot Password - Step 1: Send OTP to email
+router.post('/auth/forgot-password',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Please provide a valid email address', details: errors.array() }
+      });
+    }
+
+    const { email } = req.body;
+
+    // Check if student exists with this email
+    const student = await prisma.student.findUnique({
+      where: { email }
+    });
+
+    if (!student) {
+      // Don't reveal if email exists for security reasons
+      return res.status(200).json({
+        success: true,
+        message: 'If an account exists with this email, you will receive a password reset code.',
+        data: { email }
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Store OTP for forgot password
+    StoreForgetOtp(email, otp);
+
+    // Send OTP via email
+    const emailResult = await ForgetPasswordMail(email, otp);
+
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: { message: emailResult.error || 'Failed to send password reset email. Please try again.' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset code sent to your email. Please check your inbox.',
+      data: { email }
+    });
+  })
+);
+
+// Forgot Password - Step 2: Verify OTP
+router.post('/auth/verify-forgot-password-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').trim().isLength({ min: 6, max: 6 }),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email, otp } = req.body;
+
+    // Verify OTP
+    const verification = VerifyForgetOtp(email, otp);
+
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        error: { message: verification.message || 'Invalid or expired OTP. Please try again.' }
+      });
+    }
+
+    // OTP is valid, return success
+    res.status(200).json({
+      success: true,
+      message: 'OTP verified successfully! You can now reset your password.',
+      data: { email, otpVerified: true }
+    });
+  })
+);
+
+// Forgot Password - Step 3: Reset Password
+router.post('/auth/reset-password',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').trim().isLength({ min: 6, max: 6 }),
+    body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email, otp, newPassword } = req.body;
+
+    // Verify OTP again before resetting password
+    const verification = VerifyForgetOtp(email, otp);
+
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        error: { message: verification.message || 'Invalid or expired OTP. Please request a new password reset.' }
+      });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update the student's password
+    const updatedStudent = await prisma.student.update({
+      where: { email },
+      data: { password: hashedPassword },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true
+      }
+    });
+
+    // Clear the OTP after successful password reset
+    ClearForgetOtp(email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully! You can now login with your new password.',
+      data: {
+        email: updatedStudent.email,
+        firstName: updatedStudent.firstName
+      }
+    });
+  })
+);
+
 router.get('/auth/me', asyncHandler(async (req: express.Request, res: express.Response) => {
   const token = req.cookies.student_token;
 
@@ -300,7 +671,7 @@ router.put('/auth/profile',
   [
     body('firstName').optional().trim().isLength({ min: 1 }),
     body('lastName').optional().trim().isLength({ min: 1 }),
-    body('avatar').optional().isURL(),
+    body('avatar').optional().isString(),
   ],
   asyncHandler(async (req: express.Request, res: express.Response) => {
     const token = req.cookies.student_token;
@@ -362,6 +733,215 @@ router.put('/auth/profile',
     }
   })
 );
+
+// Change Password endpoint
+router.put('/auth/change-password',
+  [
+    body('currentPassword').notEmpty().withMessage('Current password is required'),
+    body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const token = req.cookies.student_token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Access denied. No token provided.' }
+      });
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+      if (decoded.type !== 'student') {
+        return res.status(401).json({
+          success: false,
+          error: { message: 'Invalid token type.' }
+        });
+      }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Validation failed', details: errors.array() }
+        });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      // Get the current student with password
+      const student = await prisma.student.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          email: true,
+          password: true,
+          firstName: true,
+          lastName: true
+        }
+      });
+
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          error: { message: 'Student not found.' }
+        });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, student.password);
+
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Current password is incorrect.' }
+        });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+      // Update password
+      await prisma.student.update({
+        where: { id: student.id },
+        data: { password: hashedNewPassword }
+      });
+
+      res.json({
+        success: true,
+        message: 'Password changed successfully!'
+      });
+    } catch (error) {
+      console.error('Change password error:', error);
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token.' }
+      });
+    }
+  })
+);
+
+// Avatar Upload endpoint
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const avatarDir = path.join(uploadDir, 'avatars');
+    if (!fs.existsSync(avatarDir)) {
+      fs.mkdirSync(avatarDir, { recursive: true });
+    }
+    cb(null, avatarDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, `avatar-${uniqueSuffix}${extension}`);
+  }
+});
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed for avatars'));
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB for avatars
+    files: 1
+  }
+});
+
+router.post('/uploads/avatar', avatarUpload.single('avatar'), asyncHandler(async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.student_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Access denied. No token provided.' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    if (decoded.type !== 'student') {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token type.' }
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'No avatar file uploaded' }
+      });
+    }
+
+    // Get current student to check for existing avatar
+    const currentStudent = await prisma.student.findUnique({
+      where: { id: decoded.id },
+      select: { avatar: true }
+    });
+
+    // Delete old avatar file if it exists
+    if (currentStudent?.avatar && currentStudent.avatar.startsWith('/uploads/avatars/')) {
+      const oldFilePath = path.join(__dirname, '..', '..', currentStudent.avatar);
+      if (fs.existsSync(oldFilePath)) {
+        try {
+          fs.unlinkSync(oldFilePath);
+        } catch (err) {
+          console.error('Failed to delete old avatar:', err);
+        }
+      }
+    }
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+    // Update student avatar in database
+    const student = await prisma.student.update({
+      where: { id: decoded.id },
+      data: { avatar: avatarUrl },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        updatedAt: true
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        url: avatarUrl,
+        user: student
+      },
+      message: 'Avatar uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    // If upload failed, try to delete the newly uploaded file
+    if (req.file) {
+      const newFilePath = path.join(uploadDir, 'avatars', req.file.filename);
+      if (fs.existsSync(newFilePath)) {
+        try {
+          fs.unlinkSync(newFilePath);
+        } catch (err) {
+          console.error('Failed to clean up uploaded file:', err);
+        }
+      }
+    }
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+}));
 
 // ===== COURSES ROUTES =====
 router.get('/courses',

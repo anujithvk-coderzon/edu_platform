@@ -142,6 +142,11 @@ class ApiClient {
     getMe: () => this.get('/auth/me'),
     updateProfile: (data: any) => this.put('/auth/profile', data),
     changePassword: (data: any) => this.put('/auth/change-password', data),
+    forgotPassword: (data: { email: string }) => this.post('/auth/forgot-password', data),
+    verifyForgotPasswordOtp: (data: { email: string; otp: string }) =>
+      this.post('/auth/verify-forgot-password-otp', data),
+    resetPassword: (data: { email: string; otp: string; newPassword: string }) =>
+      this.post('/auth/reset-password', data),
   };
 
   // Course endpoints

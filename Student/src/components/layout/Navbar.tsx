@@ -98,7 +98,15 @@ export default function Navbar() {
                     <span className="sr-only">Open user menu</span>
                     <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center">
                       {user.avatar ? (
-                        <img className="h-8 w-8 rounded-lg object-cover" src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                        <img
+                          className="h-8 w-8 rounded-lg object-cover"
+                          src={
+                            user.avatar.startsWith('http')
+                              ? user.avatar
+                              : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/student', '') || 'http://localhost:4000'}${user.avatar}`
+                          }
+                          alt={`${user.firstName} ${user.lastName}`}
+                        />
                       ) : (
                         <UserIcon className="h-4 w-4 text-slate-600" />
                       )}
@@ -216,7 +224,15 @@ export default function Navbar() {
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-lg bg-slate-200 flex items-center justify-center">
                     {user.avatar ? (
-                      <img className="h-10 w-10 rounded-lg object-cover" src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
+                      <img
+                        className="h-10 w-10 rounded-lg object-cover"
+                        src={
+                          user.avatar.startsWith('http')
+                            ? user.avatar
+                            : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/student', '') || 'http://localhost:4000'}${user.avatar}`
+                        }
+                        alt={`${user.firstName} ${user.lastName}`}
+                      />
                     ) : (
                       <UserIcon className="h-5 w-5 text-slate-600" />
                     )}

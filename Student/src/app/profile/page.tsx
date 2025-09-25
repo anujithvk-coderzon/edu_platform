@@ -16,6 +16,8 @@ export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
   const [loading, setLoading] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -43,14 +45,58 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  // Clean up blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await api.auth.updateProfile(profileData);
+
+      // If there's a selected avatar file, upload it first
+      let avatarUrl = profileData.avatar;
+      if (selectedAvatarFile) {
+        try {
+          const avatarResponse = await api.uploads.avatar(selectedAvatarFile);
+          if (avatarResponse.success) {
+            avatarUrl = avatarResponse.data.url;
+          }
+        } catch (error: any) {
+          toast.error('Failed to upload avatar: ' + (error.message || 'Unknown error'));
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Update profile with new data including avatar URL if changed
+      const updateData = {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        ...(selectedAvatarFile && avatarUrl ? { avatar: avatarUrl } : {})
+      };
+
+      const response = await api.auth.updateProfile(updateData);
       if (response.success) {
         toast.success('Profile updated successfully!');
         await refreshUser();
+        // Clear selected file and preview after successful update
+        setSelectedAvatarFile(null);
+        setAvatarPreview('');
+        // Update local state with the response data
+        if (response.data?.user) {
+          setProfileData({
+            firstName: response.data.user.firstName || '',
+            lastName: response.data.user.lastName || '',
+            email: response.data.user.email || '',
+            avatar: response.data.user.avatar || ''
+          });
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to update profile');
@@ -87,7 +133,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -101,19 +147,11 @@ export default function ProfilePage() {
       return;
     }
 
-    try {
-      setLoading(true);
-      const response = await api.uploads.avatar(file);
-      if (response.success) {
-        toast.success('Avatar updated successfully!');
-        setProfileData(prev => ({ ...prev, avatar: response.data.url }));
-        await refreshUser();
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to upload avatar');
-    } finally {
-      setLoading(false);
-    }
+    // Create a preview URL for immediate display
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+    setSelectedAvatarFile(file);
+    toast.success('Avatar selected. Click "Update Profile" to save changes.');
   };
 
   if (!user) {
@@ -135,9 +173,19 @@ export default function ProfilePage() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="h-20 w-20 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
-                {profileData.avatar ? (
+                {avatarPreview ? (
                   <img
-                    src={profileData.avatar}
+                    src={avatarPreview}
+                    alt="Avatar Preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : profileData.avatar ? (
+                  <img
+                    src={
+                      profileData.avatar.startsWith('http')
+                        ? profileData.avatar
+                        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/student', '') || 'http://localhost:4000'}${profileData.avatar}`
+                    }
                     alt="Avatar"
                     className="h-full w-full object-cover"
                   />
@@ -147,23 +195,27 @@ export default function ProfilePage() {
               </div>
               <label
                 htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 bg-indigo-600 rounded-lg p-2 cursor-pointer hover:bg-indigo-700 transition-colors shadow-sm"
+                className={`absolute bottom-0 right-0 bg-indigo-600 rounded-lg p-2 cursor-pointer transition-colors shadow-sm ${
+                  loading ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-indigo-700'
+                }`}
+                title={loading ? 'Processing...' : 'Change avatar'}
               >
                 <CameraIcon className="h-4 w-4 text-white" />
                 <input
                   id="avatar-upload"
                   type="file"
                   accept="image/*"
-                  onChange={handleAvatarUpload}
+                  onChange={handleAvatarSelection}
                   className="hidden"
+                  disabled={loading}
                 />
               </label>
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-slate-900">
-                {user.firstName} {user.lastName}
+                {profileData.firstName || user.firstName} {profileData.lastName || user.lastName}
               </h1>
-              <p className="text-slate-600 mt-1">{user.email}</p>
+              <p className="text-slate-600 mt-1">{profileData.email || user.email}</p>
               <p className="text-xs text-slate-500 mt-2">
                 Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </p>
@@ -226,6 +278,26 @@ export default function ProfilePage() {
                     className="bg-slate-50"
                   />
                   <p className="text-xs text-slate-500">Email cannot be changed</p>
+                  {selectedAvatarFile && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-amber-700">
+                          You have selected a new avatar. Click "Update Profile" to save it.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAvatarFile(null);
+                            setAvatarPreview('');
+                            toast.success('Avatar selection cleared');
+                          }}
+                          className="text-sm text-amber-600 hover:text-amber-800 underline"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <div className="pt-4">
                     <Button
                       type="submit"

@@ -113,6 +113,20 @@ interface Course {
   modules: Module[];
 }
 
+interface CourseUpdateData {
+  title: string;
+  description: string;
+  price: number;
+  duration: number;
+  isPublic: boolean;
+  categoryId: string;
+  level: string;
+  requirements: string[];
+  prerequisites: string[];
+  tutorName?: string;
+  thumbnail?: string;
+}
+
 const materialTypes: SelectOption[] = [
   { value: 'PDF', label: 'PDF Document' },
   { value: 'VIDEO', label: 'Video' },
@@ -147,8 +161,6 @@ export default function CourseEditPage() {
   const [showModuleModal, setShowModuleModal] = useState(false);
   const [showMaterialModal, setShowMaterialModal] = useState<{moduleId: string} | null>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
-  const [editingModule, setEditingModule] = useState<Module | null>(null);
-  const [editingMaterial, setEditingMaterial] = useState<{moduleId: string, material: Material} | null>(null);
   const [deletingMaterialId, setDeletingMaterialId] = useState<string>('');
   const [deletingModuleId, setDeletingModuleId] = useState<string>('');
   const [creatingModule, setCreatingModule] = useState(false);
@@ -238,7 +250,7 @@ export default function CourseEditPage() {
         }
       }
 
-      const updateData: any = {
+      const updateData: CourseUpdateData = {
         title: course.title,
         description: course.description,
         price: course.price,

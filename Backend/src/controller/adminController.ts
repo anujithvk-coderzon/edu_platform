@@ -41,7 +41,8 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
     }
 
     const adminExists = await prisma.admin.findFirst();
-
+    console.log(adminExists);
+    
     if (adminExists) {
       return res.status(400).json({
         success: false,

@@ -2,12 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../DB/DB_Config';
 
+// Define admin role type to match what's used in the database
+type AdminRole = "Admin" | "Tutor";
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
     type: 'admin' | 'student';
-    role?: string; // Admin role: "admin" or "tutor"
+    role?: AdminRole; // Admin role: "Admin" or "Tutor"
     firstName: string;
     lastName: string;
   };
@@ -35,7 +38,15 @@ export const authMiddleware = async (
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+    } catch (jwtError: any) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Invalid token.' }
+      });
+    }
 
     let user: any = null;
     let userType: 'admin' | 'student';
@@ -97,14 +108,20 @@ export const authMiddleware = async (
     }
 
     // Validate that the token cookie matches the user type
-    if ((adminToken && userType !== 'admin') || (studentToken && userType !== 'student')) {
+    // Allow if the correct cookie exists for the determined user type
+    if ((userType === 'admin' && !adminToken) || (userType === 'student' && !studentToken)) {
       return res.status(401).json({
         success: false,
         error: { message: 'Invalid token for user type.' }
       });
     }
 
-    req.user = { ...user, type: userType, role: userType === 'admin' ? user.role : undefined };
+    req.user = {
+      ...user,
+      type: userType,
+      role: userType === 'admin' ? (user.role as AdminRole) : undefined
+    };
+
     next();
   } catch (error) {
     return res.status(401).json({

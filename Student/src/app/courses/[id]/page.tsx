@@ -24,6 +24,7 @@ import toast from 'react-hot-toast';
 import StarRating from '@/components/ui/StarRating';
 import CourseReview from '@/components/CourseReview';
 import CourseReviews from '@/components/CourseReviews';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface Course {
   id: string;

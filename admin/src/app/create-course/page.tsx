@@ -29,7 +29,8 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   VideoCameraIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  MusicalNoteIcon
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -38,7 +39,7 @@ import apiClient from '../../lib/apiClient';
 interface Material {
   id: string;
   title: string;
-  type: 'video' | 'pdf' | 'document' | 'link';
+  type: 'video' | 'audio' | 'pdf' | 'document' | 'link';
   file?: File;
   url?: string;
   duration?: string;
@@ -89,6 +90,7 @@ const levelOptions: SelectOption[] = [
 
 const materialTypes = [
   { value: 'video', label: 'Video Lecture', icon: VideoCameraIcon },
+  { value: 'audio', label: 'Audio File', icon: MusicalNoteIcon },
   { value: 'pdf', label: 'PDF Document', icon: DocumentArrowDownIcon },
   { value: 'document', label: 'Text Document', icon: DocumentTextIcon },
   { value: 'link', label: 'External Link', icon: BookOpenIcon }
@@ -101,6 +103,7 @@ export default function CreateCoursePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tutors, setTutors] = useState<SelectOption[]>([]);
+  const [submissionProgress, setSubmissionProgress] = useState<string>('');
   const router = useRouter();
   const { user } = useAuth();
 
@@ -125,7 +128,7 @@ export default function CreateCoursePage() {
         try {
           const response = await api.tutors.getAll();
           if (response.success) {
-            const tutorOptions = response.data.map((tutor: any) => ({
+            const tutorOptions = response.data.tutors.map((tutor: any) => ({
               value: tutor.id,
               label: `${tutor.firstName} ${tutor.lastName} (${tutor.email})`
             }));
@@ -322,7 +325,7 @@ export default function CreateCoursePage() {
                 if (material.type === 'link' && !material.url) {
                   newErrors[`material-${material.id}-url`] = 'URL is required for link materials';
                 }
-                if (['video', 'pdf', 'document'].includes(material.type) && !material.file) {
+                if (['video', 'audio', 'pdf', 'document'].includes(material.type) && !material.file) {
                   newErrors[`material-${material.id}-file`] = 'File is required for this material type';
                 }
               });
@@ -380,6 +383,7 @@ export default function CreateCoursePage() {
     }
 
     setIsSubmitting(true);
+    setSubmissionProgress('Creating course...');
     try {
       // Create the basic course first
       const courseData: any = {
@@ -433,6 +437,7 @@ export default function CreateCoursePage() {
 
         // Upload thumbnail if provided
         if (formData.thumbnail) {
+          setSubmissionProgress('Uploading course thumbnail...');
           const thumbnailResponse = await api.uploads.courseThumbnail(formData.thumbnail, courseId);
           if (thumbnailResponse.success && thumbnailResponse.data?.url) {
             // Update the course with the thumbnail URL - only include valid thumbnail URL
@@ -445,51 +450,107 @@ export default function CreateCoursePage() {
           }
         }
 
-        // Create chapters and modules
-        for (const [chapterIndex, chapter] of formData.chapters.entries()) {
-          // Create module for each chapter
-          const moduleData = {
-            title: chapter.title,
-            description: chapter.description,
-            orderIndex: chapterIndex,
-            courseId: courseId
-          };
+        // Create chapters and modules - optimized with parallel processing
+        setSubmissionProgress(`Creating ${formData.chapters.length} modules with materials...`);
+        console.log(`Starting to create ${formData.chapters.length} modules with materials...`);
 
-          console.log('Creating module with data:', moduleData);
+        const modulePromises = formData.chapters.map(async (chapter, chapterIndex) => {
+          try {
+            console.log(`Creating module ${chapterIndex + 1}/${formData.chapters.length}: "${chapter.title}"`);
 
-          const moduleResponse = await api.modules.create(moduleData);
-          
-          if (moduleResponse.success && moduleResponse.data?.module?.id) {
-            const moduleId = moduleResponse.data.module.id;
+            // Create module for each chapter
+            const moduleData = {
+              title: chapter.title,
+              description: chapter.description,
+              orderIndex: chapterIndex,
+              courseId: courseId
+            };
 
-            // Upload materials for this chapter
-            for (const [materialIndex, material] of chapter.materials.entries()) {
-              let fileUrl = material.url;
+            console.log('Creating module with data:', moduleData);
 
-              // Upload file if it's not a link
-              if (material.file && ['video', 'pdf', 'document'].includes(material.type)) {
-                const uploadResponse = await api.uploads.material(material.file, courseId, undefined, material.type);
-                if (uploadResponse.success && uploadResponse.data?.fileUrl) {
-                  fileUrl = uploadResponse.data.fileUrl;
-                }
+            const moduleResponse = await api.modules.create(moduleData);
+            console.log('Module creation response:', moduleResponse);
+
+            if (moduleResponse.success && moduleResponse.data?.module?.id) {
+              const moduleId = moduleResponse.data.module.id;
+              console.log(`Module "${chapter.title}" created successfully with ID: ${moduleId}`);
+
+              if (chapter.materials && chapter.materials.length > 0) {
+                console.log(`Creating ${chapter.materials.length} materials for module "${chapter.title}"`);
+
+                // Process all materials for this module in parallel
+                const materialPromises = chapter.materials.map(async (material, materialIndex) => {
+                  try {
+                    console.log(`Creating material ${materialIndex + 1}/${chapter.materials.length}: "${material.title}" (type: ${material.type})`);
+                    let fileUrl = material.url;
+
+                    // Upload file if it's not a link
+                    if (material.file && ['video', 'audio', 'pdf', 'document'].includes(material.type)) {
+                      console.log(`📤 Uploading ${material.type} file for material "${material.title}"`);
+                      console.log(`📁 File details: ${material.file.name} (${(material.file.size / 1024 / 1024).toFixed(2)}MB, ${material.file.type})`);
+
+                      const uploadResponse = await api.uploads.material(material.file, courseId, undefined, material.type);
+                      console.log(`📨 Upload response for "${material.title}":`, uploadResponse);
+
+                      if (uploadResponse.success && uploadResponse.data?.fileUrl) {
+                        fileUrl = uploadResponse.data.fileUrl;
+                        console.log(`File uploaded successfully: ${fileUrl}`);
+                      } else {
+                        console.error('File upload failed:', uploadResponse);
+                      }
+                    }
+
+                    // Create material record
+                    const materialData = {
+                      title: material.title,
+                      description: material.description || '',
+                      type: material.type.toUpperCase(),
+                      orderIndex: materialIndex,
+                      courseId: courseId,
+                      moduleId: moduleId,
+                      isPublic: false,
+                      ...(fileUrl && { fileUrl: fileUrl })
+                    };
+
+                    console.log('Creating material with data:', materialData);
+                    const materialResponse = await api.materials.create(materialData);
+                    console.log('Material creation response:', materialResponse);
+
+                    if (materialResponse.success) {
+                      console.log(`Material "${material.title}" created successfully`);
+                    } else {
+                      console.error(`Failed to create material "${material.title}":`, materialResponse);
+                    }
+
+                    return materialResponse;
+                  } catch (error) {
+                    console.error(`Error creating material "${material.title}":`, error);
+                    throw new Error(`Failed to create material "${material.title}": ${error.message}`);
+                  }
+                });
+
+                // Wait for all materials in this module to complete
+                const materialResults = await Promise.all(materialPromises);
+                console.log(`All ${chapter.materials.length} materials created for module "${chapter.title}"`);
+                return { module: moduleResponse, materials: materialResults };
+              } else {
+                console.log(`No materials to create for module "${chapter.title}"`);
+                return { module: moduleResponse, materials: [] };
               }
-
-              // Create material record
-              const materialData = {
-                title: material.title,
-                description: material.description || '',
-                type: material.type.toUpperCase(),
-                orderIndex: materialIndex,
-                courseId: courseId,
-                moduleId: moduleId,
-                isPublic: false,
-                ...(fileUrl && { fileUrl: fileUrl })
-              };
-
-              await api.materials.create(materialData);
+            } else {
+              throw new Error(`Failed to create module "${chapter.title}": ${moduleResponse.error?.message || 'Unknown error'}`);
             }
+          } catch (error) {
+            console.error(`Error creating module "${chapter.title}":`, error);
+            throw new Error(`Failed to create module "${chapter.title}": ${error.message}`);
           }
-        }
+        });
+
+        // Wait for all modules and their materials to complete
+        setSubmissionProgress('Finalizing course creation...');
+        console.log('Waiting for all modules and materials to complete...');
+        const allResults = await Promise.all(modulePromises);
+        console.log('All modules and materials created successfully:', allResults);
 
         // Success message and redirect
         toast.success('Course created successfully!');
@@ -498,21 +559,30 @@ export default function CreateCoursePage() {
     } catch (error: any) {
       console.error('Full error creating course:', error);
       console.error('Error message:', error.message);
-      
+      console.error('Error stack:', error.stack);
+
       let errorMessage = 'Failed to create course. Please try again.';
-      
+
       if (error.message) {
         if (error.message.includes('Validation failed')) {
           errorMessage = 'Please check your course information. Some fields may be missing or invalid.';
+        } else if (error.message.includes('Failed to create module')) {
+          errorMessage = `Module creation error: ${error.message}`;
+        } else if (error.message.includes('Failed to create material')) {
+          errorMessage = `Material creation error: ${error.message}`;
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Request timed out. Please check your connection and try again.';
         } else {
           errorMessage = `Error: ${error.message}`;
         }
       }
-      
+
+      console.log('Final error message to user:', errorMessage);
       setErrors({ general: errorMessage });
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
+      setSubmissionProgress('');
     }
   };
 
@@ -900,12 +970,17 @@ export default function CreateCoursePage() {
                             <FileUpload
                               accept={
                                 material.type === 'video' ? 'video/*' :
+                                material.type === 'audio' ? 'audio/*' :
                                 material.type === 'pdf' ? 'application/pdf' :
                                 'application/*,text/*'
                               }
                               onFileSelect={(files) => handleMaterialFileUpload(chapter.id, material.id, files)}
                               placeholder={`Upload ${material.type} file`}
-                              maxSize={material.type === 'video' ? 30 * 1024 * 1024 : 10 * 1024 * 1024}
+                              maxSize={
+                                material.type === 'video' ? 200 * 1024 * 1024 : // 200MB for video
+                                material.type === 'audio' ? 100 * 1024 * 1024 : // 100MB for audio
+                                10 * 1024 * 1024 // 10MB for documents
+                              }
                             />
                             {errors[`material-${material.id}-file`] && (
                               <p className="text-red-500 text-sm mt-1">{errors[`material-${material.id}-file`]}</p>
@@ -1111,7 +1186,7 @@ export default function CreateCoursePage() {
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Creating Course...</span>
+                    <span>{submissionProgress || 'Creating Course...'}</span>
                   </>
                 ) : (
                   <>

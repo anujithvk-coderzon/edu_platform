@@ -119,7 +119,6 @@ interface CourseUpdateData {
   price: number;
   duration: number;
   isPublic: boolean;
-  categoryId: string;
   level: string;
   requirements: string[];
   prerequisites: string[];
@@ -196,7 +195,7 @@ export default function CourseEditPage() {
 
   useEffect(() => {
     loadCourseData();
-    loadAssignments();
+    loadAssignments(); // Load assignments on component mount
   }, [courseId]);
 
   const loadCourseData = async () => {
@@ -256,7 +255,6 @@ export default function CourseEditPage() {
         price: course.price,
         duration: course.duration,
         isPublic: course.isPublic,
-        categoryId: course.categoryId,
         level: course.level,
         requirements: course.requirements || [],
         prerequisites: course.prerequisites || []
@@ -532,12 +530,19 @@ export default function CourseEditPage() {
   // Assignment functions
   const loadAssignments = async () => {
     try {
+      setLoadingAssignments(true);
       const response = await api.assignments.getByCourse(courseId);
-      if (response.success) {
-        setAssignments(response.data.assignments || []);
+      if (response.success && response.data?.assignments) {
+        setAssignments(response.data.assignments);
+      } else {
+        console.error('Failed to load assignments:', response.error);
+        setAssignments([]);
       }
     } catch (error) {
       console.error('Error loading assignments:', error);
+      setAssignments([]);
+    } finally {
+      setLoadingAssignments(false);
     }
   };
 
@@ -550,27 +555,29 @@ export default function CourseEditPage() {
     try {
       setCreatingAssignment(true);
       const response = await api.assignments.create({
-        ...newAssignment,
-        courseId,
-        dueDate: newAssignment.dueDate || undefined
+        title: newAssignment.title,
+        description: newAssignment.description,
+        dueDate: newAssignment.dueDate || undefined,
+        maxScore: newAssignment.maxScore,
+        courseId: courseId
       });
 
       if (response.success) {
-        setAssignments(prev => [response.data.assignment, ...prev]);
+        toast.success('Assignment created successfully!');
+        setShowAssignmentModal(false);
         setNewAssignment({
           title: '',
           description: '',
           dueDate: '',
           maxScore: 100
         });
-        setShowAssignmentModal(false);
-        toast.success('Assignment created successfully!');
+        await loadAssignments(); // Reload assignments
       } else {
-        toast.error('Failed to create assignment');
+        toast.error(response.error?.message || 'Failed to create assignment');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating assignment:', error);
-      toast.error('Failed to create assignment');
+      toast.error(error.message || 'Failed to create assignment');
     } finally {
       setCreatingAssignment(false);
     }
@@ -585,9 +592,9 @@ export default function CourseEditPage() {
       } else {
         toast.error('Failed to delete assignment');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting assignment:', error);
-      toast.error('Failed to delete assignment');
+      toast.error(error.message || 'Failed to delete assignment');
     }
   };
 
@@ -595,16 +602,20 @@ export default function CourseEditPage() {
     try {
       setLoadingSubmissions(true);
       setSelectedAssignmentId(assignmentId);
+      setShowSubmissionsModal(true);
+
       const response = await api.assignments.getSubmissions(assignmentId);
       if (response.success && response.data?.submissions) {
         setSubmissions(response.data.submissions);
-        setShowSubmissionsModal(true);
       } else {
+        console.error('Failed to load submissions:', response.error);
+        setSubmissions([]);
         toast.error('Failed to load submissions');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading submissions:', error);
-      toast.error('Failed to load submissions');
+      setSubmissions([]);
+      toast.error(error.message || 'Failed to load submissions');
     } finally {
       setLoadingSubmissions(false);
     }
@@ -622,11 +633,10 @@ export default function CourseEditPage() {
           s.id === submissionId
             ? {
                 ...s,
-                grade: grade,
-                score: grade, // Backend uses 'score' field
+                score: grade,
                 feedback: feedback || s.feedback,
-                isGraded: true,
-                status: 'GRADED'
+                status: 'GRADED',
+                gradedAt: new Date().toISOString()
               }
             : s
         ));
@@ -703,7 +713,7 @@ export default function CourseEditPage() {
                 onClick={() => {
                   setActiveTab('assignments');
                   if (assignments.length === 0) {
-                    loadAssignments();
+                    loadAssignments(); // Load assignments if not loaded yet
                   }
                 }}
                 className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
@@ -1509,8 +1519,17 @@ export default function CourseEditPage() {
                     Upload File
                   </label>
                   <FileUpload
-                    accept={newMaterial.type === 'IMAGE' ? 'image/*' : newMaterial.type === 'VIDEO' ? 'video/*' : '*'}
-                    maxSize={newMaterial.type === 'VIDEO' ? 30 * 1024 * 1024 : 10 * 1024 * 1024}
+                    accept={
+                      newMaterial.type === 'IMAGE' ? 'image/*' :
+                      newMaterial.type === 'VIDEO' ? 'video/*' :
+                      newMaterial.type === 'AUDIO' ? 'audio/*' :
+                      '*'
+                    }
+                    maxSize={
+                      newMaterial.type === 'VIDEO' ? 200 * 1024 * 1024 : // 200MB for video
+                      newMaterial.type === 'AUDIO' ? 100 * 1024 * 1024 : // 100MB for audio
+                      10 * 1024 * 1024 // 10MB for others
+                    }
                     onFileSelect={(files) => {
                       if (files.length === 0) {
                         setSelectedFile(null);

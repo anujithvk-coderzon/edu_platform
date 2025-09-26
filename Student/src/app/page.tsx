@@ -17,6 +17,7 @@ import {
   PlayIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface Course {
   id: string;
@@ -471,9 +472,16 @@ export default function Home() {
                   <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
                     {course.thumbnail ? (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
+                        src={getImageUrl(course.thumbnail)}
                         alt={course.title}
                         className="w-full h-full object-cover rounded-t-lg"
+                        onError={(e) => {
+                          console.error('Failed to load thumbnail in home page:', getImageUrl(course.thumbnail));
+                          console.error('Original thumbnail value:', course.thumbnail);
+                        }}
+                        onLoad={() => {
+                          console.log('Successfully loaded thumbnail in home page:', getImageUrl(course.thumbnail));
+                        }}
                       />
                     ) : (
                       <BookOpenIcon className="h-12 w-12 text-white/80" />

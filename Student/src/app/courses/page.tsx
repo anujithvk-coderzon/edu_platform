@@ -16,6 +16,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface Course {
   id: string;
@@ -433,9 +434,16 @@ export default function CoursesPage() {
                   <div className="aspect-video bg-slate-100 flex items-center justify-center relative">
                     {course.thumbnail ? (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
+                        src={getImageUrl(course.thumbnail)}
                         alt={course.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('Failed to load thumbnail in courses page:', getImageUrl(course.thumbnail));
+                          console.error('Original thumbnail value:', course.thumbnail);
+                        }}
+                        onLoad={() => {
+                          console.log('Successfully loaded thumbnail in courses page:', getImageUrl(course.thumbnail));
+                        }}
                       />
                     ) : (
                       <BookOpenIcon className="h-16 w-16 text-slate-400" />

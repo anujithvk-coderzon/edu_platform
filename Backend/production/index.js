@@ -8,7 +8,6 @@ const dotenv_1 = require("dotenv");
 const express_1 = __importDefault(require("express"));
 const student_routes_1 = __importDefault(require("./routes/student.routes"));
 const admin_routes_1 = __importDefault(require("./routes/admin.routes"));
-const general_routes_1 = __importDefault(require("./routes/general.routes"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -35,41 +34,77 @@ app.use("/uploads", (req, res, next) => {
         // Disable right-click context menu for downloads (non-PDFs)
         res.header("X-Frame-Options", "SAMEORIGIN");
     }
-    // Additional security headers to prevent downloads (non-PDFs)
-    if (ext !== '.pdf') {
+    // Set proper content types and caching
+    if (ext === '.mp4') {
+        res.header("Content-Type", "video/mp4");
         res.header("Cache-Control", "no-cache, no-store, must-revalidate");
         res.header("Pragma", "no-cache");
         res.header("Expires", "0");
     }
-    if (ext === '.mp4') {
-        res.header("Content-Type", "video/mp4");
-    }
     else if (ext === '.webm') {
         res.header("Content-Type", "video/webm");
+        res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.header("Pragma", "no-cache");
+        res.header("Expires", "0");
     }
     else if (ext === '.mp3') {
         res.header("Content-Type", "audio/mpeg");
+        res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.header("Pragma", "no-cache");
+        res.header("Expires", "0");
     }
     else if (ext === '.jpg' || ext === '.jpeg') {
         res.header("Content-Type", "image/jpeg");
+        // Allow caching for images (thumbnails)
+        res.header("Cache-Control", "public, max-age=3600");
     }
     else if (ext === '.png') {
         res.header("Content-Type", "image/png");
+        // Allow caching for images (thumbnails)
+        res.header("Cache-Control", "public, max-age=3600");
+    }
+    else if (ext === '.gif') {
+        res.header("Content-Type", "image/gif");
+        // Allow caching for images (thumbnails)
+        res.header("Cache-Control", "public, max-age=3600");
+    }
+    else if (ext === '.webp') {
+        res.header("Content-Type", "image/webp");
+        // Allow caching for images (thumbnails)
+        res.header("Cache-Control", "public, max-age=3600");
     }
     else if (ext === '.doc') {
         res.header("Content-Type", "application/msword");
+        res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.header("Pragma", "no-cache");
+        res.header("Expires", "0");
     }
     else if (ext === '.docx') {
         res.header("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.header("Pragma", "no-cache");
+        res.header("Expires", "0");
     }
     else if (ext === '.txt') {
         res.header("Content-Type", "text/plain");
+        res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.header("Pragma", "no-cache");
+        res.header("Expires", "0");
     }
     next();
 }, express_1.default.static(path_1.default.join(__dirname, "../uploads")));
-app.use(express_1.default.json({ limit: '50mb' }));
-app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express_1.default.json({ limit: '200mb' }));
+app.use(express_1.default.urlencoded({ extended: true, limit: '200mb' }));
 app.use((0, cookie_parser_1.default)());
+// Increase server timeout for large file uploads (5 minutes)
+app.use((req, res, next) => {
+    // Only apply extended timeout for upload endpoints
+    if (req.path.includes('/uploads/')) {
+        req.setTimeout(300000); // 5 minutes
+        res.setTimeout(300000); // 5 minutes
+    }
+    next();
+});
 app.use((0, cors_1.default)({
     origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
     credentials: true
@@ -78,8 +113,6 @@ app.use((0, cors_1.default)({
 app.use('/api/student', student_routes_1.default);
 // Admin routes (for tutor app)
 app.use('/api/admin', admin_routes_1.default);
-// General routes (for creating admin via Postman)
-app.use('/api', general_routes_1.default);
 // 404 handler - must be after all routes
 app.use((req, res) => {
     res.status(404).json({
@@ -102,6 +135,10 @@ app.use((err, req, res, next) => {
         }
     });
 });
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`🚀 Server listening at http://localhost:${port}`);
 });
+// Set server timeout for large file uploads
+server.timeout = 600000; // 10 minutes
+server.keepAliveTimeout = 610000; // Slightly longer than timeout
+server.headersTimeout = 620000; // Slightly longer than keepAliveTimeout

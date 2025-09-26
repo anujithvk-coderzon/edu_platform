@@ -13,7 +13,6 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "declaration": true,
-    "outDir": "./production",
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*"],

@@ -19,7 +19,16 @@ const authMiddleware = async (req, res, next) => {
                 error: { message: 'Access denied. No token provided.' }
             });
         }
-        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        let decoded;
+        try {
+            decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        }
+        catch (jwtError) {
+            return res.status(401).json({
+                success: false,
+                error: { message: 'Invalid token.' }
+            });
+        }
         let user = null;
         let userType;
         // Determine user type from token or cookie
@@ -47,6 +56,7 @@ const authMiddleware = async (req, res, next) => {
                     email: true,
                     firstName: true,
                     lastName: true,
+                    role: true,
                     isActive: true,
                     isVerified: true
                 }
@@ -78,13 +88,18 @@ const authMiddleware = async (req, res, next) => {
             });
         }
         // Validate that the token cookie matches the user type
-        if ((adminToken && userType !== 'admin') || (studentToken && userType !== 'student')) {
+        // Allow if the correct cookie exists for the determined user type
+        if ((userType === 'admin' && !adminToken) || (userType === 'student' && !studentToken)) {
             return res.status(401).json({
                 success: false,
                 error: { message: 'Invalid token for user type.' }
             });
         }
-        req.user = { ...user, type: userType };
+        req.user = {
+            ...user,
+            type: userType,
+            role: userType === 'admin' ? user.role : undefined
+        };
         next();
     }
     catch (error) {

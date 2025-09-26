@@ -1,38 +1,55 @@
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import multer from "multer";
 
-const uploadDir = path.join(__dirname, '../../uploads');
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  // Allow all file types for educational content
-  cb(null, true);
-};
+const storage = multer.memoryStorage();
 
 export const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 200 * 1024 * 1024, // 200MB limit to handle larger audio/video files
   },
-  fileFilter: fileFilter
+  fileFilter: (req, file, cb) => {
+    // Log file details for debugging
+    console.log(`📁 Multer processing file: ${file.originalname} (${file.mimetype})`);
+
+    // Check for audio files specifically
+    if (file.mimetype.startsWith('audio/')) {
+      console.log(`🎵 Audio file detected: ${file.originalname}`);
+    }
+
+    cb(null, true); // allow all file types
+  },
 });
 
-export const upload_single = upload.single('file');
-export const upload_multiple = upload.array('files', 10);
-export const upload_avatar = upload.single('avatar');
-export const upload_thumbnail = upload.single('thumbnail');
-export const upload_material = upload.single('material');
+// Assignment-specific multer configuration with file type restrictions
+export const assignmentUpload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB for assignments
+  },
+  fileFilter: (req, file, cb) => {
+    console.log(`📋 Assignment file processing: ${file.originalname} (${file.mimetype})`);
+
+    const allowedMimes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain', 'application/zip'
+    ];
+
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} is not allowed for assignments`));
+    }
+  },
+});
+
+// Different upload helpers
+export const upload_single = upload.single("file");
+export const upload_multiple = upload.array("files", 10);
+export const upload_avatar = upload.single("avatar");
+export const upload_thumbnail = upload.single("thumbnail");
+export const upload_material = upload.single("material");
+export const upload_assignment = assignmentUpload.single("file");

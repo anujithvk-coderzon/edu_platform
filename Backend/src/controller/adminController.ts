@@ -11,16 +11,19 @@ import { AuthRequest } from '../middleware/auth';
 import { CourseStatus, MaterialType, EnrollmentStatus } from '@prisma/client';
 
 // Define user role type since we're using string roles
-type UserRole = "admin" | "tutor";
+type UserRole = "Admin" | "Tutor";
 
 // Import utilities
 import { deleteUploadedFile, deleteMultipleFiles } from '../utils/fileUtils';
 import { generateOTP, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
+import { Upload_Files, Delete_File } from '../utils/CDN_management';
+import { Upload_Files_Stream } from '../utils/CDN_streaming';
+import { Upload_Files_Local, Delete_File_Local } from '../utils/localStorage';
 
 // ===== UTILITY FUNCTIONS =====
-const GenerateToken = (userId: string) => {
+const GenerateToken = (userId: string, type: 'admin' | 'student' = 'admin') => {
   return jwt.sign(
-    { id: userId }, 
+    { id: userId, type },
     process.env.JWT_SECRET as string,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as jwt.SignOptions
   );
@@ -67,7 +70,7 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
         password: hashedPassword,
         firstName,
         lastName,
-        role: "admin",
+        role: "Admin",
       },
       select: {
         id: true,
@@ -87,6 +90,8 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
     res.cookie(cookieName, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -134,7 +139,7 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
         password: hashedPassword,
         firstName,
         lastName,
-        role: "admin",
+        role: "Admin",
       },
       select: {
         id: true,
@@ -154,6 +159,8 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
     res.cookie(cookieName, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -173,7 +180,7 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
 export const RegisterTutor = async (req: AuthRequest, res: express.Response) => {
   try {
     // Only admins can register tutors
-    if (req.user!.type !== "admin" || req.user!.role !== "admin") {
+    if (req.user!.type !== "admin" || req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Only admins can register tutors' }
@@ -209,7 +216,7 @@ export const RegisterTutor = async (req: AuthRequest, res: express.Response) => 
         password: hashedPassword,
         firstName,
         lastName,
-        role: "tutor",
+        role: "Tutor",
       },
       select: {
         id: true,
@@ -273,6 +280,8 @@ export const LoginUser = async (req: express.Request, res: express.Response) => 
     res.cookie(cookieName, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -790,7 +799,7 @@ export const GetUserStats = async (req: AuthRequest, res: express.Response) => {
       recentUsers
     ] = await Promise.all([
       prisma.admin.count(),
-      prisma.admin.count({ where: { role: "admin" } }),
+      prisma.admin.count({ where: { role: "Admin" } }),
       prisma.course.count(),
       prisma.enrollment.count(),
       prisma.admin.findMany({
@@ -934,10 +943,10 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
 
     let whereClause: any = {};
 
-    if (userRole === "admin") {
+    if (userRole === "Admin") {
       // Admin can see all courses
       whereClause = {};
-    } else if (userRole === "tutor") {
+    } else if (userRole === "Tutor") {
       // Tutor can see courses they created or are assigned to
       whereClause = {
         OR: [
@@ -994,7 +1003,7 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
 export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
   try {
     // Only admins can get all tutors
-    if (req.user!.type !== "admin" || req.user!.role !== "admin") {
+    if (req.user!.type !== "admin" || req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Access denied' }
@@ -1002,7 +1011,7 @@ export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
     }
 
     const tutors = await prisma.admin.findMany({
-      where: { role: "tutor" },
+      where: { role: "Tutor" },
       select: {
         id: true,
         email: true,
@@ -1171,7 +1180,7 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
         where: { id: tutorId }
       });
 
-      if (!tutor || tutor.role !== "tutor") {
+      if (!tutor || tutor.role !== "Tutor") {
         return res.status(400).json({
           success: false,
           error: { message: 'Invalid tutor ID' }
@@ -1186,7 +1195,7 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
         price: parseFloat(price),
         duration: duration ? parseInt(duration) : null,
         level,
-        categoryId,
+        ...(categoryId && { categoryId }),
         thumbnail,
         tutorName: tutorName || `${req.user!.firstName} ${req.user!.lastName}`,
         creatorId: req.user!.id,
@@ -1269,7 +1278,7 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
         where: { id: tutorId }
       });
 
-      if (!tutor || tutor.role !== "tutor") {
+      if (!tutor || tutor.role !== "Tutor") {
         return res.status(400).json({
           success: false,
           error: { message: 'Invalid tutor ID' }
@@ -1288,7 +1297,7 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (existingCourse.creatorId !== req.user!.id && req.user!.role !== "admin") {
+    if (existingCourse.creatorId !== req.user!.id && req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to update this course' }
@@ -1344,7 +1353,7 @@ export const PublishCourse = async (req: AuthRequest, res: express.Response) => 
       });
     }
 
-    if (course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+    if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to publish this course' }
@@ -1443,7 +1452,7 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+    if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to delete this course' }
@@ -1462,17 +1471,21 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    // Delete all associated material files
+    // Delete all associated material files from CDN
     const materialFileUrls = course.materials
       .filter(material => material.fileUrl && material.type !== 'LINK')
       .map(material => material.fileUrl!);
-    
-    const deletedFilesCount = deleteMultipleFiles(materialFileUrls);
+
+    let deletedFilesCount = 0;
+    for (const fileUrl of materialFileUrls) {
+      const deleted = await Delete_File('materials', fileUrl);
+      if (deleted) deletedFilesCount++;
+    }
     console.log(`🗑️ Deleted ${deletedFilesCount} material files for course: ${course.title}`);
 
-    // Delete course thumbnail if it exists
+    // Delete course thumbnail from CDN if it exists
     if (course.thumbnail) {
-      const thumbnailDeleted = deleteUploadedFile(course.thumbnail);
+      const thumbnailDeleted = await Delete_File('images', course.thumbnail);
       console.log(`🖼️ Course thumbnail deletion: ${thumbnailDeleted ? 'SUCCESS' : 'FAILED'} - ${course.thumbnail}`);
     } else {
       console.log(`📝 No thumbnail to delete for course: ${course.title}`);
@@ -1721,7 +1734,7 @@ export const GetCourseModules = async (req: AuthRequest, res: express.Response) 
       });
     }
 
-    if (course.creatorId !== userId && userRole !== "admin") {
+    if (course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Access denied' }
@@ -1796,7 +1809,7 @@ export const GetModuleById = async (req: AuthRequest, res: express.Response) => 
       });
     }
 
-    if (module.course.creatorId !== userId && userRole !== "admin") {
+    if (module.course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Access denied' }
@@ -1841,7 +1854,7 @@ export const CreateModule = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (course.creatorId !== userId && userRole !== "admin") {
+    if (course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to add modules to this course' }
@@ -1916,7 +1929,7 @@ export const UpdateModule = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (existingModule.course.creatorId !== userId && userRole !== "admin") {
+    if (existingModule.course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to update this module' }
@@ -1983,7 +1996,7 @@ export const DeleteModule = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (module.course.creatorId !== userId && userRole !== "admin") {
+    if (module.course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to delete this module' }
@@ -2037,7 +2050,7 @@ export const ReorderModule = async (req: AuthRequest, res: express.Response) => 
       });
     }
 
-    if (module.course.creatorId !== userId && userRole !== "admin") {
+    if (module.course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to reorder this module' }
@@ -2222,7 +2235,7 @@ export const CreateMaterial = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    if (course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+    if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to add materials to this course' }
@@ -2331,7 +2344,7 @@ export const UpdateMaterial = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    if (existingMaterial.course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+    if (existingMaterial.course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to update this material' }
@@ -2394,16 +2407,16 @@ export const DeleteMaterial = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    if (material.course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+    if (material.course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to delete this material' }
       });
     }
 
-    // Delete the physical file if it exists
+    // Delete the file from CDN if it exists
     if (material.fileUrl && material.type !== 'LINK') {
-      deleteUploadedFile(material.fileUrl);
+      await Delete_File('materials', material.fileUrl);
     }
 
     // Delete the material from database
@@ -2697,7 +2710,7 @@ export const GetCourseStudents = async (req: AuthRequest, res: express.Response)
       });
     }
 
-    if (course.creatorId !== userId && userRole !== "admin") {
+    if (course.creatorId !== userId && userRole !== "Admin") {
       return res.status(403).json({
         success: false,
         error: { message: 'Not authorized to view course students' }
@@ -2791,7 +2804,7 @@ export const UpdateEnrollmentStatus = async (req: AuthRequest, res: express.Resp
 
     const canModify = enrollment.studentId === userId ||
                      enrollment.course.creatorId === userId ||
-                     req.user!.role === "admin";
+                     req.user!.role === "Admin";
 
     if (!canModify) {
       return res.status(403).json({
@@ -2943,7 +2956,7 @@ export const DeleteEnrollment = async (req: AuthRequest, res: express.Response) 
 
     const canDelete = enrollment.studentId === userId ||
                      enrollment.course.creatorId === userId ||
-                     req.user!.role === "admin";
+                     req.user!.role === "Admin";
 
     if (!canDelete) {
       return res.status(403).json({
@@ -3102,6 +3115,16 @@ export const UploadCourseThumbnail = async (req: AuthRequest, res: express.Respo
 
     const { courseId } = req.body;
 
+    // Upload file to CDN in images folder
+    const thumbnailUrl = await Upload_Files('images', req.file);
+
+    if (!thumbnailUrl) {
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to upload thumbnail to CDN' }
+      });
+    }
+
     if (courseId) {
       const course = await prisma.course.findUnique({
         where: { id: courseId }
@@ -3114,14 +3137,12 @@ export const UploadCourseThumbnail = async (req: AuthRequest, res: express.Respo
         });
       }
 
-      if (course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+      if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
         return res.status(403).json({
           success: false,
           error: { message: 'Not authorized to update this course' }
         });
       }
-
-      const thumbnailUrl = `/uploads/${req.file.filename}`;
 
       // Get current course to check for existing thumbnail
       const currentCourse = await prisma.course.findUnique({
@@ -3129,9 +3150,9 @@ export const UploadCourseThumbnail = async (req: AuthRequest, res: express.Respo
         select: { thumbnail: true }
       });
 
-      // Delete old thumbnail if it exists
+      // Delete old thumbnail from CDN if it exists
       if (currentCourse?.thumbnail) {
-        deleteUploadedFile(currentCourse.thumbnail);
+        await Delete_File('images', currentCourse.thumbnail);
       }
 
       await prisma.course.update({
@@ -3142,18 +3163,16 @@ export const UploadCourseThumbnail = async (req: AuthRequest, res: express.Respo
       return res.json({
         success: true,
         data: {
-          filename: req.file.filename,
+          filename: req.file.originalname,
           url: thumbnailUrl,
           message: 'Course thumbnail updated successfully'
         }
       });
     } else {
-      const thumbnailUrl = `/uploads/${req.file.filename}`;
-      
       return res.json({
         success: true,
         data: {
-          filename: req.file.filename,
+          filename: req.file.originalname,
           url: thumbnailUrl
         }
       });
@@ -3177,9 +3196,32 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
     }
 
     const { courseId } = req.body;
-    
-    // Store URL directly in uploads directory
-    const fileUrl = `/uploads/${req.file.filename}`;
+
+    // Log file details for debugging
+    const fileSizeMB = (req.file.size / (1024 * 1024)).toFixed(2);
+    console.log(`📦 Processing upload: ${req.file.originalname} (${fileSizeMB} MB)`);
+
+    // Choose storage method based on environment
+    let fileUrl: string | null = null;
+
+    if (process.env.NODE_ENV === 'development' && process.env.USE_LOCAL_STORAGE === 'true') {
+      // Use local storage for development
+      console.log('📂 Using local storage for development');
+      fileUrl = await Upload_Files_Local('materials', req.file);
+    } else {
+      // Use Bunny CDN for production or when explicitly configured
+      console.log('☁️ Using Bunny CDN storage');
+      fileUrl = req.file.size > 20 * 1024 * 1024
+        ? await Upload_Files_Stream('materials', req.file)
+        : await Upload_Files('materials', req.file);
+    }
+
+    if (!fileUrl) {
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to upload material to CDN' }
+      });
+    }
 
     // If courseId is provided, verify user has access
     if (courseId) {
@@ -3194,7 +3236,7 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
         });
       }
 
-      if (course.creatorId !== req.user!.id && req.user!.role !== "admin") {
+      if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
         return res.status(403).json({
           success: false,
           error: { message: 'Not authorized to upload materials for this course' }
@@ -3205,13 +3247,12 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
     return res.json({
       success: true,
       data: {
-        filename: req.file.filename,
+        filename: req.file.originalname,
         originalName: req.file.originalname,
         mimetype: req.file.mimetype,
         size: req.file.size,
         fileUrl: fileUrl,
-        url: fileUrl,
-        path: req.file.path
+        url: fileUrl
       }
     });
   } catch (error) {
@@ -3498,6 +3539,305 @@ export const GetCourseCompletion = async (req: AuthRequest, res: express.Respons
     return res.status(500).json({
       success: false,
       error: { message: 'Failed to fetch course completion data' }
+    });
+  }
+};
+
+// ===== STUDENT ASSIGNMENT CONTROLLERS =====
+
+/**
+ * Get assignments for enrolled course (student view)
+ */
+export const GetStudentCourseAssignments = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const { courseId } = req.params;
+    const studentId = req.user!.id;
+
+    // Verify enrollment
+    const enrollment = await prisma.enrollment.findUnique({
+      where: {
+        studentId_courseId: {
+          studentId,
+          courseId
+        }
+      }
+    });
+
+    if (!enrollment) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'You are not enrolled in this course.' }
+      });
+    }
+
+    const assignments = await prisma.assignment.findMany({
+      where: { courseId },
+      include: {
+        submissions: {
+          where: { studentId },
+          select: {
+            id: true,
+            status: true,
+            score: true,
+            feedback: true,
+            submittedAt: true,
+            gradedAt: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    res.json({
+      success: true,
+      data: { assignments }
+    });
+  } catch (error) {
+    console.error('Get course assignments error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+};
+
+/**
+ * Submit assignment (student)
+ */
+export const SubmitAssignment = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const { assignmentId } = req.params;
+    const { content, fileUrl } = req.body;
+    const studentId = req.user!.id;
+
+    // Debug logging
+    console.log('📝 Assignment submission received:', {
+      assignmentId,
+      studentId,
+      hasContent: !!content && content.trim() !== '',
+      contentLength: content ? content.length : 0,
+      fileUrl,
+      hasFileUrl: !!fileUrl && fileUrl.trim() !== ''
+    });
+
+    // Verify assignment exists and student is enrolled
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        course: {
+          include: {
+            enrollments: {
+              where: { studentId: studentId }
+            }
+          }
+        }
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Assignment not found.' }
+      });
+    }
+
+    if (assignment.course.enrollments.length === 0) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'You are not enrolled in this course.' }
+      });
+    }
+
+    // Check if already submitted
+    const existingSubmission = await prisma.assignmentSubmission.findUnique({
+      where: {
+        assignmentId_studentId: {
+          assignmentId,
+          studentId
+        }
+      }
+    });
+
+    if (existingSubmission) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'You have already submitted this assignment.' }
+      });
+    }
+
+    // Check due date
+    if (assignment.dueDate && new Date() > assignment.dueDate) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Assignment due date has passed.' }
+      });
+    }
+
+    const submission = await prisma.assignmentSubmission.create({
+      data: {
+        content: content || '',
+        fileUrl: fileUrl || null,
+        assignmentId,
+        studentId,
+        status: 'SUBMITTED'
+      },
+      include: {
+        assignment: {
+          select: {
+            title: true,
+            maxScore: true,
+            dueDate: true
+          }
+        }
+      }
+    });
+
+    // Update enrollment progress to include this new assignment submission
+    const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
+      prisma.material.count({ where: { courseId: assignment.courseId } }),
+      prisma.progress.count({
+        where: {
+          studentId: studentId,
+          courseId: assignment.courseId,
+          isCompleted: true
+        }
+      }),
+      prisma.assignment.count({ where: { courseId: assignment.courseId } }),
+      prisma.assignmentSubmission.count({
+        where: {
+          studentId,
+          assignment: { courseId: assignment.courseId }
+        }
+      })
+    ]);
+
+    // Calculate progress including both materials and assignments
+    const totalItems = totalMaterials + totalAssignments;
+    const completedItems = completedMaterials + submittedAssignments;
+    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+    await prisma.enrollment.update({
+      where: {
+        studentId_courseId: {
+          studentId: studentId,
+          courseId: assignment.courseId
+        }
+      },
+      data: {
+        progressPercentage,
+        ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        submission,
+        progressUpdate: {
+          progressPercentage,
+          totalItems,
+          completedItems: completedItems
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Submit assignment error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to submit assignment.' }
+    });
+  }
+};
+
+/**
+ * Get assignment submission (student view)
+ */
+export const GetStudentSubmission = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const { assignmentId } = req.params;
+    const studentId = req.user!.id;
+
+    const submission = await prisma.assignmentSubmission.findUnique({
+      where: {
+        assignmentId_studentId: {
+          assignmentId,
+          studentId
+        }
+      },
+      include: {
+        assignment: {
+          select: {
+            title: true,
+            description: true,
+            maxScore: true,
+            dueDate: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      data: { submission }
+    });
+  } catch (error) {
+    console.error('Get assignment submission error:', error);
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token.' }
+    });
+  }
+};
+
+/**
+ * Upload assignment file (student)
+ */
+export const UploadAssignmentFile = async (req: AuthRequest, res: express.Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'No assignment file uploaded' }
+      });
+    }
+
+    let fileUrl: string | null = null;
+
+    // Check environment: use local storage for development, CDN for production
+    if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
+      // Use local storage for development
+      console.log('📂 Using local storage for development');
+      fileUrl = await Upload_Files_Local('assignments', req.file);
+    } else {
+      // Use Bunny CDN for production or when explicitly configured
+      console.log('☁️ Using Bunny CDN storage for assignments');
+      fileUrl = req.file.size > 20 * 1024 * 1024
+        ? await Upload_Files_Stream('assignments', req.file)
+        : await Upload_Files('assignments', req.file);
+    }
+
+    if (!fileUrl) {
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to upload assignment file to storage' }
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        fileUrl: fileUrl
+      }
+    });
+  } catch (error) {
+    console.error('Upload assignment file error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to upload assignment file.' }
     });
   }
 };

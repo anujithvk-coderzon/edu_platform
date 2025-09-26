@@ -6,6 +6,7 @@ import {
   UsersIcon
 } from '@heroicons/react/24/outline';
 import StarRating from '../ui/StarRating';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface Course {
   id: string;
@@ -43,8 +44,12 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
+  // Process thumbnail URL to handle both relative paths and CDN URLs
+  const thumbnailUrl = getImageUrl(course.thumbnail);
+
   // Debug logging
   console.log('CourseCard - course.id:', course.id);
+  console.log('CourseCard - thumbnail URL:', thumbnailUrl);
 
   const getCourseButtonState = () => {
     if (!course.isEnrolled) {
@@ -87,17 +92,34 @@ export default function CourseCard({ course }: CourseCardProps) {
     <div className="bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 group hover:scale-[1.02] overflow-hidden border border-slate-200/50">
       <div className="aspect-video bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 rounded-t-3xl flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent"></div>
-        {course.thumbnail ? (
+        {thumbnailUrl ? (
           <img
-            src={course.thumbnail}
+            src={thumbnailUrl}
             alt={course.title}
             className="w-full h-full object-cover rounded-t-3xl group-hover:scale-110 transition-transform duration-500"
+            onError={(e) => {
+              console.error('Failed to load thumbnail:', thumbnailUrl);
+              console.error('Original thumbnail value:', course.thumbnail);
+              // Hide the broken image and show fallback
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const fallback = target.nextElementSibling;
+              if (fallback) {
+                (fallback as HTMLElement).style.display = 'block';
+              }
+            }}
+            onLoad={() => {
+              console.log('Successfully loaded thumbnail:', thumbnailUrl);
+            }}
           />
-        ) : (
-          <div className="relative z-10">
-            <BookOpenIcon className="h-20 w-20 text-white opacity-90 group-hover:scale-110 transition-transform duration-300" />
-          </div>
-        )}
+        ) : null}
+        {/* Fallback icon - always present but hidden when image loads */}
+        <div
+          className={`relative z-10 ${thumbnailUrl ? 'hidden' : 'block'}`}
+          style={{ display: thumbnailUrl ? 'none' : 'block' }}
+        >
+          <BookOpenIcon className="h-20 w-20 text-white opacity-90 group-hover:scale-110 transition-transform duration-300" />
+        </div>
         {statusBadge && (
           <div className={`absolute top-4 right-4 ${statusBadge.color} text-white px-3 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20`}>
             {statusBadge.text}

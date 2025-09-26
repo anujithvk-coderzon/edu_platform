@@ -12,60 +12,14 @@ import fs from 'fs';
 import prisma from '../DB/DB_Config';
 import { asyncHandler } from '../middleware/errorHandler';
 import { generateOTP, storeOTP, verifyOTP, sendVerificationEmail, WelcomeEmail, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
+import { Upload_Files } from '../utils/CDN_management';
+import { Upload_Files_Stream } from '../utils/CDN_streaming';
+import { Upload_Files_Local } from '../utils/localStorage';
 
 const router = express.Router();
 
-// ===== MULTER SETUP FOR FILE UPLOADS =====
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, extension);
-
-    const sanitizedBaseName = baseName
-      .replace(/[^a-zA-Z0-9\-_]/g, '_')
-      .substring(0, 50);
-
-    cb(null, `assignment-${sanitizedBaseName}-${uniqueSuffix}${extension}`);
-  }
-});
-
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedMimes = [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'application/pdf', 'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'text/plain', 'application/zip'
-  ];
-
-  if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error(`File type ${file.mimetype} is not allowed for assignments`));
-  }
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 25 * 1024 * 1024, // 25MB for assignments
-    files: 1
-  }
-});
+// Import the proper multer configuration that uses memory storage for CDN uploads
+import { upload_assignment } from '../multer/multer';
 
 // ===== UTILITY FUNCTIONS =====
 const generateToken = (studentId: string) => {
@@ -859,39 +813,10 @@ router.put('/auth/change-password',
   })
 );
 
-// Avatar Upload endpoint
-const avatarStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const avatarDir = path.join(uploadDir, 'avatars');
-    if (!fs.existsSync(avatarDir)) {
-      fs.mkdirSync(avatarDir, { recursive: true });
-    }
-    cb(null, avatarDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname);
-    cb(null, `avatar-${uniqueSuffix}${extension}`);
-  }
-});
+// Import proper avatar upload that uses memory storage for CDN uploads
+import { upload_avatar } from '../multer/multer';
 
-const avatarUpload = multer({
-  storage: avatarStorage,
-  fileFilter: (req, file, cb) => {
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowedMimes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed for avatars'));
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB for avatars
-    files: 1
-  }
-});
-
-router.post('/uploads/avatar', avatarUpload.single('avatar'), asyncHandler(async (req: express.Request, res: express.Response) => {
+router.post('/uploads/avatar', upload_avatar, asyncHandler(async (req: express.Request, res: express.Response) => {
   const token = req.cookies.student_token;
 
   if (!token) {
@@ -924,19 +849,25 @@ router.post('/uploads/avatar', avatarUpload.single('avatar'), asyncHandler(async
       select: { avatar: true }
     });
 
-    // Delete old avatar file if it exists
-    if (currentStudent?.avatar && currentStudent.avatar.startsWith('/uploads/avatars/')) {
-      const oldFilePath = path.join(__dirname, '..', '..', currentStudent.avatar);
-      if (fs.existsSync(oldFilePath)) {
-        try {
-          fs.unlinkSync(oldFilePath);
-        } catch (err) {
-          console.error('Failed to delete old avatar:', err);
-        }
-      }
+    let avatarUrl: string | null = null;
+
+    // Check environment: use local storage for development, CDN for production
+    if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
+      // Use local storage for development
+      console.log('📂 Using local storage for avatar');
+      avatarUrl = await Upload_Files_Local('avatars', req.file);
+    } else {
+      // Use Bunny CDN for production or when explicitly configured
+      console.log('☁️ Using Bunny CDN storage for avatar');
+      avatarUrl = await Upload_Files('avatars', req.file);
     }
 
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    if (!avatarUrl) {
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to upload avatar to storage' }
+      });
+    }
 
     // Update student avatar in database
     const student = await prisma.student.update({
@@ -962,17 +893,6 @@ router.post('/uploads/avatar', avatarUpload.single('avatar'), asyncHandler(async
     });
   } catch (error) {
     console.error('Avatar upload error:', error);
-    // If upload failed, try to delete the newly uploaded file
-    if (req.file) {
-      const newFilePath = path.join(uploadDir, 'avatars', req.file.filename);
-      if (fs.existsSync(newFilePath)) {
-        try {
-          fs.unlinkSync(newFilePath);
-        } catch (err) {
-          console.error('Failed to clean up uploaded file:', err);
-        }
-      }
-    }
     return res.status(401).json({
       success: false,
       error: { message: 'Invalid token.' }
@@ -2356,7 +2276,7 @@ router.get('/assignments/:assignmentId/submission', asyncHandler(async (req: exp
 }));
 
 // Upload assignment file
-router.post('/assignments/upload', upload.single('file'), asyncHandler(async (req: express.Request, res: express.Response) => {
+router.post('/assignments/upload', upload_assignment, asyncHandler(async (req: express.Request, res: express.Response) => {
   const token = req.cookies.student_token;
 
   if (!token) {
@@ -2376,7 +2296,27 @@ router.post('/assignments/upload', upload.single('file'), asyncHandler(async (re
       });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    let fileUrl: string | null = null;
+
+    // Check environment: use local storage for development, CDN for production
+    if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
+      // Use local storage for development
+      console.log('📂 Using local storage for development');
+      fileUrl = await Upload_Files_Local('assignments', req.file);
+    } else {
+      // Use Bunny CDN for production or when explicitly configured
+      console.log('☁️ Using Bunny CDN storage for assignments');
+      fileUrl = req.file.size > 20 * 1024 * 1024
+        ? await Upload_Files_Stream('assignments', req.file)
+        : await Upload_Files('assignments', req.file);
+    }
+
+    if (!fileUrl) {
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to upload assignment file to storage' }
+      });
+    }
 
     res.json({
       success: true,

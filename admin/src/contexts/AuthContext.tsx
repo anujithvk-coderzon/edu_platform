@@ -61,6 +61,7 @@ const authApi = {
   getCurrentUser: async (): Promise<User | null> => {
     try {
       const response = await api.auth.getMe();
+
       if (response.success && response.data.user) {
         const user: User = {
           id: response.data.user.id,
@@ -115,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(currentUser);
       } catch (error) {
         console.error('Auth initialization error:', error);
+        setUser(null);
       } finally {
         setLoading(false);
       }

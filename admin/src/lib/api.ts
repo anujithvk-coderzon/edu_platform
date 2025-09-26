@@ -148,24 +148,45 @@ class ApiClient {
 
   async uploadFile(endpoint: string, formData: FormData): Promise<ApiResponse> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     try {
+      console.log(`🚀 Starting upload to ${url}`);
+
+      // Create AbortController for timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 300000); // 5 minutes timeout
+
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
         credentials: 'include',
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+      console.log(`📡 Upload response received: ${response.status}`);
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.error(`❌ Upload failed: ${response.status} - ${data.error?.message}`);
         throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
       }
 
+      console.log(`✅ Upload successful:`, data);
       return data;
-    } catch (error) {
-      console.error(`Upload Error (${url}):`, error);
-      throw error;
+    } catch (error: any) {
+      console.error(`❌ Upload Error (${url}):`, error);
+
+      if (error.name === 'AbortError') {
+        throw new Error('Upload timed out. Please check your connection and try again.');
+      } else if (error.message.includes('Failed to fetch')) {
+        throw new Error('Network error. Please check your internet connection.');
+      } else {
+        throw error;
+      }
     }
   }
 
@@ -299,6 +320,15 @@ class ApiClient {
     }) => this.post<ApiResponse>('/assignments', data),
 
     getByCourse: (courseId: string) => this.get<ApiResponse>(`/assignments/course/${courseId}`),
+
+    getById: (id: string) => this.get<ApiResponse>(`/assignments/${id}`),
+
+    update: (id: string, data: {
+      title?: string;
+      description?: string;
+      dueDate?: string;
+      maxScore?: number;
+    }) => this.put<ApiResponse>(`/assignments/${id}`, data),
 
     getSubmissions: (assignmentId: string) => this.get<ApiResponse>(`/assignments/${assignmentId}/submissions`),
 

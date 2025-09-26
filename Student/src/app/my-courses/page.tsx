@@ -16,6 +16,7 @@ import {
   StarIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface Enrollment {
   id: string;
@@ -260,9 +261,16 @@ export default function MyCoursesPage() {
                 <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
                   {enrollment.course.thumbnail ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${enrollment.course.thumbnail}`}
+                      src={getImageUrl(enrollment.course.thumbnail)}
                       alt={enrollment.course.title}
                       className="w-full h-full object-cover rounded-t-lg"
+                      onError={(e) => {
+                        console.error('Failed to load thumbnail in my-courses:', getImageUrl(enrollment.course.thumbnail));
+                        console.error('Original thumbnail value:', enrollment.course.thumbnail);
+                      }}
+                      onLoad={() => {
+                        console.log('Successfully loaded thumbnail in my-courses:', getImageUrl(enrollment.course.thumbnail));
+                      }}
                     />
                   ) : (
                     <BookOpenIcon className="h-12 w-12 text-white/80" />

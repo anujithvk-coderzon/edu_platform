@@ -6,12 +6,13 @@ declare global {
       user?: {
         id: string;
         email: string;
-        role: import('@prisma/client').UserRole;
+        type: 'admin' | 'student';
+        role?: string; // Admin role: "Admin" or "Tutor"
         firstName: string;
         lastName: string;
       };
     }
-    
+
     namespace Multer {
       interface File {
         fieldname: string;

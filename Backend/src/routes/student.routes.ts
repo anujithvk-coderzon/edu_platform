@@ -78,6 +78,43 @@ const generateToken = (studentId: string) => {
 
 // ===== STUDENT AUTH ROUTES =====
 
+// Check if email exists (for validation only - no OTP sent)
+router.post('/auth/check-email',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  asyncHandler(async (req: express.Request, res: express.Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Please provide a valid email address', details: errors.array() }
+      });
+    }
+
+    const { email } = req.body;
+
+    // Check if email already exists
+    const existingStudent = await prisma.student.findUnique({
+      where: { email }
+    });
+
+    if (existingStudent) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'An account with this email already exists' }
+      });
+    }
+
+    // Email is available
+    res.status(200).json({
+      success: true,
+      message: 'Email is available',
+      data: { email, available: true }
+    });
+  })
+);
+
 // Step 1: Verify email and send OTP (before showing full registration form)
 router.post('/auth/verify-email',
   [
@@ -172,7 +209,7 @@ router.post('/auth/register',
     body('password').isLength({ min: 6 }),
     body('firstName').trim().isLength({ min: 1 }),
     body('lastName').trim().isLength({ min: 1 }),
-    body('phone').optional().trim().isMobilePhone('any'),
+    body('phone').optional().trim().isLength({ min: 1 }),
     body('dateOfBirth').optional().isISO8601(),
     body('gender').optional().isIn(['Male', 'Female', 'Other', 'Prefer not to say']),
     body('country').optional().trim().isLength({ min: 1 }),

@@ -35,10 +35,10 @@ const educationLevels = [
 ];
 
 const genderOptions = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
-  { value: 'prefer-not', label: 'Prefer not to say' }
+  { value: 'Male', label: 'Male' },
+  { value: 'Female', label: 'Female' },
+  { value: 'Other', label: 'Other' },
+  { value: 'Prefer not to say', label: 'Prefer not to say' }
 ];
 
 export default function RegisterPage() {
@@ -164,7 +164,7 @@ export default function RegisterPage() {
 
   const checkEmailExists = async (email: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/verify-email`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/check-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,7 +206,8 @@ export default function RegisterPage() {
     const stepFields = {
       1: ['firstName', 'lastName', 'email', 'phone', 'password', 'confirmPassword'],
       2: ['country'],
-      3: ['education']
+      3: ['education'],
+      4: [] // Summary step - no additional fields required
     };
 
     const requiredFields = stepFields[stepNumber] || [];
@@ -351,13 +352,13 @@ export default function RegisterPage() {
 
   const handleNext = () => {
     if (validateStep(step)) {
-      if (step === 3) {
-        // Send registration data and get OTP
-        sendRegistrationWithOTP();
-      } else {
-        setStep(step + 1);
-      }
+      setStep(step + 1);
     }
+  };
+
+  const handleSendOTP = () => {
+    // Send registration data and get OTP
+    sendRegistrationWithOTP();
   };
 
   const handlePrevious = () => {
@@ -369,21 +370,35 @@ export default function RegisterPage() {
       setIsLoading(true);
 
       console.log('📤 Sending registration data with OTP request');
-      const requestData = {
+      const requestData: any = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
-        dateOfBirth: formData.dateOfBirth || undefined,
-        gender: formData.gender || undefined,
         country: formData.country,
-        city: formData.city || undefined,
-        education: formData.education,
-        institution: formData.institution || undefined,
-        occupation: formData.occupation || undefined,
-        company: formData.company || undefined
+        education: formData.education
       };
+
+      // Only add optional fields if they have values
+      if (formData.dateOfBirth && formData.dateOfBirth.trim()) {
+        requestData.dateOfBirth = formData.dateOfBirth;
+      }
+      if (formData.gender && formData.gender.trim()) {
+        requestData.gender = formData.gender;
+      }
+      if (formData.city && formData.city.trim()) {
+        requestData.city = formData.city;
+      }
+      if (formData.institution && formData.institution.trim()) {
+        requestData.institution = formData.institution;
+      }
+      if (formData.occupation && formData.occupation.trim()) {
+        requestData.occupation = formData.occupation;
+      }
+      if (formData.company && formData.company.trim()) {
+        requestData.company = formData.company;
+      }
 
       console.log('📤 Request data:', requestData);
 
@@ -399,9 +414,25 @@ export default function RegisterPage() {
       const data = await response.json();
       console.log('📥 Registration response:', data);
 
+      if (!response.ok) {
+        console.log('❌ Full error details:');
+        console.log('   Status:', response.status);
+        console.log('   Error message:', data.error?.message);
+        console.log('   Validation details:', data.error?.details);
+        if (data.error?.details) {
+          data.error.details.forEach((detail: any, index: number) => {
+            console.log(`   Detail ${index + 1}:`, {
+              field: detail.path || detail.param,
+              message: detail.msg,
+              value: detail.value
+            });
+          });
+        }
+      }
+
       if (response.ok && data.success) {
         setOtpSent(true);
-        setStep(4); // Move to OTP verification step
+        setStep(5); // Move to OTP verification step
         toast.success('OTP sent to your email. Please check your inbox.');
         startResendTimer();
       } else {
@@ -520,7 +551,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (step === 4) {
+    if (step === 5) {
       // Verify OTP
       await verifyOTP();
     } else if (!validateStep(3)) {
@@ -539,10 +570,10 @@ export default function RegisterPage() {
             </div>
           </div>
           <h2 className="text-3xl font-semibold text-slate-900">
-            {step === 4 ? 'Verify Your Email' : 'Create your account'}
+            {step === 5 ? 'Verify Your Email' : 'Create your account'}
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            {step === 4 ? (
+            {step === 5 ? (
               <>We've sent a verification code to {formData.email}</>
             ) : (
               <>
@@ -802,8 +833,31 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 4: OTP Verification */}
+            {/* Step 4: Ready to Send OTP */}
             {step === 4 && (
+              <div className="space-y-4">
+                <div className="text-center">
+                  <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-50 mb-4">
+                    <CheckIcon className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">Almost Done!</h3>
+                  <p className="text-sm text-slate-600">
+                    Please review your information and click "Send Verification Code" to complete your registration.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div><strong>Name:</strong> {formData.firstName} {formData.lastName}</div>
+                  <div><strong>Email:</strong> {formData.email}</div>
+                  <div><strong>Phone:</strong> {formData.phone}</div>
+                  <div><strong>Country:</strong> {formData.country}</div>
+                  <div><strong>Education:</strong> {formData.education}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 5: OTP Verification */}
+            {step === 5 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
                   <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-indigo-50 mb-4">
@@ -884,7 +938,7 @@ export default function RegisterPage() {
                 </Button>
               )}
 
-              {step === 4 ? (
+              {step === 5 ? (
                 <Button
                   type="submit"
                   disabled={isLoading || otp.length !== 6}
@@ -897,13 +951,13 @@ export default function RegisterPage() {
               ) : (
                 <Button
                   type="button"
-                  onClick={handleNext}
+                  onClick={step === 4 ? handleSendOTP : handleNext}
                   disabled={isLoading || !isStepValid(step)}
                   loading={isLoading}
                   className={step === 1 ? 'w-full' : 'ml-auto'}
                   size="md"
                 >
-                  {isLoading ? 'Processing...' : step === 3 ? 'Send Verification Code' : 'Next'}
+                  {isLoading ? 'Processing...' : step === 4 ? 'Send Verification Code' : 'Next'}
                 </Button>
               )}
             </div>

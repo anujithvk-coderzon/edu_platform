@@ -275,45 +275,6 @@ export const WelcomeEmail = async (email, firstname) => {
               font-size: 24px;
               margin: 0 0 15px 0;
           }
-          .getting-started {
-              background: #f8f9fa;
-              border-radius: 10px;
-              padding: 25px;
-              margin: 30px 0;
-          }
-          .getting-started h3 {
-              color: #333;
-              margin: 0 0 20px 0;
-              font-size: 18px;
-          }
-          .step-list {
-              list-style: none;
-              padding: 0;
-              margin: 0;
-          }
-          .step-list li {
-              padding: 10px 0;
-              border-bottom: 1px solid #e9ecef;
-              display: flex;
-              align-items: center;
-          }
-          .step-list li:last-child {
-              border-bottom: none;
-          }
-          .step-number {
-              background: #667eea;
-              color: white;
-              width: 24px;
-              height: 24px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-              font-size: 12px;
-              margin-right: 15px;
-              flex-shrink: 0;
-          }
           .cta-button {
               display: inline-block;
               background: #667eea;
@@ -327,37 +288,6 @@ export const WelcomeEmail = async (email, firstname) => {
           }
           .cta-button:hover {
               background: #5a67d8;
-          }
-          .stats-box {
-              background: #e8f4f8;
-              border-radius: 10px;
-              padding: 25px;
-              text-align: center;
-              margin: 30px 0;
-          }
-          .stats-box h4 {
-              color: #2d3748;
-              margin: 0 0 15px 0;
-              font-size: 18px;
-          }
-          .stats {
-              display: flex;
-              justify-content: space-around;
-              text-align: center;
-          }
-          .stat {
-              flex: 1;
-          }
-          .stat-number {
-              font-size: 24px;
-              font-weight: bold;
-              color: #667eea;
-              margin: 0;
-          }
-          .stat-label {
-              font-size: 14px;
-              color: #666;
-              margin: 5px 0 0 0;
           }
           .support-box {
               background: #fff3cd;
@@ -401,50 +331,10 @@ export const WelcomeEmail = async (email, firstname) => {
                   <p>Thank you for joining Edu Platform. Your account has been successfully created and you now have access to our comprehensive learning resources.</p>
               </div>
 
-              <div class="getting-started">
-                  <h3>Getting Started Guide</h3>
-                  <ul class="step-list">
-                      <li>
-                          <span class="step-number">1</span>
-                          <span>Complete your profile to personalize your experience</span>
-                      </li>
-                      <li>
-                          <span class="step-number">2</span>
-                          <span>Browse our course catalog and find topics you love</span>
-                      </li>
-                      <li>
-                          <span class="step-number">3</span>
-                          <span>Enroll in your first course and start learning</span>
-                      </li>
-                      <li>
-                          <span class="step-number">4</span>
-                          <span>Join our community and connect with other learners</span>
-                      </li>
-                  </ul>
-              </div>
-
               <div style="text-align: center;">
                   <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" class="cta-button">
                       Start Learning Now →
                   </a>
-              </div>
-
-              <div class="stats-box">
-                  <h4>Join thousands of learners worldwide</h4>
-                  <div class="stats">
-                      <div class="stat">
-                          <p class="stat-number">50+</p>
-                          <p class="stat-label">Courses</p>
-                      </div>
-                      <div class="stat">
-                          <p class="stat-number">10K+</p>
-                          <p class="stat-label">Students</p>
-                      </div>
-                      <div class="stat">
-                          <p class="stat-number">95%</p>
-                          <p class="stat-label">Satisfaction</p>
-                      </div>
-                  </div>
               </div>
 
               <div class="support-box">

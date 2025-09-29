@@ -133,7 +133,7 @@ export default function CreateCoursePage() {
             }));
             setTutors(tutorOptions);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error fetching tutors:', error);
         }
       };
@@ -357,7 +357,7 @@ export default function CreateCoursePage() {
           toast.error('Please fill in all required fields correctly');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in nextStep function:', error);
       toast.error('An error occurred while validating the form');
     }
@@ -538,9 +538,9 @@ export default function CreateCoursePage() {
             } else {
               throw new Error(`Failed to create module "${chapter.title}": ${moduleResponse.error?.message || 'Unknown error'}`);
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error(`Error creating module "${chapter.title}":`, error);
-            throw new Error(`Failed to create module "${chapter.title}": ${error.message}`);
+            throw new Error(`Failed to create module "${chapter.title}": ${error.message || 'Unknown error'}`);
           }
         });
 

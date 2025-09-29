@@ -252,20 +252,10 @@ export default function CreateCoursePage() {
   };
 
   const validateStep = (step: number) => {
-    console.log(`=== VALIDATING STEP ${step} ===`);
     const newErrors: any = {};
-
-    console.log('Form data details:', {
-      title: `"${formData.title}" (length: ${formData.title?.length || 0})`,
-      description: `"${formData.description}" (length: ${formData.description?.length || 0})`,
-      categoryId: formData.categoryId,
-      level: formData.level,
-      price: formData.price
-    });
 
     switch (step) {
       case 1:
-        console.log('Validating step 1 fields...');
         
         if (!formData.title || !formData.title.trim()) {
           console.log('VALIDATION ERROR: Title is empty');

@@ -170,9 +170,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-          <div className="flex items-center gap-6">
-            <div className="relative">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+            <div className="relative flex-shrink-0 self-center sm:self-auto">
               <div className="h-20 w-20 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
                 {avatarPreview ? (
                   <img
@@ -208,11 +208,11 @@ export default function ProfilePage() {
                 />
               </label>
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-slate-900">
+            <div className="min-w-0 flex-1 text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 break-words">
                 {profileData.firstName || user.firstName} {profileData.lastName || user.lastName}
               </h1>
-              <p className="text-slate-600 mt-1">{profileData.email || user.email}</p>
+              <p className="text-slate-600 mt-1 break-all text-sm sm:text-base">{profileData.email || user.email}</p>
               <p className="text-xs text-slate-500 mt-2">
                 Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </p>

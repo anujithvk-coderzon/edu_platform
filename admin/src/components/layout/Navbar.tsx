@@ -54,11 +54,6 @@ const Navbar = () => {
   // Destructure state for easier access
   const { mobileMenuOpen, userMenuOpen } = state;
 
-  // Debug logging
-  console.log('Navbar - User object:', user);
-  console.log('Navbar - User role:', user?.role);
-  console.log('Navbar - Role toLowerCase:', user?.role?.toLowerCase());
-  console.log('Navbar - Is tutor check:', user?.role?.toLowerCase() === 'tutor');
 
   // Dynamic navigation based on user role
   const navigation = user?.role?.toLowerCase() !== 'tutor'

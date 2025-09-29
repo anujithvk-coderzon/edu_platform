@@ -400,8 +400,6 @@ export default function RegisterPage() {
         requestData.company = formData.company;
       }
 
-      console.log('📤 Request data:', requestData);
-
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/register`, {
         method: 'POST',
         headers: {
@@ -412,22 +410,9 @@ export default function RegisterPage() {
       });
 
       const data = await response.json();
-      console.log('📥 Registration response:', data);
 
       if (!response.ok) {
-        console.log('❌ Full error details:');
-        console.log('   Status:', response.status);
-        console.log('   Error message:', data.error?.message);
-        console.log('   Validation details:', data.error?.details);
-        if (data.error?.details) {
-          data.error.details.forEach((detail: any, index: number) => {
-            console.log(`   Detail ${index + 1}:`, {
-              field: detail.path || detail.param,
-              message: detail.msg,
-              value: detail.value
-            });
-          });
-        }
+        throw new Error(data.error?.message || 'Registration failed');
       }
 
       if (response.ok && data.success) {
@@ -503,11 +488,6 @@ export default function RegisterPage() {
         otp: otp
       };
 
-      console.log('🚀 Frontend sending OTP verification request:');
-      console.log('   Email:', requestBody.email);
-      console.log('   OTP:', requestBody.otp);
-      console.log('   OTP length:', requestBody.otp?.length);
-      console.log('   OTP type:', typeof requestBody.otp);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/verify-otp`, {
         method: 'POST',

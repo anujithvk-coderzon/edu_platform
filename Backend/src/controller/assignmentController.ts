@@ -600,15 +600,6 @@ export const SubmitAssignment = async (req: AuthRequest, res: Response) => {
     const { content, fileUrl } = req.body;
     const studentId = req.user!.id;
 
-    // Debug logging
-    console.log('📝 Assignment submission received:', {
-      assignmentId,
-      studentId,
-      hasContent: !!content && content.trim() !== '',
-      contentLength: content ? content.length : 0,
-      fileUrl,
-      hasFileUrl: !!fileUrl && fileUrl.trim() !== ''
-    });
 
     // Verify assignment exists and student is enrolled
     const assignment = await prisma.assignment.findUnique({

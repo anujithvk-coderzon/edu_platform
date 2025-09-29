@@ -174,11 +174,6 @@ const Page = () => {
   // Destructure data for easier access
   const { user: dashboardUser, stats, myCourses } = data;
 
-  // Debug logging
-  console.log('Dashboard - User object:', user);
-  console.log('Dashboard - User role:', user?.role);
-  console.log('Dashboard - Role toLowerCase:', user?.role?.toLowerCase());
-  console.log('Dashboard - Is tutor check:', user?.role?.toLowerCase() === 'tutor');
 
   return (
     <div className="min-h-screen bg-slate-50">

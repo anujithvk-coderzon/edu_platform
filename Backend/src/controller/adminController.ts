@@ -103,7 +103,6 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
     }
 
     const adminExists = await prisma.admin.findFirst();
-    console.log(adminExists);
     
     if (adminExists) {
       return res.status(400).json({
@@ -3860,15 +3859,6 @@ export const SubmitAssignment = async (req: AuthRequest, res: express.Response) 
     const { content, fileUrl } = req.body;
     const studentId = req.user!.id;
 
-    // Debug logging
-    console.log('📝 Assignment submission received:', {
-      assignmentId,
-      studentId,
-      hasContent: !!content && content.trim() !== '',
-      contentLength: content ? content.length : 0,
-      fileUrl,
-      hasFileUrl: !!fileUrl && fileUrl.trim() !== ''
-    });
 
     // Verify assignment exists and student is enrolled
     const assignment = await prisma.assignment.findUnique({

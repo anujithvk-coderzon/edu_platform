@@ -38,24 +38,15 @@ export const storeOTP = (email, otp, userData) => {
 
 // Check if OTP is correct
 export const verifyOTP = (email, userEnteredOTP) => {
-    console.log(`🔍 Verifying OTP for ${email}`);
-    console.log(`🔍 User entered: "${userEnteredOTP}" (length: ${userEnteredOTP?.length})`);
-
     // Step 1: Check if we have an OTP for this email
     const storedData = otpStorage.get(email);
 
     if (!storedData) {
-        console.log(`❌ No OTP found for ${email}`);
-        console.log(`📋 Current OTP storage:`, Array.from(otpStorage.keys()));
         return {
             valid: false,
             message: "No OTP found. Please request a new one."
         };
     }
-
-    console.log(`✅ Found stored data for ${email}`);
-    console.log(`🔍 Stored OTP: "${storedData.otp}" (length: ${storedData.otp?.length})`);
-    console.log(`🕐 OTP created at: ${new Date(storedData.timestamp).toISOString()}`);
 
     // Step 2: Check if OTP is not expired (10 minutes limit)
     const currentTime = Date.now();
@@ -64,7 +55,6 @@ export const verifyOTP = (email, userEnteredOTP) => {
 
     if (otpAge > tenMinutes) {
         otpStorage.delete(email); // Remove expired OTP
-        console.log(`OTP expired for ${email}`);
         return {
             valid: false,
             message: "OTP has expired. Please request a new one."
@@ -72,18 +62,11 @@ export const verifyOTP = (email, userEnteredOTP) => {
     }
 
     // Step 3: Check if the OTP matches
-    console.log(`🔍 Comparing OTPs:`);
-    console.log(`   Stored: "${storedData.otp}" (type: ${typeof storedData.otp})`);
-    console.log(`   Entered: "${userEnteredOTP}" (type: ${typeof userEnteredOTP})`);
-    console.log(`   Equal? ${storedData.otp === userEnteredOTP}`);
-    console.log(`   Loose Equal? ${storedData.otp == userEnteredOTP}`);
-
     if (storedData.otp === userEnteredOTP) {
         // Success! OTP is correct
         const userData = storedData.userData; // Get the user's registration data
         otpStorage.delete(email); // Remove used OTP
 
-        console.log(`✅ OTP verified successfully for ${email}`);
         return {
             valid: true,
             userData: userData,
@@ -91,7 +74,6 @@ export const verifyOTP = (email, userEnteredOTP) => {
         };
     }
 
-    console.log(`❌ Invalid OTP attempt for ${email}`);
     return {
         valid: false,
         message: "Invalid OTP. Please try again."
@@ -103,11 +85,6 @@ export const sendVerificationEmail = async (email, otp) => {
     try {
         const apiKey = process.env.API_KEY;
 
-        console.log('API Key check:', {
-            hasApiKey: !!apiKey,
-            keyLength: apiKey?.length,
-            keyPrefix: apiKey?.substring(0, 10) + '...'
-        });
 
         if (!apiKey) {
             console.error('API_KEY not found in environment variables');
@@ -204,11 +181,6 @@ export const WelcomeEmail = async (email, firstname) => {
     try {
         const apiKey = process.env.API_KEY;
 
-        console.log('📧 API Key status:', {
-            hasApiKey: !!apiKey,
-            keyLength: apiKey?.length
-        });
-        console.log('📧 Preparing to send welcome email to:', email, 'Name:', firstname);
 
         if (!apiKey) {
             console.error('API_KEY not found in environment variables');
@@ -401,22 +373,15 @@ setInterval(() => {
 
 
 export const VerifyForgetOtp = (email: string, userEnteredOTP: string) => {
-    console.log(`🔍 Verifying forgot password OTP for ${email}`);
-    console.log(`🔍 User entered: "${userEnteredOTP}" (length: ${userEnteredOTP?.length})`);
-
     // Step 1: Check if we have an OTP for this email
     const storedData = ForgetStore.get(email);
 
     if (!storedData) {
-        console.log(`❌ No forgot password OTP found for ${email}`);
         return {
             valid: false,
             message: "No OTP found. Please request a new password reset."
         };
     }
-
-    console.log(`✅ Found stored forget OTP data for ${email}`);
-    console.log(`🔍 Stored OTP: "${storedData.otp}" (length: ${storedData.otp?.length})`);
 
     // Step 2: Check if OTP is not expired (10 minutes limit)
     const currentTime = Date.now();
@@ -425,7 +390,6 @@ export const VerifyForgetOtp = (email: string, userEnteredOTP: string) => {
 
     if (otpAge > tenMinutes) {
         ForgetStore.delete(email); // Remove expired OTP
-        console.log(`OTP expired for ${email}`);
         return {
             valid: false,
             message: "OTP has expired. Please request a new password reset."
@@ -435,7 +399,6 @@ export const VerifyForgetOtp = (email: string, userEnteredOTP: string) => {
     // Step 3: Check if the OTP matches
     if (storedData.otp === userEnteredOTP) {
         // Success! OTP is correct - don't delete yet, will delete after password reset
-        console.log(`✅ Forgot password OTP verified successfully for ${email}`);
         return {
             valid: true,
             email: email,
@@ -443,7 +406,6 @@ export const VerifyForgetOtp = (email: string, userEnteredOTP: string) => {
         };
     }
 
-    console.log(`❌ Invalid forgot password OTP attempt for ${email}`);
     return {
         valid: false,
         message: "Invalid OTP. Please try again."

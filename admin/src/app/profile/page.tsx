@@ -288,7 +288,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   )}
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">{user?.firstName} {user?.lastName}</h2>
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1 break-words px-2">{user?.firstName} {user?.lastName}</h2>
                   <p className="text-slate-600 text-sm px-2 py-1 bg-slate-100 rounded-full inline-block">{user?.role}</p>
                   
                   {stats.averageRating > 0 && (
@@ -308,9 +308,9 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="mt-6 space-y-3 border-t border-slate-200 pt-4">
-                  <div className="flex items-center text-sm text-slate-600 space-x-3">
-                    <EnvelopeIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <span className="truncate">{user?.email}</span>
+                  <div className="flex items-start text-sm text-slate-600 space-x-3 min-w-0">
+                    <EnvelopeIcon className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                    <span className="break-all min-w-0 flex-1">{user?.email}</span>
                   </div>
                   <div className="flex items-center text-sm text-slate-600 space-x-3">
                     <CalendarIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />

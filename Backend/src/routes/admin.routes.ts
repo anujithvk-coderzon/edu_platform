@@ -8,9 +8,7 @@ import { authMiddleware, adminOnly } from '../middleware/auth';
 // Import multer configuration
 import { upload, upload_avatar } from '../multer/multer';
 
-// Import CDN utilities
-import { Upload_Files, Delete_File } from '../utils/CDN_management';
-import prisma from '../DB/DB_Config';
+// Import CDN utilities (only needed for imports, actual CDN logic is in controllers now)
 
 // Import controller functions
 import {
@@ -78,6 +76,7 @@ import {
   UploadSingleFile,
   UploadMultipleFiles,
   UploadAvatar,
+  UploadAdminAvatar,
   UploadCourseThumbnail,
   UploadMaterial,
   DeleteUploadedFile,
@@ -504,88 +503,7 @@ router.post('/uploads/single', authMiddleware, upload.single('file'), asyncHandl
 router.post('/uploads/multiple', authMiddleware, upload.array('files', 5), asyncHandler(UploadMultipleFiles));
 
 // Avatar upload with CDN and old avatar deletion
-router.post('/uploads/avatar', authMiddleware, upload_avatar, asyncHandler(async (req: express.Request, res: express.Response) => {
-  const authReq = req as any;
-  const userId = authReq.user?.id;
-
-  if (!userId) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Unauthorized' }
-    });
-  }
-
-  if (!req.file) {
-    return res.status(400).json({
-      success: false,
-      error: { message: 'No avatar file uploaded' }
-    });
-  }
-
-  try {
-    // Get current admin to check for existing avatar
-    const currentAdmin = await prisma.admin.findUnique({
-      where: { id: userId },
-      select: { avatar: true }
-    });
-
-    // Upload new avatar to CDN
-    console.log('☁️ Uploading new avatar to CDN');
-    const avatarUrl = await Upload_Files('avatars', req.file);
-
-    if (!avatarUrl) {
-      return res.status(500).json({
-        success: false,
-        error: { message: 'Failed to upload avatar to CDN' }
-      });
-    }
-
-    // Delete old avatar from CDN if it exists
-    if (currentAdmin?.avatar) {
-      try {
-        console.log('🗑️ Deleting old avatar from CDN:', currentAdmin.avatar);
-        const deleted = await Delete_File(currentAdmin.avatar);
-        if (deleted) {
-          console.log('✅ Successfully deleted old avatar');
-        } else {
-          console.log('⚠️ Failed to delete old avatar');
-        }
-      } catch (error) {
-        console.error('❌ Error deleting old avatar:', error);
-      }
-    }
-
-    // Update admin avatar in database
-    const updatedAdmin = await prisma.admin.update({
-      where: { id: userId },
-      data: { avatar: avatarUrl },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        avatar: true,
-        role: true,
-        updatedAt: true
-      }
-    });
-
-    res.json({
-      success: true,
-      data: {
-        user: updatedAdmin,
-        url: avatarUrl
-      },
-      message: 'Avatar uploaded successfully'
-    });
-  } catch (error) {
-    console.error('Avatar upload error:', error);
-    return res.status(500).json({
-      success: false,
-      error: { message: 'Failed to upload avatar' }
-    });
-  }
-}));
+router.post('/uploads/avatar', authMiddleware, upload_avatar, asyncHandler(UploadAdminAvatar));
 
 // Course thumbnail upload
 router.post('/uploads/course-thumbnail', authMiddleware, upload.single('thumbnail'), asyncHandler(UploadCourseThumbnail));

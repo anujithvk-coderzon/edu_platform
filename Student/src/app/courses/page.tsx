@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
@@ -50,7 +50,7 @@ interface Course {
 }
 
 
-export default function CoursesPage() {
+function CoursesContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
@@ -618,5 +618,17 @@ export default function CoursesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CoursesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-slate-600">Loading courses...</div>
+      </div>
+    }>
+      <CoursesContent />
+    </Suspense>
   );
 }

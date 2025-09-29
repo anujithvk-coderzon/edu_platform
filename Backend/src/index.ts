@@ -97,7 +97,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 app.use(cors({
-  origin: ["admin-anujiths-projects-2abc7e3a.vercel.app", "http://localhost:3001", "http://localhost:3002"], 
+  origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"], 
   credentials: true
 }))
 

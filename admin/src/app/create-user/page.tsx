@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
+import { api } from '../../lib/api';
 import {
   UserPlusIcon,
   EyeIcon,
@@ -50,17 +51,9 @@ export default function CreateUserPage() {
     setSuccess(null);
 
     try {
-      const response = await fetch('http://localhost:4000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await api.auth.register(formData);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         setSuccess(`${formData.role} account created successfully!`);
         // Reset form
         setFormData({
@@ -71,10 +64,10 @@ export default function CreateUserPage() {
           role: 'Tutor'
         });
       } else {
-        setError(data.error?.message || 'Failed to create user account');
+        setError(response.error?.message || 'Failed to create user account');
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Network error. Please try again.');
       console.error('Create user error:', err);
     } finally {
       setLoading(false);

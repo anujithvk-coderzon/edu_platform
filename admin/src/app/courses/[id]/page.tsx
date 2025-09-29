@@ -83,7 +83,7 @@ export default function CourseViewPage() {
   const [error, setError] = useState('');
   const [expandedMaterials, setExpandedMaterials] = useState<Set<string>>(new Set());
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:4000';
+  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
   useEffect(() => {
     loadCourseData();

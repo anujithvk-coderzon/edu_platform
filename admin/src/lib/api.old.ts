@@ -1,12 +1,6 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { ApiResponse, PaginatedResponse } from '../types/api';
 import { env } from '../config/env';
-
-interface RequestConfig {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: any;
-  credentials?: RequestCredentials;
-}
 
 interface ErrorResponse {
   error?: {
@@ -18,8 +12,6 @@ interface ErrorResponse {
     }>;
   };
 }
-
-const API_BASE_URL = env.ADMIN_API_URL;
 
 class ApiClient {
   private baseURL: string;
@@ -33,7 +25,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-
+    
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -52,11 +44,11 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-
+      
       // Check if response is JSON
       const contentType = response.headers.get('content-type');
       let data;
-
+      
       if (contentType && contentType.includes('application/json')) {
         try {
           data = await response.json();
@@ -77,18 +69,18 @@ class ApiClient {
         if (endpoint === '/auth/me' && response.status === 401) {
           return data;
         }
-
+        
         // Enhanced error handling for different response types
         const errorResponse = data as ErrorResponse;
-
+        
         // If validation failed, include details in the error
         if (errorResponse.error?.message === 'Validation failed' && errorResponse.error?.details) {
-          const validationDetails = errorResponse.error.details.map((detail: any) =>
+          const validationDetails = errorResponse.error.details.map((detail: any) => 
             `${detail.path || detail.param}: ${detail.msg}`
           ).join(', ');
           throw new Error(`Validation failed: ${validationDetails}`);
         }
-
+        
         // Handle different HTTP status codes
         switch (response.status) {
           case 401:
@@ -100,25 +92,30 @@ class ApiClient {
           case 429:
             throw new Error('Too many requests. Please try again later.');
           case 500:
-            throw new Error('Internal server error. Please try again later.');
+            throw new Error('Server error. Please try again later.');
           default:
             throw new Error(errorResponse.error?.message || `HTTP error! status: ${response.status}`);
         }
       }
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error(`Network error for ${url}:`, error);
+        throw new Error(`Network error: Unable to connect to server. Please check your connection.`);
+      }
+      
       // For auth/me endpoint, don't log 401 errors as they're expected
-      if (!(endpoint === '/auth/me' && error.message?.includes('401'))) {
+      if (!(endpoint === '/auth/me' && error?.message?.includes('401'))) {
         console.error(`API Error (${url}):`, error);
       }
       throw error;
     }
   }
 
-  async get<T = any>(endpoint: string, params?: any): Promise<T> {
-    const query = params ? `?${new URLSearchParams(params)}` : '';
-    return this.request<T>(`${endpoint}${query}`, { method: 'GET' });
+  async get<T = any>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' });
   }
 
   async post<T = any>(endpoint: string, data?: any): Promise<T> {
@@ -136,7 +133,7 @@ class ApiClient {
   }
 
   async delete<T = any>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
+    return this.request<T>(endpoint, { 
       method: 'DELETE',
       body: data ? JSON.stringify(data) : undefined,
     });
@@ -214,7 +211,7 @@ class ApiClient {
     enroll: (courseId: string) => this.post<ApiResponse>('/enrollments/enroll', { courseId }),
     getMy: () => this.get<ApiResponse>('/enrollments/my-enrollments'),
     getProgress: (courseId: string) => this.get<ApiResponse>(`/enrollments/progress/${courseId}`),
-    updateStatus: (enrollmentId: string, status: string) =>
+    updateStatus: (enrollmentId: string, status: string) => 
       this.put<ApiResponse>(`/enrollments/${enrollmentId}/status`, { status }),
     cancel: (enrollmentId: string) => this.delete<ApiResponse>(`/enrollments/${enrollmentId}`),
   };
@@ -334,6 +331,16 @@ class ApiClient {
     }) => this.put<ApiResponse>(`/assignments/submissions/${submissionId}/grade`, data),
 
     delete: (id: string) => this.delete<ApiResponse>(`/assignments/${id}`)
+  };
+
+  // Admin endpoints
+  admin = {
+    getStudents: (params?: { page?: number; limit?: number; search?: string }) =>
+      this.get<PaginatedResponse>(`/students?${new URLSearchParams(params as any || {})}`),
+    getStudentsCount: () => this.get<ApiResponse>('/students/count'),
+    createUser: (data: any) => this.post<ApiResponse>('/users', data),
+    getUsers: (params?: { page?: number; limit?: number; role?: string }) =>
+      this.get<PaginatedResponse>(`/users?${new URLSearchParams(params as any || {})}`),
   };
 }
 

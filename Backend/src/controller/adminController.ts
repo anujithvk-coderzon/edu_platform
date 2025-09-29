@@ -29,6 +29,68 @@ const GenerateToken = (userId: string, type: 'admin' | 'student' = 'admin') => {
   );
 };
 
+// Helper function to safely delete a course and its related resources
+const safeDeleteCourse = async (courseId: string, reason?: string) => {
+  try {
+    console.log(`🗑️ Attempting to delete course ${courseId}${reason ? ` - Reason: ${reason}` : ''}`);
+
+    // Get course details first
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        materials: true,
+        modules: true,
+        assignments: true,
+        enrollments: true
+      }
+    });
+
+    if (!course) {
+      console.log(`❌ Course ${courseId} not found for deletion`);
+      return false;
+    }
+
+    // Check if course has enrollments - if yes, don't delete for safety
+    if (course.enrollments.length > 0) {
+      console.log(`⚠️ Course ${courseId} has ${course.enrollments.length} enrollments, skipping deletion for safety`);
+      return false;
+    }
+
+    // Delete associated CDN files
+    for (const material of course.materials) {
+      if (material.fileUrl) {
+        try {
+          await Delete_File(material.fileUrl);
+          console.log(`✅ Deleted material file: ${material.fileUrl}`);
+        } catch (error) {
+          console.error(`❌ Failed to delete material file ${material.fileUrl}:`, error);
+        }
+      }
+    }
+
+    // Delete thumbnail from CDN
+    if (course.thumbnail) {
+      try {
+        await Delete_File(course.thumbnail);
+        console.log(`✅ Deleted course thumbnail: ${course.thumbnail}`);
+      } catch (error) {
+        console.error(`❌ Failed to delete course thumbnail ${course.thumbnail}:`, error);
+      }
+    }
+
+    // Delete the course (cascade will handle related records)
+    await prisma.course.delete({
+      where: { id: courseId }
+    });
+
+    console.log(`✅ Successfully deleted course ${courseId}`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Error deleting course ${courseId}:`, error);
+    return false;
+  }
+};
+
 // ===== AUTH CONTROLLERS =====
 export const BootstrapAdmin = async (req: express.Request, res: express.Response) => {
   try {
@@ -687,7 +749,6 @@ export const GetUserById = async (req: AuthRequest, res: express.Response) => {
             createdCourses: true,
             materials: true,
             assignments: true,
-            announcements: true
           }
         }
       }
@@ -1222,46 +1283,55 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
       }
     }
 
-    const course = await prisma.course.create({
-      data: {
-        title,
-        description,
-        price: parseFloat(price),
-        duration: duration ? parseInt(duration) : null,
-        level,
-        ...(categoryId && { categoryId }),
-        thumbnail,
-        tutorName: tutorName || `${req.user!.firstName} ${req.user!.lastName}`,
-        creatorId: req.user!.id,
-        ...(tutorId && { tutorId }), // Save the assigned tutor ID
-        status: CourseStatus.DRAFT
-      },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            email: true
-          }
+    // Use a transaction to ensure atomicity
+    const course = await prisma.$transaction(async (tx) => {
+      // Create the course within the transaction
+      const newCourse = await tx.course.create({
+        data: {
+          title,
+          description,
+          price: parseFloat(price),
+          duration: duration ? parseInt(duration) : null,
+          level,
+          ...(categoryId && { categoryId }),
+          thumbnail,
+          tutorName: tutorName || `${req.user!.firstName} ${req.user!.lastName}`,
+          creatorId: req.user!.id,
+          ...(tutorId && { tutorId }), // Save the assigned tutor ID
+          status: CourseStatus.DRAFT,
+          requirements,
+          prerequisites: objectives
         },
-        tutor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatar: true,
-            email: true
-          }
-        },
-        category: {
-          select: {
-            id: true,
-            name: true
+        include: {
+          creator: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              email: true
+            }
+          },
+          tutor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatar: true,
+              email: true
+            }
+          },
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
           }
         }
-      }
+      });
+
+      // If the course creation fails, the transaction will automatically rollback
+      return newCourse;
     });
 
     return res.status(201).json({
@@ -4399,6 +4469,110 @@ export const UploadAdminAvatar = async (req: AuthRequest, res: express.Response)
     return res.status(500).json({
       success: false,
       error: { message: 'Failed to upload avatar' }
+    });
+  }
+};
+
+// ===== COURSE CLEANUP CONTROLLER =====
+export const CleanupOrphanedCourses = async (req: AuthRequest, res: express.Response) => {
+  try {
+
+    // Find courses that might be orphaned:
+    // 1. DRAFT status with no materials and created more than 1 hour ago
+    // 2. DRAFT status with no thumbnail and created more than 1 hour ago
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    const potentialOrphans = await prisma.course.findMany({
+      where: {
+        AND: [
+          { status: CourseStatus.DRAFT },
+          { createdAt: { lt: oneHourAgo } },
+          {
+            OR: [
+              { materials: { none: {} } }, // No materials
+              { thumbnail: null }, // No thumbnail
+              { thumbnail: "" } // Empty thumbnail
+            ]
+          }
+        ]
+      },
+      include: {
+        materials: true,
+        enrollments: true,
+        _count: {
+          select: {
+            materials: true,
+            enrollments: true
+          }
+        }
+      }
+    });
+
+    const cleanupResults = [];
+    let deletedCount = 0;
+    let skippedCount = 0;
+
+    for (const course of potentialOrphans) {
+      const reason = [];
+
+      if (course._count.materials === 0) {
+        reason.push("no materials");
+      }
+
+      if (!course.thumbnail) {
+        reason.push("no thumbnail");
+      }
+
+      if (course._count.enrollments > 0) {
+        skippedCount++;
+        cleanupResults.push({
+          courseId: course.id,
+          title: course.title,
+          status: 'skipped',
+          reason: 'Has enrollments - too dangerous to delete'
+        });
+        continue;
+      }
+
+      const deleted = await safeDeleteCourse(course.id, reason.join(", "));
+
+      if (deleted) {
+        deletedCount++;
+        cleanupResults.push({
+          courseId: course.id,
+          title: course.title,
+          status: 'deleted',
+          reason: reason.join(", ")
+        });
+      } else {
+        skippedCount++;
+        cleanupResults.push({
+          courseId: course.id,
+          title: course.title,
+          status: 'failed',
+          reason: 'Deletion failed'
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        summary: {
+          totalFound: potentialOrphans.length,
+          deleted: deletedCount,
+          skipped: skippedCount
+        },
+        details: cleanupResults
+      },
+      message: `Cleanup completed: ${deletedCount} courses deleted, ${skippedCount} skipped`
+    });
+
+  } catch (error) {
+    console.error('CleanupOrphanedCourses error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error during cleanup' }
     });
   }
 };

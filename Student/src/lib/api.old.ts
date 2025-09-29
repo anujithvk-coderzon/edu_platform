@@ -2,7 +2,7 @@ import { ApiResponse, PaginatedResponse } from '../types/api';
 import { studentStorage } from '../utils/storage';
 import { env } from '../config/env';
 
-const API_BASE_URL = env.STUDENT_API_URL;
+const API_BASE_URL = env.API_URL;
 
 class ApiClient {
   private baseURL: string;
@@ -166,7 +166,7 @@ class ApiClient {
     enroll: (courseId: string) => this.post<ApiResponse>('/enrollments/enroll', { courseId }),
     getMy: () => this.get<ApiResponse>('/enrollments/my-enrollments'),
     getProgress: (courseId: string) => this.get<ApiResponse>(`/enrollments/progress/${courseId}`),
-    updateStatus: (enrollmentId: string, status: string) =>
+    updateStatus: (enrollmentId: string, status: string) => 
       this.put<ApiResponse>(`/enrollments/${enrollmentId}/status`, { status }),
     cancel: (enrollmentId: string) => this.delete<ApiResponse>(`/enrollments/${enrollmentId}`),
   };

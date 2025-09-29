@@ -164,7 +164,7 @@ export default function RegisterPage() {
 
   const checkEmailExists = async (email: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/check-email`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/check-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -280,7 +280,7 @@ export default function RegisterPage() {
   const sendEmailVerification = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/verify-email`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/verify-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -310,7 +310,7 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/register`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -402,7 +402,7 @@ export default function RegisterPage() {
 
       console.log('📤 Request data:', requestData);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/register`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -463,7 +463,7 @@ export default function RegisterPage() {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/resend-otp`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/resend-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -509,7 +509,7 @@ export default function RegisterPage() {
       console.log('   OTP length:', requestBody.otp?.length);
       console.log('   OTP type:', typeof requestBody.otp);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/student'}/auth/verify-otp`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

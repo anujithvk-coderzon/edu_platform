@@ -29,10 +29,6 @@ enum MaterialType {
   LINK
 }
 
-enum UserRole {
-  ADMIN
-  STUDENT
-}
 
 enum AssignmentStatus {
   PENDING
@@ -58,7 +54,6 @@ model Admin {
   assignedCourses Course[] @relation("CourseTutor")
   materials     Material[]
   assignments   Assignment[]
-  announcements Announcement[]
 
   @@map("admins")
 }
@@ -88,8 +83,6 @@ model Student {
   enrollments Enrollment[]
   submissions AssignmentSubmission[]
   progress    Progress[]
-  discussions DiscussionPost[]
-  quizAttempts QuizAttempt[]
   reviews     Review[]
 
   @@map("students")
@@ -121,9 +114,6 @@ model Course {
   modules      CourseModule[]
   materials    Material[]
   assignments  Assignment[]
-  announcements Announcement[]
-  quizzes      Quiz[]
-  tags         CourseTag[]
   reviews      Review[]
 
   @@map("courses")
@@ -248,85 +238,6 @@ model AssignmentSubmission {
   @@map("assignment_submissions")
 }
 
-model Quiz {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  timeLimit   Int? // in minutes
-  maxAttempts Int      @default(1)
-  courseId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  course    Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  questions QuizQuestion[]
-  attempts  QuizAttempt[]
-
-  @@map("quizzes")
-}
-
-model QuizQuestion {
-  id            String   @id @default(cuid())
-  question      String
-  options       String // JSON string for SQLite
-  correctAnswer String
-  explanation   String?
-  points        Float    @default(1)
-  quizId        String
-  createdAt     DateTime @default(now())
-
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
-
-  @@map("quiz_questions")
-}
-
-model QuizAttempt {
-  id          String   @id @default(cuid())
-  answers     String // JSON string for SQLite
-  score       Float?
-  completedAt DateTime?
-  quizId      String
-  studentId   String
-  createdAt   DateTime @default(now())
-
-  quiz    Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@map("quiz_attempts")
-}
-
-model DiscussionPost {
-  id        String   @id @default(cuid())
-  title     String?
-  content   String
-  parentId  String?
-  courseId  String?
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  author   Student           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parent   DiscussionPost?   @relation("PostReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies  DiscussionPost[]  @relation("PostReplies")
-
-  @@map("discussion_posts")
-}
-
-model Announcement {
-  id        String   @id @default(cuid())
-  title     String
-  content   String
-  courseId  String
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  author Admin  @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@map("announcements")
-}
-
 model Review {
   id        String   @id @default(cuid())
   rating    Int // 1-5
@@ -341,25 +252,4 @@ model Review {
 
   @@unique([courseId, studentId])
   @@map("reviews")
-}
-
-model Tag {
-  id        String      @id @default(cuid())
-  name      String      @unique
-  createdAt DateTime    @default(now())
-
-  courses CourseTag[]
-
-  @@map("tags")
-}
-
-model CourseTag {
-  courseId String
-  tagId    String
-
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([courseId, tagId])
-  @@map("course_tags")
 }

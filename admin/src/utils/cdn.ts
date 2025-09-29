@@ -2,7 +2,9 @@
  * Utility functions for CDN URL construction
  */
 
-const CDN_HOST = process.env.NEXT_PUBLIC_BUNNY_PULL_ZONE_HOST || 'coderzon-edu.b-cdn.net';
+import { env } from '../config/env';
+
+const CDN_HOST = env.CDN_HOST;
 
 /**
  * Constructs a full CDN URL from a relative path

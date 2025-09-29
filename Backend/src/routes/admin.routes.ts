@@ -40,6 +40,7 @@ import {
   UpdateCourse,
   PublishCourse,
   DeleteCourse,
+  CleanupOrphanedCourses,
 
   // Category Management Controllers
   GetAllCategories,
@@ -328,6 +329,9 @@ router.put('/courses/:id/publish', authMiddleware, adminOnly, PublishCourse);
 
 // Delete course
 router.delete('/courses/:id', authMiddleware, adminOnly, DeleteCourse);
+
+// Cleanup orphaned courses
+router.post('/courses/cleanup', authMiddleware, CleanupOrphanedCourses);
 
 // ===== CATEGORY MANAGEMENT ROUTES =====
 

@@ -959,7 +959,7 @@ export default function CourseEditPage() {
                               if (course.thumbnail?.startsWith('/uploads/')) {
                                 const filename = course.thumbnail.split('/').pop();
                                 if (filename) {
-                                  await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'}/uploads/file/${filename}`, {
+                                  await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/uploads/file/${filename}`, {
                                     method: 'DELETE',
                                     credentials: 'include'
                                   });

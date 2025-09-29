@@ -25,6 +25,7 @@ import StarRating from '@/components/ui/StarRating';
 import CourseReview from '@/components/CourseReview';
 import CourseReviews from '@/components/CourseReviews';
 import { getImageUrl } from '@/utils/imageUtils';
+import { getCdnUrl } from '@/utils/cdn';
 
 interface Course {
   id: string;
@@ -294,7 +295,7 @@ export default function CourseDetailPage() {
                 <div className="flex items-center">
                   {course.creator.avatar ? (
                     <img
-                      src={course.creator.avatar}
+                      src={getCdnUrl(course.creator.avatar) || ''}
                       alt={`${course.creator.firstName} ${course.creator.lastName}`}
                       className="h-12 w-12 rounded-full border-2 border-slate-200"
                     />
@@ -354,9 +355,16 @@ export default function CourseDetailPage() {
                 <div className="aspect-video bg-slate-100 rounded-lg flex items-center justify-center mb-6 relative overflow-hidden">
                   {course.thumbnail ? (
                     <img
-                      src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
+                      src={getImageUrl(course.thumbnail)}
                       alt={course.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Failed to load thumbnail in course detail page:', getImageUrl(course.thumbnail));
+                        console.error('Original thumbnail value:', course.thumbnail);
+                      }}
+                      onLoad={() => {
+                        console.log('Successfully loaded thumbnail in course detail page:', getImageUrl(course.thumbnail));
+                      }}
                     />
                   ) : (
                     <BookOpenIcon className="h-16 w-16 text-slate-400" />

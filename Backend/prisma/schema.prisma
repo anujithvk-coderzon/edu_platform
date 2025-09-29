@@ -1,5 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -54,6 +55,7 @@ model Admin {
 
   // Admin relations
   createdCourses Course[] @relation("CourseCreator")
+  assignedCourses Course[] @relation("CourseTutor")
   materials     Material[]
   assignments   Assignment[]
   announcements Announcement[]
@@ -104,6 +106,7 @@ model Course {
   status      CourseStatus @default(DRAFT)
   isPublic    Boolean      @default(false)
   creatorId   String
+  tutorId     String? // Assigned tutor (can be different from creator)
   categoryId  String?
   tutorName     String? // Display name for the tutor/organization
   requirements  String[] @default([])
@@ -112,6 +115,7 @@ model Course {
   updatedAt     DateTime @updatedAt
 
   creator      Admin          @relation("CourseCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  tutor        Admin?         @relation("CourseTutor", fields: [tutorId], references: [id], onDelete: SetNull)
   category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   enrollments  Enrollment[]
   modules      CourseModule[]

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
-import { 
+import {
   UserIcon,
   AcademicCapIcon,
   StarIcon,
@@ -15,12 +15,15 @@ import {
   PencilIcon,
   MapPinIcon,
   GlobeAltIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  CameraIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 import { User, Course } from '../../types/api';
+import { getCdnUrl } from '../../utils/cdn';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -34,10 +37,23 @@ export default function ProfilePage() {
     joinDate: ''
   });
   const [loading, setLoading] = useState(true);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchProfileData();
   }, []);
+
+  // Clean up blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (avatarPreview && avatarPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
 
   const fetchProfileData = async () => {
     try {
@@ -79,6 +95,85 @@ export default function ProfilePage() {
       console.error('Error fetching profile data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        toast.error('File size must be less than 5MB');
+        return;
+      }
+
+      setSelectedAvatarFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!selectedAvatarFile) {
+      toast.error('Please select an avatar image');
+      return;
+    }
+
+    try {
+      setAvatarUploading(true);
+
+      const response = await api.uploads.avatar(selectedAvatarFile);
+
+      if (response.success) {
+        toast.success('Avatar updated successfully!');
+
+        // Update user state with new avatar
+        setUser(prev => prev ? {
+          ...prev,
+          avatar: response.data.user.avatar
+        } : null);
+
+        // Clear preview and selected file
+        setAvatarPreview('');
+        setSelectedAvatarFile(null);
+
+        // Reset file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } else {
+        toast.error(response.error?.message || 'Failed to upload avatar');
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      toast.error('Failed to upload avatar');
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
+  const handleAvatarCancel = () => {
+    setSelectedAvatarFile(null);
+    setAvatarPreview('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -137,13 +232,62 @@ export default function ProfilePage() {
             <Card className="bg-white shadow-sm border border-slate-200">
               <CardContent className="p-4 sm:p-6">
                 <div className="text-center">
-                  <div className="h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt="Profile" className="h-full w-full rounded-full object-cover" />
-                    ) : (
-                      <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600" />
-                    )}
+                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-4">
+                    <div className="h-full w-full rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                      {avatarPreview ? (
+                        <img
+                          src={avatarPreview}
+                          alt="Avatar Preview"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : user?.avatar ? (
+                        <img
+                          src={getCdnUrl(user.avatar) || ''}
+                          alt="Profile"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600" />
+                      )}
+                    </div>
+                    <button
+                      onClick={handleAvatarClick}
+                      className="absolute -bottom-1 -right-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-1.5 shadow-lg transition-colors duration-200"
+                      type="button"
+                    >
+                      <CameraIcon className="h-3 w-3" />
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      className="hidden"
+                    />
                   </div>
+
+                  {/* Avatar Upload Actions */}
+                  {selectedAvatarFile && (
+                    <div className="mb-4 space-y-2">
+                      <p className="text-sm text-slate-600">Selected: {selectedAvatarFile.name}</p>
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          onClick={handleAvatarUpload}
+                          disabled={avatarUploading}
+                          className="text-xs px-3 py-1"
+                        >
+                          {avatarUploading ? 'Uploading...' : 'Upload'}
+                        </Button>
+                        <Button
+                          onClick={handleAvatarCancel}
+                          variant="outline"
+                          className="text-xs px-3 py-1"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">{user?.firstName} {user?.lastName}</h2>
                   <p className="text-slate-600 text-sm px-2 py-1 bg-slate-100 rounded-full inline-block">{user?.role}</p>
                   

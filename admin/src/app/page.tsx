@@ -19,14 +19,13 @@ import toast from 'react-hot-toast';
 
 interface DashboardStats {
   totalCourses: number;
-  activeStudents: number; // Unique students
-  totalEnrollments: number; // Total enrollments for comparison
+  totalStudents: number; // Total students in database
+  totalEnrollments: number; // Total enrollments count
   totalEarnings: number;
-  monthlyViews: number;
   coursesProgress: number;
   studentsProgress: number;
   earningsProgress: number;
-  viewsProgress: number;
+  enrollmentsProgress: number;
 }
 
 interface DashboardData {
@@ -43,14 +42,13 @@ const Page = () => {
     user: null,
     stats: {
       totalCourses: 0,
-      activeStudents: 0,
+      totalStudents: 0,
       totalEnrollments: 0,
       totalEarnings: 0,
-      monthlyViews: 0,
       coursesProgress: 0,
       studentsProgress: 0,
       earningsProgress: 0,
-      viewsProgress: 0
+      enrollmentsProgress: 0
     },
     myCourses: [],
     recentActivities: []
@@ -67,52 +65,56 @@ const Page = () => {
         const userResponse = await api.auth.getMe();
         if (userResponse.success) {
           const currentUser = userResponse.data.user;
-          
+
           // Get tutor's courses
           const coursesResponse = await api.courses.getMyCourses();
+
+          // Get proper student count from new endpoint
+          let totalStudentsCount = 0;
+          try {
+            const studentsCountResponse = await api.admin.getStudentsCount();
+            console.log('📊 Students count response:', studentsCountResponse);
+
+            if (studentsCountResponse.success && studentsCountResponse.data?.studentsCount !== undefined) {
+              totalStudentsCount = studentsCountResponse.data.studentsCount;
+              console.log(`✅ Successfully fetched student count: ${totalStudentsCount}`);
+            } else {
+              console.log('⚠️ Students count response missing data, using fallback');
+            }
+          } catch (error) {
+            console.error('❌ Error fetching students count:', error);
+            console.log('🔄 Using enrollment-based fallback count');
+          }
+
           if (coursesResponse.success) {
             const courses = coursesResponse.data.courses || [];
-            
-            // Calculate UNIQUE students (the correct way!)
-            const uniqueStudentIds = new Set<string>();
-            let totalEnrollments = 0;
 
+            // Calculate total enrollments for comparison
+            let totalEnrollments = 0;
             courses.forEach((course: any) => {
               totalEnrollments += course._count?.enrollments || 0;
-              // If course has enrollment data with student IDs, collect unique students
-              if (course.enrollments && Array.isArray(course.enrollments)) {
-                course.enrollments.forEach((enrollment: any) => {
-                  if (enrollment.studentId) {
-                    uniqueStudentIds.add(enrollment.studentId);
-                  }
-                });
-              }
             });
 
-            const totalUniqueStudents = uniqueStudentIds.size;
+            console.log(`🎯 Final student count: ${totalStudentsCount}, Total enrollments: ${totalEnrollments}`);
+
             // Since there's no payment system implemented yet, earnings should be 0
             const totalEarnings = 0;
-            
-            // Calculate progress percentages based on dynamic goals (using unique students!)
-            const courseGoal = Math.max(10, courses.length * 2);
-            const studentGoal = Math.max(50, totalUniqueStudents * 2); // Goal based on unique students
-            const earningsGoal = 1000; // Static goal since no payment system
-            const viewsGoal = Math.max(200, totalUniqueStudents * 4); // Views per unique student
 
-            // Calculate monthly views based on unique student engagement
-            const avgViewsPerStudent = courses.length > 0 ? 3 : 0; // More views per unique student
-            const monthlyViews = Math.floor(totalUniqueStudents * avgViewsPerStudent);
-            
+            // Calculate progress percentages based on dynamic goals
+            const courseGoal = Math.max(10, courses.length * 2);
+            const studentGoal = Math.max(50, totalStudentsCount * 2); // Goal based on total students
+            const earningsGoal = 1000; // Static goal since no payment system
+            const enrollmentsGoal = Math.max(100, totalEnrollments * 2); // Goal based on total enrollments
+
             const stats: DashboardStats = {
               totalCourses: courses.length,
-              activeStudents: totalUniqueStudents, // Using unique students now!
-              totalEnrollments: totalEnrollments, // Track total enrollments separately
+              totalStudents: totalStudentsCount, // Using total students from database
+              totalEnrollments: totalEnrollments, // Track total enrollments
               totalEarnings: totalEarnings,
-              monthlyViews: monthlyViews,
               coursesProgress: Math.min((courses.length / courseGoal) * 100, 100),
-              studentsProgress: Math.min((totalUniqueStudents / studentGoal) * 100, 100), // Using unique students
+              studentsProgress: Math.min((totalStudentsCount / studentGoal) * 100, 100), // Using total students
               earningsProgress: Math.min((totalEarnings / earningsGoal) * 100, 100),
-              viewsProgress: Math.min((monthlyViews / viewsGoal) * 100, 100)
+              enrollmentsProgress: Math.min((totalEnrollments / enrollmentsGoal) * 100, 100)
             };
 
             setData({
@@ -292,11 +294,8 @@ const Page = () => {
                     <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.activeStudents}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Unique Students</div>
-                    <div className="text-xs text-slate-500">
-                      {stats.totalEnrollments} total enrollments
-                    </div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalStudents}</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Students</div>
                   </div>
                 </div>
               </div>
@@ -318,11 +317,11 @@ const Page = () => {
               <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <ChartBarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                    <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.monthlyViews}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Monthly Views</div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalEnrollments}</div>
+                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Enrollments</div>
                   </div>
                 </div>
               </div>

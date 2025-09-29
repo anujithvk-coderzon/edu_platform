@@ -4,13 +4,12 @@ import path from "path";
 export const Upload_Files = async (folder: string, file: Express.Multer.File): Promise<string | null> => {
   const Api_key = process.env.BUNNY_API_KEY;
   const StorageZone = process.env.BUNNY_STORAGE_ZONE;
-  const PullZoneHost = process.env.BUNNY_PULL_ZONE_HOST;
 
   const startTime = Date.now();
 
   try {
     if (!file) return null;
-    if (!Api_key || !StorageZone || !PullZoneHost) {
+    if (!Api_key || !StorageZone) {
       throw new Error("Bunny Storage environment variables not set");
     }
 
@@ -65,8 +64,8 @@ export const Upload_Files = async (folder: string, file: Express.Multer.File): P
       const uploadTime = ((Date.now() - startTime) / 1000).toFixed(2);
       const avgSpeed = (file.size / (1024 * 1024) / parseFloat(uploadTime)).toFixed(2);
       console.log(`✅ Upload completed in ${uploadTime}s (avg ${avgSpeed} MB/s)`);
-      console.log(`📁 File URL: https://${PullZoneHost}/${remotePath}`);
-      return `https://${PullZoneHost}/${remotePath}`;
+      console.log(`📁 File path stored: ${remotePath}`);
+      return remotePath; // Return only the relative path
     } else {
       console.error(`❌ Upload failed with status ${response.status}: ${response.statusText}`);
       return null;
@@ -92,17 +91,19 @@ export const Upload_Files = async (folder: string, file: Express.Multer.File): P
 };
 
 
-export const Delete_File = async (folder:string,file) => {
+export const Delete_File = async (filePath: string): Promise<boolean> => {
   const Api_key = process.env.BUNNY_API_KEY;
   const StorageZone = process.env.BUNNY_STORAGE_ZONE;
 
   try {
-    if (!file) throw new Error("No remote path provided");
+    if (!filePath) throw new Error("No file path provided");
     if (!Api_key || !StorageZone) {
       throw new Error("Bunny Storage environment variables not set");
     }
-     const filename=path.basename(file)
-    const url = `https://storage.bunnycdn.com/${StorageZone}/${folder}/${filename}`;
+
+    // filePath should already be in format "folder/filename"
+    const url = `https://storage.bunnycdn.com/${StorageZone}/${filePath}`;
+    console.log(`🗑️ Attempting to delete: ${filePath}`);
 
     await axios.delete(url, {
       headers: {
@@ -110,9 +111,10 @@ export const Delete_File = async (folder:string,file) => {
       },
     });
 
+    console.log(`✅ Successfully deleted: ${filePath}`);
     return true;
   } catch (error: any) {
-    console.error("Bunny delete error:", error.response?.data || error.message);
+    console.error(`❌ Failed to delete ${filePath}:`, error.response?.data || error.message);
     return false;
   }
 };

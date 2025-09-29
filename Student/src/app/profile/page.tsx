@@ -11,6 +11,7 @@ import {
   KeyIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { getCdnUrl } from '@/utils/cdn';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -181,11 +182,7 @@ export default function ProfilePage() {
                   />
                 ) : profileData.avatar ? (
                   <img
-                    src={
-                      profileData.avatar.startsWith('http')
-                        ? profileData.avatar
-                        : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/student', '') || 'http://localhost:4000'}${profileData.avatar}`
-                    }
+                    src={getCdnUrl(profileData.avatar) || ''}
                     alt="Avatar"
                     className="h-full w-full object-cover"
                   />

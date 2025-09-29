@@ -945,18 +945,20 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
     let whereClause: any = {};
 
     if (userRole === "Admin") {
-      // Admin can see all courses
+      // Admin has complete access - can see ALL courses regardless of creator/tutor
       whereClause = {};
     } else if (userRole === "Tutor") {
-      // Tutor can see courses they created or are assigned to
+      // Tutor can ONLY see:
+      // 1. Courses they created (creatorId = their ID)
+      // 2. Courses assigned to them by admin (tutorId = their ID)
       whereClause = {
         OR: [
-          { creatorId: userId },
-          { tutorId: userId }
+          { creatorId: userId },  // Courses they created
+          { tutorId: userId }     // Courses assigned to them by admin
         ]
       };
     } else {
-      // Students see only courses they created (if any)
+      // Other roles (like students) can only see courses they created (if any)
       whereClause = { creatorId: userId };
     }
 
@@ -970,6 +972,14 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
           }
         },
         creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        tutor: {
           select: {
             id: true,
             firstName: true,
@@ -1046,11 +1056,22 @@ export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
 export const GetCourseById = async (req: AuthRequest, res: express.Response) => {
   try {
     const { id } = req.params;
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
 
+    // First check if course exists
     const course = await prisma.course.findUnique({
       where: { id },
       include: {
         creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        tutor: {
           select: {
             id: true,
             firstName: true,
@@ -1112,6 +1133,18 @@ export const GetCourseById = async (req: AuthRequest, res: express.Response) => 
         error: { message: 'Course not found' }
       });
     }
+
+    // Access control: Tutors can only access courses they created or are assigned to
+    if (userRole === "Tutor") {
+      const hasAccess = course.creatorId === userId || course.tutorId === userId;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Access denied. You can only view courses you created or are assigned to.' }
+        });
+      }
+    }
+    // Admins have access to all courses (no additional check needed)
 
     const avgRating = await prisma.review.aggregate({
       where: { courseId: course.id },
@@ -1200,10 +1233,20 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
         thumbnail,
         tutorName: tutorName || `${req.user!.firstName} ${req.user!.lastName}`,
         creatorId: req.user!.id,
+        ...(tutorId && { tutorId }), // Save the assigned tutor ID
         status: CourseStatus.DRAFT
       },
       include: {
         creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            email: true
+          }
+        },
+        tutor: {
           select: {
             id: true,
             firstName: true,
@@ -1298,11 +1341,15 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (existingCourse.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to update this course' }
-      });
+    // Access control: Admin can edit any course, Tutors can only edit courses they created or are assigned to
+    if (req.user!.role !== "Admin") {
+      const hasAccess = existingCourse.creatorId === req.user!.id || existingCourse.tutorId === req.user!.id;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Access denied. You can only edit courses you created or are assigned to.' }
+        });
+      }
     }
 
     const course = await prisma.course.update({
@@ -1354,11 +1401,15 @@ export const PublishCourse = async (req: AuthRequest, res: express.Response) => 
       });
     }
 
-    if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to publish this course' }
-      });
+    // Access control: Admin can publish any course, Tutors can publish courses they created or are assigned to
+    if (req.user!.role !== "Admin") {
+      const hasAccess = course.creatorId === req.user!.id || course.tutorId === req.user!.id;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to publish this course' }
+        });
+      }
     }
 
     if (course.status === CourseStatus.PUBLISHED) {
@@ -1426,11 +1477,25 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
         title: true,
         thumbnail: true, // Explicitly select thumbnail for deletion
         creatorId: true,
+        tutorId: true, // Add tutorId for access control
         materials: {
           select: {
             id: true,
             fileUrl: true,
             type: true
+          }
+        },
+        assignments: {
+          select: {
+            id: true,
+            title: true,
+            submissions: {
+              select: {
+                id: true,
+                fileUrl: true,
+                studentId: true
+              }
+            }
           }
         },
         enrollments: {
@@ -1453,11 +1518,15 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to delete this course' }
-      });
+    // Access control: Admin can delete any course, Tutors can delete courses they created or are assigned to
+    if (req.user!.role !== "Admin") {
+      const hasAccess = course.creatorId === req.user!.id || course.tutorId === req.user!.id;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to delete this course' }
+        });
+      }
     }
 
     // Check for active enrollments (not completed)
@@ -1477,28 +1546,86 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
       .filter(material => material.fileUrl && material.type !== 'LINK')
       .map(material => material.fileUrl!);
 
-    let deletedFilesCount = 0;
+    let deletedMaterialsCount = 0;
     for (const fileUrl of materialFileUrls) {
-      const deleted = await Delete_File('materials', fileUrl);
-      if (deleted) deletedFilesCount++;
+      try {
+        // fileUrl should already be in format "folder/filename"
+        const deleted = await Delete_File(fileUrl);
+        if (deleted) {
+          deletedMaterialsCount++;
+          console.log(`✅ Deleted material: ${fileUrl}`);
+        } else {
+          console.log(`⚠️ Failed to delete material: ${fileUrl}`);
+        }
+      } catch (err) {
+        console.error(`❌ Error deleting material file: ${fileUrl}`, err);
+      }
     }
-    console.log(`🗑️ Deleted ${deletedFilesCount} material files for course: ${course.title}`);
+    console.log(`🗑️ Deleted ${deletedMaterialsCount}/${materialFileUrls.length} material files for course: ${course.title}`);
+
+    // Delete all assignment submission files from CDN
+    let deletedSubmissionsCount = 0;
+    let totalSubmissionFiles = 0;
+    for (const assignment of course.assignments) {
+      const submissionFiles = assignment.submissions.filter(sub => sub.fileUrl);
+      totalSubmissionFiles += submissionFiles.length;
+
+      for (const submission of submissionFiles) {
+        if (submission.fileUrl) {
+          try {
+            // fileUrl should already be in format "folder/filename"
+            const deleted = await Delete_File(submission.fileUrl);
+            if (deleted) {
+              deletedSubmissionsCount++;
+              console.log(`✅ Deleted assignment submission: ${submission.fileUrl}`);
+            } else {
+              console.log(`⚠️ Failed to delete submission: ${submission.fileUrl}`);
+            }
+          } catch (err) {
+            console.error(`❌ Error deleting submission file: ${submission.fileUrl}`, err);
+          }
+        }
+      }
+    }
+    if (totalSubmissionFiles > 0) {
+      console.log(`📄 Deleted ${deletedSubmissionsCount}/${totalSubmissionFiles} assignment submission files`);
+    }
 
     // Delete course thumbnail from CDN if it exists
     if (course.thumbnail) {
-      const thumbnailDeleted = await Delete_File('images', course.thumbnail);
-      console.log(`🖼️ Course thumbnail deletion: ${thumbnailDeleted ? 'SUCCESS' : 'FAILED'} - ${course.thumbnail}`);
+      try {
+        // thumbnail should already be in format "folder/filename"
+        const thumbnailDeleted = await Delete_File(course.thumbnail);
+        if (thumbnailDeleted) {
+          console.log(`🖼️ Successfully deleted thumbnail: ${course.thumbnail}`);
+        } else {
+          console.log(`⚠️ Failed to delete thumbnail: ${course.thumbnail}`);
+        }
+      } catch (err) {
+        console.error(`❌ Error deleting thumbnail: ${course.thumbnail}`, err);
+      }
     } else {
       console.log(`📝 No thumbnail to delete for course: ${course.title}`);
     }
 
+    // Now delete the course from database (this will cascade delete related records)
     await prisma.course.delete({
       where: { id }
     });
 
+    const deletionSummary = {
+      courseName: course.title,
+      deletedMaterials: `${deletedMaterialsCount}/${materialFileUrls.length}`,
+      deletedSubmissions: `${deletedSubmissionsCount}/${totalSubmissionFiles}`,
+      thumbnailDeleted: course.thumbnail ? 'Yes' : 'N/A'
+    };
+
+    console.log('📊 Course deletion summary:', deletionSummary);
+
     return res.json({
       success: true,
-      message: 'Course and all associated files deleted successfully'
+      message: 'Course and all associated files deleted successfully',
+      summary: deletionSummary
     });
   } catch (error) {
     console.error('DeleteCourse error:', error);
@@ -1855,11 +1982,15 @@ export const CreateModule = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (course.creatorId !== userId && userRole !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to add modules to this course' }
-      });
+    // Access control: Admin can add modules to any course, Tutors can add modules to courses they created or are assigned to
+    if (userRole !== "Admin") {
+      const hasAccess = course.creatorId === userId || course.tutorId === userId;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to add modules to this course' }
+        });
+      }
     }
 
     const module = await prisma.courseModule.create({
@@ -1918,7 +2049,10 @@ export const UpdateModule = async (req: AuthRequest, res: express.Response) => {
       where: { id },
       include: {
         course: {
-          select: { creatorId: true }
+          select: {
+            creatorId: true,
+            tutorId: true
+          }
         }
       }
     });
@@ -1930,11 +2064,15 @@ export const UpdateModule = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (existingModule.course.creatorId !== userId && userRole !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to update this module' }
-      });
+    // Access control: Admin can update any module, Tutors can update modules in courses they created or are assigned to
+    if (userRole !== "Admin") {
+      const hasAccess = existingModule.course.creatorId === userId || existingModule.course.tutorId === userId;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to update this module' }
+        });
+      }
     }
 
     const module = await prisma.courseModule.update({
@@ -1982,7 +2120,10 @@ export const DeleteModule = async (req: AuthRequest, res: express.Response) => {
       where: { id },
       include: {
         course: {
-          select: { creatorId: true }
+          select: {
+            creatorId: true,
+            tutorId: true
+          }
         },
         _count: {
           select: { materials: true }
@@ -1997,11 +2138,15 @@ export const DeleteModule = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    if (module.course.creatorId !== userId && userRole !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to delete this module' }
-      });
+    // Access control: Admin can delete any module, Tutors can delete modules in courses they created or are assigned to
+    if (userRole !== "Admin") {
+      const hasAccess = module.course.creatorId === userId || module.course.tutorId === userId;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to delete this module' }
+        });
+      }
     }
 
     if (module._count.materials > 0) {
@@ -2236,11 +2381,15 @@ export const CreateMaterial = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to add materials to this course' }
-      });
+    // Access control: Admin can add materials to any course, Tutors can add materials to courses they created or are assigned to
+    if (req.user!.role !== "Admin") {
+      const hasAccess = course.creatorId === req.user!.id || course.tutorId === req.user!.id;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to add materials to this course' }
+        });
+      }
     }
 
     if (type === MaterialType.LINK && !fileUrl) {
@@ -2332,7 +2481,8 @@ export const UpdateMaterial = async (req: AuthRequest, res: express.Response) =>
       include: {
         course: {
           select: {
-            creatorId: true
+            creatorId: true,
+            tutorId: true
           }
         }
       }
@@ -2345,11 +2495,15 @@ export const UpdateMaterial = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    if (existingMaterial.course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to update this material' }
-      });
+    // Access control: Admin can update materials in any course, Tutors can update materials in courses they created or are assigned to
+    if (req.user!.role !== "Admin") {
+      const hasAccess = existingMaterial.course.creatorId === req.user!.id || existingMaterial.course.tutorId === req.user!.id;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to update this material' }
+        });
+      }
     }
 
     const material = await prisma.material.update({
@@ -2395,7 +2549,8 @@ export const DeleteMaterial = async (req: AuthRequest, res: express.Response) =>
       include: {
         course: {
           select: {
-            creatorId: true
+            creatorId: true,
+            tutorId: true
           }
         }
       }
@@ -2408,16 +2563,20 @@ export const DeleteMaterial = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    if (material.course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'Not authorized to delete this material' }
-      });
+    // Access control: Admin can delete materials from any course, Tutors can delete materials from courses they created or are assigned to
+    if (req.user!.role !== "Admin") {
+      const hasAccess = material.course.creatorId === req.user!.id || material.course.tutorId === req.user!.id;
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Not authorized to delete this material' }
+        });
+      }
     }
 
     // Delete the file from CDN if it exists
     if (material.fileUrl && material.type !== 'LINK') {
-      await Delete_File('materials', material.fileUrl);
+      await Delete_File(material.fileUrl);
     }
 
     // Delete the material from database
@@ -2450,7 +2609,8 @@ export const CompleteMaterial = async (req: AuthRequest, res: express.Response) 
         courseId: true,
         course: {
           select: {
-            creatorId: true
+            creatorId: true,
+            tutorId: true
           }
         }
       }
@@ -2790,7 +2950,8 @@ export const UpdateEnrollmentStatus = async (req: AuthRequest, res: express.Resp
       include: {
         course: {
           select: {
-            creatorId: true
+            creatorId: true,
+            tutorId: true
           }
         }
       }
@@ -3153,7 +3314,7 @@ export const UploadCourseThumbnail = async (req: AuthRequest, res: express.Respo
 
       // Delete old thumbnail from CDN if it exists
       if (currentCourse?.thumbnail) {
-        await Delete_File('images', currentCourse.thumbnail);
+        await Delete_File(currentCourse.thumbnail);
       }
 
       await prisma.course.update({
@@ -3237,11 +3398,15 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
         });
       }
 
-      if (course.creatorId !== req.user!.id && req.user!.role !== "Admin") {
-        return res.status(403).json({
-          success: false,
-          error: { message: 'Not authorized to upload materials for this course' }
-        });
+      // Access control: Admin can upload to any course, Tutors can upload to courses they created or are assigned to
+      if (req.user!.role !== "Admin") {
+        const hasAccess = course.creatorId === req.user!.id || course.tutorId === req.user!.id;
+        if (!hasAccess) {
+          return res.status(403).json({
+            success: false,
+            error: { message: 'Not authorized to upload materials for this course' }
+          });
+        }
       }
     }
 
@@ -3341,7 +3506,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
   try {
     const tutorId = req.user!.id;
     
-    // Get tutor's courses with enrollment counts
+    // Get tutor's courses with enrollment counts and reviews
     const courses = await prisma.course.findMany({
       where: {
         creatorId: tutorId
@@ -3355,6 +3520,11 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
           }
         },
         materials: true,
+        reviews: {
+          select: {
+            rating: true
+          }
+        },
         enrollments: {
           select: {
             id: true,
@@ -3381,7 +3551,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
       const materialCount = course.materials.length;
       const studentCount = course._count.enrollments;
       const reviewCount = course._count.reviews;
-      
+
       // Calculate completion rate for this course based on progressPercentage
       let completionRate = 0;
       if (studentCount > 0) {
@@ -3389,6 +3559,14 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
           return sum + enrollment.progressPercentage;
         }, 0);
         completionRate = totalProgressPercentage / studentCount;
+      }
+
+      // Calculate average rating for this course
+      let courseRating = 0;
+      if (course.reviews.length > 0) {
+        const totalRating = course.reviews.reduce((sum, review) => sum + review.rating, 0);
+        courseRating = totalRating / course.reviews.length;
+        weightedRating += totalRating; // Add to overall weighted rating
       }
 
       totalMaterials += materialCount * studentCount;
@@ -3406,7 +3584,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         title: course.title,
         students: studentCount,
         revenue: 0, // No payment system implemented yet
-        rating: 0, // Would need to calculate from reviews
+        rating: Math.round(courseRating * 10) / 10, // Round to 1 decimal place
         completionRate: Math.round(completionRate * 100) / 100,
         materials: materialCount,
         enrollments: [
@@ -3435,6 +3613,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
       },
       students: {
         total: totalStudents,
+        enrollments: totalStudents, // Total enrollments count (same as total students for now)
         thisMonth: thisMonthStudents,
         lastMonth: lastMonthStudents,
         growth: lastMonthStudents > 0 ? ((thisMonthStudents - lastMonthStudents) / lastMonthStudents) * 100 : 0
@@ -3446,7 +3625,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         archived: courses.filter(c => c.status === CourseStatus.ARCHIVED).length
       },
       engagement: {
-        totalViews: totalStudents * 2, // Estimate based on student engagement
+        totalEnrollments: totalStudents, // Total enrollment count
         avgRating: totalReviews > 0 ? weightedRating / totalReviews : 0,
         totalReviews: totalReviews,
         completionRate: Math.round(overallCompletionRate * 100) / 100
@@ -3839,6 +4018,304 @@ export const UploadAssignmentFile = async (req: AuthRequest, res: express.Respon
     return res.status(500).json({
       success: false,
       error: { message: 'Failed to upload assignment file.' }
+    });
+  }
+};
+
+// ===== STUDENT MANAGEMENT CONTROLLERS =====
+
+export const GetStudentsCount = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const studentsCount = await prisma.student.count();
+    return res.status(200).json({
+      success: true,
+      data: {
+        studentsCount
+      }
+    });
+  } catch (error) {
+    console.error('Get students count error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to get students count.' }
+    });
+  }
+};
+
+export const GetAllStudents = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const adminId = req.user.id;
+
+    // Get admin's courses to find students enrolled in those courses
+    const adminCourses = await prisma.course.findMany({
+      where: { creatorId: adminId },
+      select: { id: true }
+    });
+
+    const courseIds = adminCourses.map(course => course.id);
+
+    if (courseIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          students: [],
+          stats: {
+            totalStudents: 0,
+            activeStudents: 0,
+            newThisMonth: 0,
+            averageProgress: 0,
+            topPerformers: 0,
+            totalRevenue: 0
+          }
+        }
+      });
+    }
+
+    // Get all students enrolled in admin's courses with comprehensive data
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        courseId: { in: courseIds }
+      },
+      include: {
+        student: true,
+        course: {
+          include: {
+            _count: {
+              select: {
+                materials: true,
+                assignments: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Group enrollments by student
+    const studentMap = new Map();
+
+    enrollments.forEach(enrollment => {
+      const studentId = enrollment.student.id;
+
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          id: enrollment.student.id,
+          firstName: enrollment.student.firstName,
+          lastName: enrollment.student.lastName,
+          email: enrollment.student.email,
+          avatar: enrollment.student.avatar,
+          joinedAt: enrollment.student.createdAt.toISOString(),
+          lastActive: enrollment.student.updatedAt.toISOString(),
+          enrollments: [],
+          totalCourses: 0,
+          completedCourses: 0,
+          totalSpentHours: 0,
+          totalMaterials: 0,
+          completedMaterials: 0,
+          totalAssignments: 0,
+          submittedAssignments: 0,
+          gradedAssignments: 0
+        });
+      }
+
+      const student = studentMap.get(studentId);
+      student.enrollments.push({
+        courseId: enrollment.courseId,
+        courseTitle: enrollment.course.title,
+        enrolledAt: enrollment.enrolledAt.toISOString(),
+        status: enrollment.status,
+        progressPercentage: enrollment.progressPercentage,
+        totalMaterials: enrollment.course._count.materials,
+        totalAssignments: enrollment.course._count.assignments,
+        completedMaterials: 0, // Will be calculated later
+        submittedAssignments: 0, // Will be calculated later
+        gradedAssignments: 0, // Will be calculated later
+        completedMaterialsList: [], // Will be populated later
+        submittedAssignmentsList: [] // Will be populated later
+      });
+
+      student.totalMaterials += enrollment.course._count.materials;
+      student.totalAssignments += enrollment.course._count.assignments;
+    });
+
+    // Calculate additional statistics for each student
+    const students = await Promise.all(Array.from(studentMap.values()).map(async (student) => {
+      // Calculate actual time spent from Progress records
+      const progressRecords = await prisma.progress.findMany({
+        where: {
+          studentId: student.id,
+          courseId: { in: student.enrollments.map((e: any) => e.courseId) }
+        }
+      });
+
+      student.totalSpentHours = Math.round(progressRecords.reduce((sum, p) => sum + p.timeSpent, 0) / 60); // Convert minutes to hours
+      student.totalCourses = student.enrollments.length;
+      student.completedCourses = student.enrollments.filter((e: any) => e.status === 'COMPLETED').length;
+
+      // Calculate detailed progress for each enrollment
+      for (const enrollment of student.enrollments) {
+        // Get completed materials for this specific course
+        const completedProgressData = await prisma.progress.findMany({
+          where: {
+            studentId: student.id,
+            courseId: enrollment.courseId,
+            isCompleted: true,
+            materialId: { not: null }
+          },
+          orderBy: {
+            lastAccessed: 'desc'
+          }
+        });
+
+        // Get material details for completed materials
+        const materialIds = completedProgressData.map(p => p.materialId).filter(Boolean);
+        const materials = await prisma.material.findMany({
+          where: {
+            id: { in: materialIds }
+          },
+          include: {
+            module: {
+              select: {
+                id: true,
+                title: true,
+                orderIndex: true
+              }
+            }
+          }
+        });
+
+        // Create a map for quick material lookup
+        const materialMap = new Map(materials.map(m => [m.id, m]));
+
+        enrollment.completedMaterials = completedProgressData.length;
+        enrollment.completedMaterialsList = completedProgressData.map(progress => {
+          const material = materialMap.get(progress.materialId!);
+          return {
+            id: material?.id || '',
+            title: material?.title || '',
+            type: material?.type || '',
+            completedAt: progress.lastAccessed.toISOString(),
+            chapter: material?.module ? {
+              id: material.module.id,
+              title: material.module.title,
+              orderIndex: material.module.orderIndex
+            } : null
+          };
+        });
+
+        // Get submitted assignments for this specific course
+        const submittedAssignmentsData = await prisma.assignmentSubmission.findMany({
+          where: {
+            studentId: student.id,
+            assignment: {
+              courseId: enrollment.courseId
+            }
+          },
+          include: {
+            assignment: {
+              select: {
+                id: true,
+                title: true,
+                maxScore: true
+              }
+            }
+          },
+          orderBy: {
+            submittedAt: 'desc'
+          }
+        });
+
+        enrollment.submittedAssignments = submittedAssignmentsData.length;
+        enrollment.gradedAssignments = submittedAssignmentsData.filter(sub => sub.score !== null).length;
+        enrollment.submittedAssignmentsList = submittedAssignmentsData.map(submission => ({
+          id: submission.id,
+          assignmentId: submission.assignment.id,
+          title: submission.assignment.title,
+          submittedAt: submission.submittedAt.toISOString(),
+          status: submission.score !== null ? 'GRADED' : 'SUBMITTED',
+          score: submission.score,
+          maxScore: submission.assignment.maxScore
+        }));
+      }
+
+      // Calculate overall totals
+      const completedMaterials = await prisma.progress.count({
+        where: {
+          studentId: student.id,
+          courseId: { in: student.enrollments.map((e: any) => e.courseId) },
+          isCompleted: true
+        }
+      });
+
+      const submittedAssignments = await prisma.assignmentSubmission.count({
+        where: {
+          studentId: student.id,
+          assignment: {
+            courseId: { in: student.enrollments.map((e: any) => e.courseId) }
+          }
+        }
+      });
+
+      const gradedAssignments = await prisma.assignmentSubmission.count({
+        where: {
+          studentId: student.id,
+          assignment: {
+            courseId: { in: student.enrollments.map((e: any) => e.courseId) }
+          },
+          score: { not: null }
+        }
+      });
+
+      student.completedMaterials = completedMaterials;
+      student.submittedAssignments = submittedAssignments;
+      student.gradedAssignments = gradedAssignments;
+
+      return student;
+    }));
+
+    // Calculate statistics
+    const totalStudents = students.length;
+    const activeStudents = students.filter(s =>
+      s.enrollments.some((e: any) => e.status === 'ACTIVE')
+    ).length;
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const newThisMonth = students.filter(s =>
+      new Date(s.joinedAt) > oneMonthAgo
+    ).length;
+
+    const totalProgress = students.reduce((sum, s) =>
+      sum + s.enrollments.reduce((enrollmentSum: number, e: any) => enrollmentSum + e.progressPercentage, 0), 0
+    );
+    const totalEnrollments = students.reduce((sum, s) => sum + s.enrollments.length, 0);
+    const averageProgress = totalEnrollments > 0 ? totalProgress / totalEnrollments : 0;
+
+    const topPerformers = students.filter(s =>
+      s.enrollments.some((e: any) => e.progressPercentage > 80)
+    ).length;
+
+    const stats = {
+      totalStudents,
+      activeStudents,
+      newThisMonth,
+      averageProgress: Math.round(averageProgress),
+      topPerformers,
+      totalRevenue: 0 // No payment system implemented yet
+    };
+
+    res.json({
+      success: true,
+      data: {
+        students,
+        stats
+      }
+    });
+  } catch (error) {
+    console.error('Get all students error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch students.' }
     });
   }
 };

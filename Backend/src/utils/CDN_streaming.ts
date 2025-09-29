@@ -1,18 +1,15 @@
 import axios from "axios";
-import path from "path";
-import FormData from 'form-data';
 import { Readable } from 'stream';
 
 export const Upload_Files_Stream = async (folder: string, file: Express.Multer.File): Promise<string | null> => {
   const Api_key = process.env.BUNNY_API_KEY;
   const StorageZone = process.env.BUNNY_STORAGE_ZONE;
-  const PullZoneHost = process.env.BUNNY_PULL_ZONE_HOST;
 
   const startTime = Date.now();
 
   try {
     if (!file) return null;
-    if (!Api_key || !StorageZone || !PullZoneHost) {
+    if (!Api_key || !StorageZone) {
       throw new Error("Bunny Storage environment variables not set");
     }
 
@@ -64,8 +61,8 @@ export const Upload_Files_Stream = async (folder: string, file: Express.Multer.F
       const uploadTime = ((Date.now() - startTime) / 1000).toFixed(2);
       const avgSpeed = (file.size / (1024 * 1024) / parseFloat(uploadTime)).toFixed(2);
       console.log(`✅ Upload completed in ${uploadTime}s (avg ${avgSpeed} MB/s)`);
-      console.log(`📁 File URL: https://${PullZoneHost}/${remotePath}`);
-      return `https://${PullZoneHost}/${remotePath}`;
+      console.log(`📁 File path stored: ${remotePath}`);
+      return remotePath; // Return only the relative path
     } else {
       console.error(`❌ Upload failed with status ${response.status}: ${response.statusText}`);
       return null;

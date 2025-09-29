@@ -26,6 +26,7 @@ import {
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '@/utils/imageUtils';
+import { getCdnUrl } from '@/utils/cdn';
 
 interface Material {
   id: string;
@@ -467,7 +468,7 @@ export default function LearnPage() {
               <video
                 controls
                 className="w-full md:w-5/6 h-auto rounded-lg mx-auto max-h-80 md:max-h-none"
-                src={currentMaterial.fileUrl}
+                src={getCdnUrl(currentMaterial.fileUrl) || ''}
                 controlsList="nodownload"
                 onContextMenu={(e) => e.preventDefault()}
                 onKeyDown={(e) => {
@@ -494,7 +495,7 @@ export default function LearnPage() {
             {currentMaterial.fileUrl ? (
               <div className="w-full max-w-4xl lg:mx-auto">
                 <iframe
-                  src={`${currentMaterial.fileUrl}#toolbar=0&navpanes=0&scrollbar=1&statusbar=1&zoom=1&view=FitH`}
+                  src={`${getCdnUrl(currentMaterial.fileUrl)}#toolbar=0&navpanes=0&scrollbar=1&statusbar=1&zoom=1&view=FitH`}
                   className="w-full h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
                 />
 
@@ -517,7 +518,8 @@ export default function LearnPage() {
           return url.split('.').pop()?.toLowerCase() || '';
         };
 
-        const fileExtension = getFileExtension(currentMaterial.fileUrl || '');
+        const materialUrl = getCdnUrl(currentMaterial.fileUrl) || '';
+        const fileExtension = getFileExtension(materialUrl);
         const isOfficeDocument = ['xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'].includes(fileExtension);
 
         return (
@@ -527,13 +529,13 @@ export default function LearnPage() {
                 {isOfficeDocument ? (
                   // Office documents - use Google Docs Viewer or Office Online
                   <iframe
-                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(currentMaterial.fileUrl)}`}
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(materialUrl)}`}
                     className="w-full h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
                   />
                 ) : (
                   // Other documents - try direct iframe
                   <iframe
-                    src={`${currentMaterial.fileUrl}#toolbar=0&navpanes=0&scrollbar=1&statusbar=1&zoom=1&view=FitH`}
+                    src={`${materialUrl}#toolbar=0&navpanes=0&scrollbar=1&statusbar=1&zoom=1&view=FitH`}
                     className="w-full h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
                   />
                 )}
@@ -544,7 +546,7 @@ export default function LearnPage() {
                     {isOfficeDocument ? 'Excel/Word/PowerPoint Document' : 'Document'} ({fileExtension.toUpperCase()})
                   </p>
                   <a
-                    href={currentMaterial.fileUrl}
+                    href={materialUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -583,7 +585,7 @@ export default function LearnPage() {
                   }
                 }}
               >
-                <source src={currentMaterial.fileUrl} />
+                <source src={getCdnUrl(currentMaterial.fileUrl) || ''} />
                 Your browser does not support the audio tag.
               </audio>
             ) : (
@@ -600,7 +602,7 @@ export default function LearnPage() {
           <div className="bg-white border rounded-lg p-6">
             {currentMaterial.fileUrl ? (
               <img
-                src={currentMaterial.fileUrl}
+                src={getCdnUrl(currentMaterial.fileUrl) || ''}
                 alt={currentMaterial.title}
                 className="max-w-full h-auto rounded-lg"
                 onContextMenu={(e) => e.preventDefault()}
@@ -629,7 +631,7 @@ export default function LearnPage() {
                 <LinkIcon className="h-16 w-16 mx-auto mb-4 text-indigo-500" />
                 <h3 className="text-lg font-medium mb-4 text-slate-900">External Resource</h3>
                 <a
-                  href={currentMaterial.fileUrl}
+                  href={getCdnUrl(currentMaterial.fileUrl) || ''}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
@@ -1326,7 +1328,7 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
                 <div>
                   <h4 className="font-medium text-slate-900 mb-2">File Submission</h4>
                   <a
-                    href={getImageUrl(submission.fileUrl) || submission.fileUrl}
+                    href={getCdnUrl(submission.fileUrl) || submission.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"

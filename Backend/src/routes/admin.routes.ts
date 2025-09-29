@@ -6,7 +6,11 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 
 // Import multer configuration
-import { upload } from '../multer/multer';
+import { upload, upload_avatar } from '../multer/multer';
+
+// Import CDN utilities
+import { Upload_Files, Delete_File } from '../utils/CDN_management';
+import prisma from '../DB/DB_Config';
 
 // Import controller functions
 import {
@@ -81,7 +85,11 @@ import {
 
   // Analytics Controllers
   GetTutorAnalytics,
-  GetCourseCompletion
+  GetCourseCompletion,
+
+  // Student Management Controllers
+  GetStudentsCount,
+  GetAllStudents
 } from '../controller/adminController';
 
 // Import assignment controllers
@@ -206,15 +214,17 @@ router.put('/auth/change-password', authMiddleware,
 
 // ===== USER/STUDENT MANAGEMENT ROUTES =====
 
-// Get all students/users
+// Get students count
+router.get('/students/count', authMiddleware, adminOnly, GetStudentsCount);
+
+// Get all students
 router.get('/students', authMiddleware, adminOnly,
   [
     query('page').optional().isInt({ min: 1 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
-    query('role').optional().isIn(['ADMIN', 'STUDENT']),
     query('search').optional().isString(),
   ],
-  GetAllUsers
+  GetAllStudents
 );
 
 // Get student/user by ID
@@ -263,7 +273,7 @@ router.get('/tutors', authMiddleware, adminOnly, GetAllTutors);
 router.get('/courses/:id', authMiddleware, GetCourseById);
 
 // Create course
-router.post('/courses', authMiddleware, adminOnly,
+router.post('/courses', authMiddleware,
   [
     body('title').trim().isLength({ min: 1, max: 200 }),
     body('description').trim().isLength({ min: 10 }),
@@ -273,7 +283,7 @@ router.post('/courses', authMiddleware, adminOnly,
     body('categoryId').optional().isUUID(),
     body('thumbnail').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/.+|\/uploads\/.+)$/;
+        const urlRegex = /^(https?:\/\/.+|\/uploads\/.+|images\/.+|avatars\/.+|materials\/.+)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Thumbnail must be a valid URL');
         }
@@ -289,7 +299,7 @@ router.post('/courses', authMiddleware, adminOnly,
 );
 
 // Update course
-router.put('/courses/:id', authMiddleware, adminOnly,
+router.put('/courses/:id', authMiddleware,
   [
     param('id').isLength({ min: 1 }).withMessage('Course ID is required'),
     body('title').optional().trim().isLength({ min: 1, max: 200 }),
@@ -300,7 +310,7 @@ router.put('/courses/:id', authMiddleware, adminOnly,
     body('categoryId').optional().isUUID(),
     body('thumbnail').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/.+|\/uploads\/.+)$/;
+        const urlRegex = /^(https?:\/\/.+|\/uploads\/.+|images\/.+|avatars\/.+|materials\/.+)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Thumbnail must be a valid URL');
         }
@@ -408,7 +418,7 @@ router.post('/materials', authMiddleware, adminOnly,
     body('type').isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*)$/;
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }
@@ -433,7 +443,7 @@ router.put('/materials/:id', authMiddleware, adminOnly,
     body('type').optional().isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*)$/;
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }
@@ -493,8 +503,89 @@ router.post('/uploads/single', authMiddleware, upload.single('file'), asyncHandl
 // Multiple file upload
 router.post('/uploads/multiple', authMiddleware, upload.array('files', 5), asyncHandler(UploadMultipleFiles));
 
-// Avatar upload
-router.post('/uploads/avatar', authMiddleware, upload.single('avatar'), asyncHandler(UploadAvatar));
+// Avatar upload with CDN and old avatar deletion
+router.post('/uploads/avatar', authMiddleware, upload_avatar, asyncHandler(async (req: express.Request, res: express.Response) => {
+  const authReq = req as any;
+  const userId = authReq.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Unauthorized' }
+    });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'No avatar file uploaded' }
+    });
+  }
+
+  try {
+    // Get current admin to check for existing avatar
+    const currentAdmin = await prisma.admin.findUnique({
+      where: { id: userId },
+      select: { avatar: true }
+    });
+
+    // Upload new avatar to CDN
+    console.log('☁️ Uploading new avatar to CDN');
+    const avatarUrl = await Upload_Files('avatars', req.file);
+
+    if (!avatarUrl) {
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to upload avatar to CDN' }
+      });
+    }
+
+    // Delete old avatar from CDN if it exists
+    if (currentAdmin?.avatar) {
+      try {
+        console.log('🗑️ Deleting old avatar from CDN:', currentAdmin.avatar);
+        const deleted = await Delete_File(currentAdmin.avatar);
+        if (deleted) {
+          console.log('✅ Successfully deleted old avatar');
+        } else {
+          console.log('⚠️ Failed to delete old avatar');
+        }
+      } catch (error) {
+        console.error('❌ Error deleting old avatar:', error);
+      }
+    }
+
+    // Update admin avatar in database
+    const updatedAdmin = await prisma.admin.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        role: true,
+        updatedAt: true
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        user: updatedAdmin,
+        url: avatarUrl
+      },
+      message: 'Avatar uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to upload avatar' }
+    });
+  }
+}));
 
 // Course thumbnail upload
 router.post('/uploads/course-thumbnail', authMiddleware, upload.single('thumbnail'), asyncHandler(UploadCourseThumbnail));

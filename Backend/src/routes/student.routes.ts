@@ -12,7 +12,7 @@ import fs from 'fs';
 import prisma from '../DB/DB_Config';
 import { asyncHandler } from '../middleware/errorHandler';
 import { generateOTP, storeOTP, verifyOTP, sendVerificationEmail, WelcomeEmail, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
-import { Upload_Files } from '../utils/CDN_management';
+import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local } from '../utils/localStorage';
 
@@ -860,6 +860,21 @@ router.post('/uploads/avatar', upload_avatar, asyncHandler(async (req: express.R
       // Use Bunny CDN for production or when explicitly configured
       console.log('☁️ Using Bunny CDN storage for avatar');
       avatarUrl = await Upload_Files('avatars', req.file);
+    }
+
+    // Delete old avatar from CDN if it exists
+    if (currentStudent?.avatar) {
+      try {
+        console.log('🗑️ Deleting old avatar from CDN:', currentStudent.avatar);
+        const deleted = await Delete_File(currentStudent.avatar);
+        if (deleted) {
+          console.log('✅ Successfully deleted old avatar');
+        } else {
+          console.log('⚠️ Failed to delete old avatar');
+        }
+      } catch (error) {
+        console.error('❌ Error deleting old avatar:', error);
+      }
     }
 
     if (!avatarUrl) {

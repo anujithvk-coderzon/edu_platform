@@ -23,7 +23,13 @@ export const CreateAssignment = async (req: AuthRequest, res: Response) => {
     // Check course exists and user has permission
     const courseFilter = currentUser?.role === 'Admin'
       ? { id: courseId }
-      : { id: courseId, creatorId };
+      : {
+          id: courseId,
+          OR: [
+            { creatorId },        // Course they created
+            { tutorId: creatorId } // Course assigned to them
+          ]
+        };
 
     const course = await prisma.course.findFirst({
       where: courseFilter
@@ -91,7 +97,13 @@ export const GetCourseAssignments = async (req: AuthRequest, res: Response) => {
     // Check course exists and user has permission
     const courseFilter = currentUser?.role === 'Admin'
       ? { id: courseId }
-      : { id: courseId, creatorId: userId };
+      : {
+          id: courseId,
+          OR: [
+            { creatorId: userId },  // Course they created
+            { tutorId: userId }     // Course assigned to them
+          ]
+        };
 
     const course = await prisma.course.findFirst({
       where: courseFilter

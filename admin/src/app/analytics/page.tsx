@@ -14,7 +14,6 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   CalendarIcon,
-  EyeIcon,
   StarIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
@@ -43,7 +42,7 @@ interface AnalyticsData {
     archived: number;
   };
   engagement: {
-    totalViews: number;
+    totalEnrollments: number;
     avgRating: number;
     totalReviews: number;
     completionRate: number;
@@ -154,7 +153,7 @@ export default function AnalyticsPage() {
         revenue: { total: 0, thisMonth: 0, lastMonth: 0, growth: 0 },
         students: { total: 0, thisMonth: 0, lastMonth: 0, growth: 0 },
         courses: { total: 0, published: 0, draft: 0, archived: 0 },
-        engagement: { totalViews: 0, avgRating: 0, totalReviews: 0, completionRate: 0 }
+        engagement: { totalEnrollments: 0, avgRating: 0, totalReviews: 0, completionRate: 0 }
       });
       setCourseAnalytics([]);
       setRevenueData([]);
@@ -170,19 +169,6 @@ export default function AnalyticsPage() {
     }).format(amount);
   };
 
-  const formatGrowth = (growth: number) => {
-    const isPositive = growth >= 0;
-    return (
-      <div className={`flex items-center space-x-1 px-2 py-1 rounded text-xs font-medium ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-        {isPositive ? (
-          <ArrowUpIcon className="w-3 h-3" />
-        ) : (
-          <ArrowDownIcon className="w-3 h-3" />
-        )}
-        <span>{isPositive ? '+' : ''}{Math.abs(growth).toFixed(1)}%</span>
-      </div>
-    );
-  };
 
   if (loading) {
     return (
@@ -240,10 +226,6 @@ export default function AnalyticsPage() {
                   onChange={setSelectedPeriod}
                   className="min-w-[140px]"
                 />
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  Export Report
-                </Button>
               </div>
             </div>
           </div>
@@ -259,7 +241,6 @@ export default function AnalyticsPage() {
                     {formatCurrency(analytics.revenue.total)}
                   </div>
                   <p className="text-sm font-medium text-slate-600 mb-2">Total Revenue</p>
-                  {formatGrowth(analytics.revenue.growth)}
                 </div>
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <CurrencyDollarIcon className="w-5 h-5 text-green-600" />
@@ -275,11 +256,10 @@ export default function AnalyticsPage() {
                   <div className="text-2xl font-semibold text-slate-900 mb-1">
                     {analytics.students.total.toLocaleString()}
                   </div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">Unique Students</p>
+                  <p className="text-sm font-medium text-slate-600 mb-1">Total Students</p>
                   <p className="text-xs text-slate-500 mb-2">
                     {analytics.students.enrollments?.toLocaleString() || 0} total enrollments
                   </p>
-                  {formatGrowth(analytics.students.growth)}
                 </div>
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <UserGroupIcon className="w-5 h-5 text-blue-600" />
@@ -427,12 +407,12 @@ export default function AnalyticsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <EyeIcon className="w-4 h-4 text-blue-600" />
+                      <UserGroupIcon className="w-4 h-4 text-blue-600" />
                     </div>
-                    <span className="text-sm font-medium text-slate-700">Total Views</span>
+                    <span className="text-sm font-medium text-slate-700">Total Enrollments</span>
                   </div>
                   <span className="text-lg font-semibold text-slate-900">
-                    {analytics.engagement.totalViews.toLocaleString()}
+                    {analytics.engagement.totalEnrollments.toLocaleString()}
                   </span>
                 </div>
               </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import StarRating from './ui/StarRating';
 import { UserCircleIcon } from '@heroicons/react/24/outline';
+import { getCdnUrl } from '@/utils/cdn';
 
 interface ReviewData {
   id: string;
@@ -126,7 +127,7 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
                 <div className="flex-shrink-0">
                   {review.student.avatar ? (
                     <img
-                      src={review.student.avatar}
+                      src={getCdnUrl(review.student.avatar) || ''}
                       alt={`${review.student.firstName} ${review.student.lastName}`}
                       className="w-10 h-10 rounded-full object-cover"
                     />

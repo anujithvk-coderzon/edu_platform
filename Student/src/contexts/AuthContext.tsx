@@ -11,6 +11,8 @@ interface User {
   lastName: string;
   avatar?: string;
   isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextType {
@@ -44,7 +46,9 @@ const authApi = {
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
         avatar: response.data.user.avatar,
-        isVerified: response.data.user.isVerified
+        isVerified: response.data.user.isVerified,
+        createdAt: response.data.user.createdAt,
+        updatedAt: response.data.user.updatedAt
       };
       return user;
     }
@@ -60,7 +64,9 @@ const authApi = {
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
         avatar: response.data.user.avatar,
-        isVerified: response.data.user.isVerified
+        isVerified: response.data.user.isVerified,
+        createdAt: response.data.user.createdAt,
+        updatedAt: response.data.user.updatedAt
       };
       return user;
     }
@@ -77,7 +83,9 @@ const authApi = {
           firstName: response.data.user.firstName,
           lastName: response.data.user.lastName,
           avatar: response.data.user.avatar,
-          isVerified: response.data.user.isVerified
+          isVerified: response.data.user.isVerified,
+          createdAt: response.data.user.createdAt,
+          updatedAt: response.data.user.updatedAt
         };
         return user;
       }
@@ -103,7 +111,9 @@ const authApi = {
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
         avatar: response.data.user.avatar,
-        isVerified: response.data.user.isVerified
+        isVerified: response.data.user.isVerified,
+        createdAt: response.data.user.createdAt,
+        updatedAt: response.data.user.updatedAt
       };
       return user;
     }

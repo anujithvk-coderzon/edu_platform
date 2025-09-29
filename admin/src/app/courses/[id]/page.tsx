@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
+import { getCdnUrl } from '../../../utils/cdn';
 
 interface Material {
   id: string;
@@ -324,7 +325,7 @@ export default function CourseViewPage() {
                           <div className="space-y-3">
                             {module.materials.map((material) => {
                               const MaterialIcon = getMaterialIcon(material.type);
-                              const materialUrl = `${baseUrl}${material.fileUrl}`;
+                              const materialUrl = getCdnUrl(material.fileUrl) || '';
                               return (
                                 <div key={material.id} className="p-3 bg-white rounded-lg border border-slate-200">
                                   <div className="flex items-center">

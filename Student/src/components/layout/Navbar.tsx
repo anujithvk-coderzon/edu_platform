@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '../../utils/cn';
+import { getCdnUrl } from '@/utils/cdn';
 import {
   BookOpenIcon,
   HomeIcon,
@@ -100,11 +101,7 @@ export default function Navbar() {
                       {user.avatar ? (
                         <img
                           className="h-8 w-8 rounded-lg object-cover"
-                          src={
-                            user.avatar.startsWith('http')
-                              ? user.avatar
-                              : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/student', '') || 'http://localhost:4000'}${user.avatar}`
-                          }
+                          src={getCdnUrl(user.avatar) || ''}
                           alt={`${user.firstName} ${user.lastName}`}
                         />
                       ) : (
@@ -226,11 +223,7 @@ export default function Navbar() {
                     {user.avatar ? (
                       <img
                         className="h-10 w-10 rounded-lg object-cover"
-                        src={
-                          user.avatar.startsWith('http')
-                            ? user.avatar
-                            : `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/student', '') || 'http://localhost:4000'}${user.avatar}`
-                        }
+                        src={getCdnUrl(user.avatar) || ''}
                         alt={`${user.firstName} ${user.lastName}`}
                       />
                     ) : (

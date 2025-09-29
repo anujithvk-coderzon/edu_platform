@@ -339,6 +339,16 @@ class ApiClient {
 
     delete: (id: string) => this.delete<ApiResponse>(`/assignments/${id}`)
   };
+
+  // Admin endpoints
+  admin = {
+    getStudents: (params?: { page?: number; limit?: number; search?: string }) =>
+      this.get<PaginatedResponse>(`/students?${new URLSearchParams(params as any || {})}`),
+    getStudentsCount: () => this.get<ApiResponse>('/students/count'),
+    createUser: (data: any) => this.post<ApiResponse>('/users', data),
+    getUsers: (params?: { page?: number; limit?: number; role?: string }) =>
+      this.get<PaginatedResponse>(`/users?${new URLSearchParams(params as any || {})}`),
+  };
 }
 
 export const api = new ApiClient(API_BASE_URL);

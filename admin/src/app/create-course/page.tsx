@@ -305,7 +305,16 @@ export default function CreateCoursePage() {
       case 2:
         // Level is optional on backend, so don't require it
         // if (!formData.level) newErrors.level = 'Please select a difficulty level';
-        if (formData.price && parseFloat(formData.price) < 0) newErrors.price = 'Price cannot be negative';
+        if (formData.price) {
+          const priceValue = parseFloat(formData.price);
+          if (isNaN(priceValue)) {
+            newErrors.price = 'Please enter a valid price';
+          } else if (priceValue < 0) {
+            newErrors.price = 'Price cannot be negative';
+          } else if (priceValue > 999999) {
+            newErrors.price = 'Price cannot exceed $999,999';
+          }
+        }
         break;
       case 3:
         if (formData.chapters.length === 0) {
@@ -554,7 +563,7 @@ export default function CreateCoursePage() {
 
         // Success message and redirect
         toast.success('Course created successfully!');
-        router.push(`/courses/${courseId}/edit`);
+        router.push('/my-courses');
       }
     } catch (error: any) {
       console.error('Full error creating course:', error);
@@ -710,12 +719,16 @@ export default function CreateCoursePage() {
             Price (USD) <span className="text-red-500">*</span>
           </label>
           <Input
-            type="number"
+            type="text"
             value={formData.price}
-            onChange={(e) => handleInputChange('price', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Allow empty string, numbers with up to 2 decimal places
+              if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                handleInputChange('price', value);
+              }
+            }}
             placeholder="0.00"
-            min="0"
-            step="0.01"
             error={errors.price}
           />
         </div>

@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import CourseReview from '@/components/CourseReview';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { getImageUrl } from '@/utils/imageUtils';
 import {
   BookOpenIcon,
   ArrowLeftIcon,
@@ -179,9 +180,16 @@ export default function CourseRatingPage() {
               <div className="w-32 h-20 sm:w-40 sm:h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
                 {course?.thumbnail ? (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${course.thumbnail}`}
+                    src={getImageUrl(course.thumbnail)}
                     alt={course.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Failed to load thumbnail in rate page:', getImageUrl(course.thumbnail));
+                      console.error('Original thumbnail value:', course.thumbnail);
+                    }}
+                    onLoad={() => {
+                      console.log('Successfully loaded thumbnail in rate page:', getImageUrl(course.thumbnail));
+                    }}
                   />
                 ) : (
                   <BookOpenIcon className="h-8 w-8 text-white/80" />

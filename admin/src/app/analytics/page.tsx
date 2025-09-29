@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
       // If no data is available, show empty state
       setAnalytics({
         revenue: { total: 0, thisMonth: 0, lastMonth: 0, growth: 0 },
-        students: { total: 0, thisMonth: 0, lastMonth: 0, growth: 0 },
+        students: { total: 0, enrollments: 0, thisMonth: 0, lastMonth: 0, growth: 0 },
         courses: { total: 0, published: 0, draft: 0, archived: 0 },
         engagement: { totalEnrollments: 0, avgRating: 0, totalReviews: 0, completionRate: 0 }
       });

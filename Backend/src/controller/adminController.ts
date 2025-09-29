@@ -850,6 +850,8 @@ export const DeleteUser = async (req: AuthRequest, res: express.Response) => {
   }
 };
 
+console.log("hi");
+
 export const GetUserStats = async (req: AuthRequest, res: express.Response) => {
   try {
     const [

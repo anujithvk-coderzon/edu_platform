@@ -34,7 +34,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
-import apiClient from '../../lib/apiClient';
 
 interface Material {
   id: string;

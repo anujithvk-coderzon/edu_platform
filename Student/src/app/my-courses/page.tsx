@@ -259,9 +259,9 @@ export default function MyCoursesPage() {
             {filteredEnrollments.map((enrollment) => (
               <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-300">
                 <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
-                  {enrollment.course.thumbnail ? (
+                  {enrollment.course.thumbnail && getImageUrl(enrollment.course.thumbnail) ? (
                     <img
-                      src={getImageUrl(enrollment.course.thumbnail)}
+                      src={getImageUrl(enrollment.course.thumbnail)!}
                       alt={enrollment.course.title}
                       className="w-full h-full object-cover rounded-t-lg"
                       onError={(e) => {

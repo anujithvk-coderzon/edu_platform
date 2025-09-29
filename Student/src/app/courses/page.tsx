@@ -125,9 +125,9 @@ export default function CoursesPage() {
                 return {
                   ...course,
                   isEnrolled: !!enrollment,
-                  enrollmentStatus: enrollment?.status,
-                  progressPercentage: enrollment?.progressPercentage,
-                  hasReviewed: enrollment?.hasReviewed
+                  enrollmentStatus: enrollment && typeof enrollment === 'object' ? (enrollment as any).status : undefined,
+                  progressPercentage: enrollment && typeof enrollment === 'object' ? (enrollment as any).progressPercentage : undefined,
+                  hasReviewed: enrollment && typeof enrollment === 'object' ? (enrollment as any).hasReviewed : undefined
                 };
               });
             }
@@ -432,9 +432,9 @@ export default function CoursesPage() {
               {courses.map((course) => (
                 <div key={course.id} className="bg-white rounded-lg shadow border border-slate-200 hover:shadow-lg transition-shadow overflow-hidden">
                   <div className="aspect-video bg-slate-100 flex items-center justify-center relative">
-                    {course.thumbnail ? (
+                    {course.thumbnail && getImageUrl(course.thumbnail) ? (
                       <img
-                        src={getImageUrl(course.thumbnail)}
+                        src={getImageUrl(course.thumbnail)!}
                         alt={course.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {

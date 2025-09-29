@@ -353,9 +353,9 @@ export default function CourseDetailPage() {
             <div className="lg:col-span-1">
               <div className="bg-white border border-slate-200 rounded-lg p-6 sticky top-6">
                 <div className="aspect-video bg-slate-100 rounded-lg flex items-center justify-center mb-6 relative overflow-hidden">
-                  {course.thumbnail ? (
+                  {course.thumbnail && getImageUrl(course.thumbnail) ? (
                     <img
-                      src={getImageUrl(course.thumbnail)}
+                      src={getImageUrl(course.thumbnail)!}
                       alt={course.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {

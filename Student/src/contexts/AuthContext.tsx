@@ -91,7 +91,8 @@ const authApi = {
       }
     } catch (error) {
       // Don't log 401 errors as they're expected when user is not logged in
-      if (!error.message?.includes('401') && !error.message?.includes('Access denied')) {
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (!errorMessage.includes('401') && !errorMessage.includes('Access denied')) {
         console.error('Error getting current user:', error);
       }
     }

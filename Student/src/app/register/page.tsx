@@ -75,12 +75,12 @@ export default function RegisterPage() {
     company: ''
   });
 
-  const [validationErrors, setValidationErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [emailExists, setEmailExists] = useState(false);
 
   // Real-time validation functions
   const validateField = (name: string, value: string) => {
-    const errors = { ...validationErrors };
+    const errors: Record<string, string> = { ...validationErrors };
 
     switch (name) {
       case 'firstName':
@@ -203,7 +203,7 @@ export default function RegisterPage() {
   };
 
   const isStepValid = (stepNumber: number) => {
-    const stepFields = {
+    const stepFields: Record<number, string[]> = {
       1: ['firstName', 'lastName', 'email', 'phone', 'password', 'confirmPassword'],
       2: ['country'],
       3: ['education'],
@@ -214,7 +214,8 @@ export default function RegisterPage() {
 
     // Check if all required fields are filled
     for (const field of requiredFields) {
-      if (!formData[field] || (typeof formData[field] === 'string' && !formData[field].trim())) {
+      const value = (formData as any)[field];
+      if (!value || (typeof value === 'string' && !value.trim())) {
         return false;
       }
     }
@@ -876,7 +877,8 @@ export default function RegisterPage() {
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Backspace' && !otp[index] && index > 0) {
-                          const prevInput = e.target.parentElement?.children[index - 1] as HTMLInputElement;
+                          const target = e.target as HTMLInputElement;
+                          const prevInput = target.parentElement?.children[index - 1] as HTMLInputElement;
                           prevInput?.focus();
                         }
                       }}

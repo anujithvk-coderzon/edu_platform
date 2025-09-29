@@ -87,7 +87,7 @@ export default function Home() {
 
       // Get featured courses
       const coursesResponse = await api.courses.getAll({ limit: 6 });
-      if (coursesResponse.success) {
+      if (coursesResponse.success && coursesResponse.data) {
         let enrichedCourses = coursesResponse.data.courses || [];
 
         // If user is logged in, enrich courses with enrollment data
@@ -107,9 +107,9 @@ export default function Home() {
                 return {
                   ...course,
                   isEnrolled: !!enrollment,
-                  enrollmentStatus: enrollment?.status,
-                  progressPercentage: enrollment?.progressPercentage,
-                  hasReviewed: enrollment?.hasReviewed
+                  enrollmentStatus: enrollment && typeof enrollment === 'object' ? (enrollment as any).status : undefined,
+                  progressPercentage: enrollment && typeof enrollment === 'object' ? (enrollment as any).progressPercentage : undefined,
+                  hasReviewed: enrollment && typeof enrollment === 'object' ? (enrollment as any).hasReviewed : undefined
                 };
               });
             }
@@ -130,14 +130,14 @@ export default function Home() {
         const estimatedUniqueStudents = Math.floor(totalEnrollments * 0.7);
 
         // Calculate average rating from featured courses
-        const coursesWithRating = enrichedCourses.filter(course => course.averageRating > 0);
+        const coursesWithRating = enrichedCourses.filter((course: any) => course.averageRating > 0);
         const averageRating = coursesWithRating.length > 0
-          ? coursesWithRating.reduce((sum, course) => sum + course.averageRating, 0) / coursesWithRating.length
+          ? coursesWithRating.reduce((sum: number, course: any) => sum + course.averageRating, 0) / coursesWithRating.length
           : 0;
 
         setStats(prev => ({
           ...prev,
-          totalCourses: coursesResponse.data.pagination?.total || 0,
+          totalCourses: coursesResponse.data?.pagination?.total || 0,
           activeStudents: estimatedUniqueStudents, // More realistic calculation
           averageRating: averageRating
         }));
@@ -470,9 +470,9 @@ export default function Home() {
               {featuredCourses.map((course) => (
                 <div key={course.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-300">
                   <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
-                    {course.thumbnail ? (
+                    {course.thumbnail && getImageUrl(course.thumbnail) ? (
                       <img
-                        src={getImageUrl(course.thumbnail)}
+                        src={getImageUrl(course.thumbnail)!}
                         alt={course.title}
                         className="w-full h-full object-cover rounded-t-lg"
                         onError={(e) => {

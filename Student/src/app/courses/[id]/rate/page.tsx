@@ -178,9 +178,9 @@ export default function CourseRatingPage() {
             {/* Course Thumbnail */}
             <div className="flex-shrink-0">
               <div className="w-32 h-20 sm:w-40 sm:h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
-                {course?.thumbnail ? (
+                {course?.thumbnail && getImageUrl(course.thumbnail) ? (
                   <img
-                    src={getImageUrl(course.thumbnail)}
+                    src={getImageUrl(course.thumbnail)!}
                     alt={course.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {

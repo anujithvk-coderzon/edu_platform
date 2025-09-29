@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
           setCourses(coursesResponse.data.courses || []);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching analytics data:', error);
       // If no data is available, show empty state
       setAnalytics({

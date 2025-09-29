@@ -216,7 +216,7 @@ export default function CourseEditPage() {
       } else {
         toast.error('Failed to load course data');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading course:', error);
       toast.error('Failed to load course data');
     } finally {
@@ -293,7 +293,7 @@ export default function CourseEditPage() {
           toast.error(errorMessage);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving course:', error);
       toast.error('Failed to update course');
     } finally {
@@ -346,7 +346,7 @@ export default function CourseEditPage() {
       } else {
         toast.error('Failed to add module');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding module:', error);
       toast.error('Failed to add module');
     } finally {
@@ -424,7 +424,7 @@ export default function CourseEditPage() {
       } else {
         toast.error('Failed to add material');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding material:', error);
       toast.error('Failed to add material');
     } finally {

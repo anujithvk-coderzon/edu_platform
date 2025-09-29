@@ -65,7 +65,7 @@ const Navbar = () => {
     try {
       await logout();
       router.push('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
     }
   };

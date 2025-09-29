@@ -91,7 +91,7 @@ export default function ProfilePage() {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile data:', error);
     } finally {
       setLoading(false);
@@ -161,7 +161,7 @@ export default function ProfilePage() {
       } else {
         toast.error(response.error?.message || 'Failed to upload avatar');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Avatar upload error:', error);
       toast.error('Failed to upload avatar');
     } finally {

@@ -52,9 +52,10 @@ const authApi = {
         return user;
       }
       throw new Error(response.error?.message || 'Login failed');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Auth API login error:', error);
-      throw new Error(error.message || 'Network error during login');
+      const message = error instanceof Error ? error.message : 'Network error during login';
+      throw new Error(message);
     }
   },
   
@@ -74,9 +75,10 @@ const authApi = {
         };
         return user;
       }
-    } catch (error: any) {
+    } catch (error) {
       // Don't log 401 errors as they're expected when user is not logged in
-      if (!error?.message?.includes('401') && !error?.message?.includes('Access denied')) {
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (!errorMessage.includes('401') && !errorMessage.includes('Access denied')) {
         console.error('Error getting current user:', error);
       }
     }
@@ -136,9 +138,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = await authApi.login(email, password);
       setUser(user);
       toast.success('Login successful!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.message || 'Login failed');
+      const message = error instanceof Error ? error.message : 'Login failed';
+      toast.error(message);
       throw error;
     } finally {
       setLoading(false);
@@ -151,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authApi.logout();
       setUser(null);
       toast.success('Logged out successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Logout error:', error);
       toast.error('Logout failed');
     } finally {
@@ -170,9 +173,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const updatedUser = await authApi.updateProfile(data);
       setUser(updatedUser);
       toast.success('Profile updated successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Profile update error:', error);
-      toast.error(error.message || 'Profile update failed');
+      const message = error instanceof Error ? error.message : 'Profile update failed';
+      toast.error(message);
       throw error;
     } finally {
       setLoading(false);

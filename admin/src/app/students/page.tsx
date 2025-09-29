@@ -191,7 +191,7 @@ export default function StudentsPage() {
         const tutorCourses = coursesResponse.data.courses || [];
         setCourses(tutorCourses);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching students data:', error);
       // Fall back to empty data
       setStudents([]);

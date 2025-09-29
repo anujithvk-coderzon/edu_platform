@@ -125,9 +125,10 @@ const Page = () => {
             });
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        setError(error.message || 'Failed to load dashboard data');
+        const message = error instanceof Error ? error.message : 'Failed to load dashboard data';
+        setError(message);
         toast.error('Failed to load dashboard data');
       } finally {
         setIsLoading(false);

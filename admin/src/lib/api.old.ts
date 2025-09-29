@@ -2,6 +2,8 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } f
 import { ApiResponse, PaginatedResponse } from '../types/api';
 import { env } from '../config/env';
 
+const API_BASE_URL = env.ADMIN_API_URL;
+
 interface ErrorResponse {
   error?: {
     message?: string;

@@ -109,7 +109,8 @@ class ApiClient {
       return data;
     } catch (error) {
       // For auth/me endpoint, don't log 401 errors as they're expected
-      if (!(endpoint === '/auth/me' && error.message?.includes('401'))) {
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (!(endpoint === '/auth/me' && errorMessage.includes('401'))) {
         console.error(`API Error (${url}):`, error);
       }
       throw error;
@@ -173,16 +174,17 @@ class ApiClient {
 
       console.log(`✅ Upload successful:`, data);
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error(`❌ Upload Error (${url}):`, error);
 
-      if (error.name === 'AbortError') {
-        throw new Error('Upload timed out. Please check your connection and try again.');
-      } else if (error.message.includes('Failed to fetch')) {
-        throw new Error('Network error. Please check your internet connection.');
-      } else {
-        throw error;
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('Upload timed out. Please check your connection and try again.');
+        } else if (error.message.includes('Failed to fetch')) {
+          throw new Error('Network error. Please check your internet connection.');
+        }
       }
+      throw error;
     }
   }
 
@@ -334,6 +336,11 @@ class ApiClient {
     }) => this.put<ApiResponse>(`/assignments/submissions/${submissionId}/grade`, data),
 
     delete: (id: string) => this.delete<ApiResponse>(`/assignments/${id}`)
+  };
+
+  // Admin endpoints
+  admin = {
+    getStudentsCount: () => this.get<ApiResponse>('/admin/students/count'),
   };
 }
 

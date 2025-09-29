@@ -521,9 +521,9 @@ export default function CreateCoursePage() {
                     }
 
                     return materialResponse;
-                  } catch (error) {
+                  } catch (error: any) {
                     console.error(`Error creating material "${material.title}":`, error);
-                    throw new Error(`Failed to create material "${material.title}": ${error.message}`);
+                    throw new Error(`Failed to create material "${material.title}": ${error.message || 'Unknown error'}`);
                   }
                 });
 

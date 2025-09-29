@@ -644,8 +644,10 @@ export default function CreateCoursePage() {
             onChange={(value) => handleInputChange('tutorId', value)}
             options={tutors}
             placeholder="Select a tutor for this course..."
-            error={errors.tutorId}
           />
+          {errors.tutorId && (
+            <p className="text-red-500 text-sm mt-1">{errors.tutorId}</p>
+          )}
         </div>
       )}
 

@@ -96,11 +96,18 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   }
   next();
 });
-app.use(cors({
-  // origin: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"], 
-  origin:["https://edu-platform-gamma-two.vercel.app/","https://student-omega-liart.vercel.app/"],
-  credentials: true
-}))
+  app.use(cors({
+    origin: [
+      // 'http://localhost:3000',
+      // 'http://localhost:3001',
+      // 'http://localhost:3002',
+      'https://student-omega-liart.vercel.app',  // Add your student app URL
+      'https://your-admin-app.vercel.app'         // Add your admin app URL
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
 
 // Student routes (for student app)
 app.use('/api/student', studentRoutes)

@@ -187,21 +187,21 @@ export default function StudentsPage() {
         }
 
         // Calculate stats based on enrolled students but use total count for totalStudents
-        const activeStudents = realStudents.filter(s => s.enrollments.some(e => e.status === 'ACTIVE')).length;
+        const activeStudents = realStudents.filter((s: Student) => s.enrollments.some((e: Student['enrollments'][0]) => e.status === 'ACTIVE')).length;
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const newThisMonth = realStudents.filter(s => new Date(s.joinedAt) > oneMonthAgo).length;
+        const newThisMonth = realStudents.filter((s: Student) => new Date(s.joinedAt) > oneMonthAgo).length;
 
-        const totalProgress = realStudents.reduce((sum, s) => {
+        const totalProgress = realStudents.reduce((sum: number, s: Student) => {
           const avgProgress = s.enrollments.length > 0
-            ? s.enrollments.reduce((eSum, e) => eSum + e.progressPercentage, 0) / s.enrollments.length
+            ? s.enrollments.reduce((eSum: number, e: Student['enrollments'][0]) => eSum + e.progressPercentage, 0) / s.enrollments.length
             : 0;
           return sum + avgProgress;
         }, 0);
         const averageProgress = realStudents.length > 0 ? totalProgress / realStudents.length : 0;
 
-        const topPerformers = realStudents.filter(s =>
-          s.enrollments.some(e => e.progressPercentage > 80)
+        const topPerformers = realStudents.filter((s: Student) =>
+          s.enrollments.some((e: Student['enrollments'][0]) => e.progressPercentage > 80)
         ).length;
 
         const realStats = {

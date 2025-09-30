@@ -1512,15 +1512,13 @@ export default function CourseEditPage() {
                   </label>
                   <FileUpload
                     accept={
-                      newMaterial.type === 'IMAGE' ? 'image/*' :
                       newMaterial.type === 'VIDEO' ? 'video/*' :
-                      newMaterial.type === 'AUDIO' ? 'audio/*' :
+                      newMaterial.type === 'PDF' ? 'application/pdf' :
                       '*'
                     }
                     maxSize={
                       newMaterial.type === 'VIDEO' ? 200 * 1024 * 1024 : // 200MB for video
-                      newMaterial.type === 'AUDIO' ? 100 * 1024 * 1024 : // 100MB for audio
-                      10 * 1024 * 1024 // 10MB for others
+                      10 * 1024 * 1024 // 10MB for PDF and others
                     }
                     onFileSelect={(files) => {
                       if (files.length === 0) {

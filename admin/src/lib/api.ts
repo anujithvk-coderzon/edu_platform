@@ -340,7 +340,7 @@ class ApiClient {
 
   // Admin endpoints
   admin = {
-    getStudentsCount: () => this.get<ApiResponse>('/admin/students/count'),
+    getStudentsCount: () => this.get<ApiResponse>('/students/count'),
   };
 }
 

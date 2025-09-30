@@ -302,11 +302,6 @@ const Page = () => {
 
                 <div className="space-y-3 sm:space-y-4">
                   <div className="flex items-center justify-end">
-                    <div className="text-sm">
-                      <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-                        Forgot password?
-                      </a>
-                    </div>
                   </div>
 
                   <Button

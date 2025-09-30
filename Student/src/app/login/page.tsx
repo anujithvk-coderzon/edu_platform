@@ -174,7 +174,7 @@ export default function LoginPage() {
             <div className="h-14 w-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl animate-glow">
               <BookOpenIcon className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white">CoderZone</h1>
+            <h1 className="text-3xl font-bold text-white">Codiin</h1>
           </div>
 
           <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
@@ -212,9 +212,9 @@ export default function LoginPage() {
               <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-xl">
                 <BookOpenIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white">CoderZone</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-white">Codiin</h1>
             </div>
-            <p className="text-blue-200 text-sm sm:text-base">Learning Platform</p>
+            <p className="text-blue-200 text-sm sm:text-base">Codiin Learning Platform</p>
           </div>
 
           {/* Login Form */}

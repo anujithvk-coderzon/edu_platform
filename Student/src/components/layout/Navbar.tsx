@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '../../utils/cn';
@@ -50,15 +51,20 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between items-center h-20 sm:h-24">
           {/* Logo and Main Nav */}
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center">
-                <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">C</span>
+                <div className="h-16 w-16 sm:h-20 sm:w-20 relative">
+                  <Image
+                    src="/logo.png"
+                    alt="Codiin Logo"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
-                <span className="ml-2 text-xl font-semibold text-slate-900">CoderZone</span>
               </Link>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-1">

@@ -304,7 +304,7 @@ class ApiClient {
 
   // Tutors endpoints
   tutors = {
-    getAll: () => this.get<ApiResponse>('/tutors'),
+    getAll: (activeOnly?: boolean) => this.get<ApiResponse>(`/tutors${activeOnly ? '?activeOnly=true' : ''}`),
   };
 
   // Assignment endpoints
@@ -341,6 +341,8 @@ class ApiClient {
   // Admin endpoints
   admin = {
     getStudentsCount: () => this.get<ApiResponse>('/students/count'),
+    toggleTutorStatus: (tutorId: string, isActive: boolean) =>
+      this.put<ApiResponse>(`/admin/tutors/${tutorId}/status`, { isActive }),
   };
 }
 

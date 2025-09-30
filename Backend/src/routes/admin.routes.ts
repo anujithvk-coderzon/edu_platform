@@ -35,6 +35,7 @@ import {
   GetAllCourses,
   GetMyCourses,
   GetAllTutors,
+  ToggleTutorStatus,
   GetCourseById,
   CreateCourse,
   UpdateCourse,
@@ -125,6 +126,7 @@ router.post('/auth/register',
     body('password').isLength({ min: 6 }),
     body('firstName').trim().isLength({ min: 1 }),
     body('lastName').trim().isLength({ min: 1 }),
+    body('role').optional().isIn(['Admin', 'Tutor']).withMessage('Role must be either Admin or Tutor'),
   ],
   asyncHandler(RegisterUser)
 );
@@ -270,6 +272,12 @@ router.get('/courses/my-courses', authMiddleware, GetMyCourses);
 
 // Get all tutors
 router.get('/tutors', authMiddleware, adminOnly, GetAllTutors);
+
+// Toggle tutor status
+router.put('/admin/tutors/:id/status', authMiddleware, adminOnly,
+  [body('isActive').isBoolean()],
+  ToggleTutorStatus
+);
 
 // Get course by ID
 router.get('/courses/:id', authMiddleware, GetCourseById);

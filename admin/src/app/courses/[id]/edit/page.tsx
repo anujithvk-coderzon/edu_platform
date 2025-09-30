@@ -804,7 +804,7 @@ export default function CourseEditPage() {
               <Input
                 value={course?.tutorName || ''}
                 onChange={(e) => setCourse(prev => prev ? ({ ...prev, tutorName: e.target.value }) : prev)}
-                placeholder="e.g., CoderZone Academy"
+                placeholder="e.g., Codiin Academy"
               />
               <p className="text-xs text-slate-500 mt-1">
                 This will be displayed as &quot;Created by&quot; on the course page

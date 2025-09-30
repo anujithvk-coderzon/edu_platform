@@ -123,7 +123,8 @@ export default function CreateCoursePage() {
     if (user?.role?.toLowerCase() === 'admin') {
       const fetchTutors = async () => {
         try {
-          const response = await api.tutors.getAll();
+          // Fetch only active tutors for course assignment
+          const response = await api.tutors.getAll(true);
           if (response.success) {
             const tutorOptions = response.data.tutors.map((tutor: any) => ({
               value: tutor.id,

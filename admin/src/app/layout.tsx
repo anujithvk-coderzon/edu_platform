@@ -23,8 +23,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CoderZon - Tutor Dashboard",
-  description: "Manage your courses and students on CoderZon platform",
+  title: "Codiin - Admin Dashboard",
+  description: "Manage your courses and students on Codiin platform",
 };
 
 export default function RootLayout({ children }: Readonly<LayoutProps>) {

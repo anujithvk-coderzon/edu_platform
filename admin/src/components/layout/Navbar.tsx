@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
@@ -17,7 +18,8 @@ import {
   ArrowRightOnRectangleIcon,
   ChartBarIcon,
   UserGroupIcon,
-  UserPlusIcon
+  UserPlusIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -75,14 +77,18 @@ const Navbar = () => {
     return (
       <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex justify-between h-14 sm:h-16">
+          <div className="flex justify-between items-center h-20 sm:h-24">
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold text-xs sm:text-sm">C</span>
+                <div className="h-16 w-16 sm:h-20 sm:w-20 relative">
+                  <Image
+                    src="/logo.png"
+                    alt="Codiin Logo"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
-                <span className="ml-2 text-lg sm:text-xl font-semibold text-slate-900 hidden xs:block">CoderZone</span>
-                <span className="ml-2 text-lg sm:text-xl font-semibold text-slate-900 xs:hidden">CZ</span>
               </Link>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -101,16 +107,20 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="flex justify-between h-14 sm:h-16">
+        <div className="flex justify-between items-center h-20 sm:h-24">
           {/* Logo and Main Nav */}
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center">
-                <div className="h-7 w-7 sm:h-8 sm:w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-semibold text-xs sm:text-sm">C</span>
+                <div className="h-16 w-16 sm:h-20 sm:w-20 relative">
+                  <Image
+                    src="/logo.png"
+                    alt="Codiin Logo"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
                 </div>
-                <span className="ml-2 text-lg sm:text-xl font-semibold text-slate-900 hidden xs:block">CoderZone</span>
-                <span className="ml-2 text-lg sm:text-xl font-semibold text-slate-900 xs:hidden">CZ</span>
               </Link>
             </div>
             <div className="hidden md:ml-6 lg:ml-8 md:flex md:space-x-1">
@@ -182,10 +192,16 @@ const Navbar = () => {
                     Your Profile
                   </Link>
                   {user?.role?.toLowerCase() !== 'tutor' && (
-                    <Link href="/create-user" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      <UserPlusIcon className="h-4 w-4 mr-3 text-slate-400" />
-                      Create User
-                    </Link>
+                    <>
+                      <Link href="/create-user" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                        <UserPlusIcon className="h-4 w-4 mr-3 text-slate-400" />
+                        Create User
+                      </Link>
+                      <Link href="/manage-users" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                        <Cog6ToothIcon className="h-4 w-4 mr-3 text-slate-400" />
+                        Manage Users
+                      </Link>
+                    </>
                   )}
                   <button
                     onClick={handleLogout}
@@ -270,14 +286,24 @@ const Navbar = () => {
                 Your Profile
               </Link>
               {user?.role?.toLowerCase() !== 'tutor' && (
-                <Link
-                  href="/create-user"
-                  className="flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg"
-                  onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
-                >
-                  <UserPlusIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-slate-400" />
-                  Create User
-                </Link>
+                <>
+                  <Link
+                    href="/create-user"
+                    className="flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg"
+                    onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
+                  >
+                    <UserPlusIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-slate-400" />
+                    Create User
+                  </Link>
+                  <Link
+                    href="/manage-users"
+                    className="flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg"
+                    onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
+                  >
+                    <Cog6ToothIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-slate-400" />
+                    Manage Users
+                  </Link>
+                </>
               )}
               <button
                 onClick={handleLogout}

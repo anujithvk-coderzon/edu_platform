@@ -149,10 +149,12 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
     // Set role-specific cookie names (BootstrapAdmin always creates ADMIN)
     const cookieName = 'admin_token';
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie(cookieName, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -218,10 +220,12 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
     // Set role-specific cookie names (RegisterUser creates ADMIN by default)
     const cookieName = 'admin_token';
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie(cookieName, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -339,10 +343,12 @@ export const LoginUser = async (req: express.Request, res: express.Response) => 
     // Set role-specific cookie names
     const cookieName = 'admin_token'; // This is admin login, always use admin_token
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie(cookieName, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

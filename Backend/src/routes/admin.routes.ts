@@ -151,10 +151,12 @@ router.post('/auth/login',
 
 // Admin logout
 router.post('/auth/logout', authMiddleware, (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   res.clearCookie('admin_token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/'
   });
   res.json({

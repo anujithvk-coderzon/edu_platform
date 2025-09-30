@@ -189,9 +189,12 @@ export const VerifyOtp = async (req: express.Request, res: express.Response) => 
   });
 
   const token = generateToken(student.id);
+  const isProduction = process.env.NODE_ENV === 'production';
+
   res.cookie('student_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -262,9 +265,12 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
   }
 
   const token = generateToken(student.id);
+  const isProduction = process.env.NODE_ENV === 'production';
+
   res.cookie('student_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -276,7 +282,14 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
 };
 
 export const LogoutStudent = (req: express.Request, res: express.Response) => {
-  res.clearCookie('student_token');
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  res.clearCookie('student_token', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/'
+  });
   res.json({
     success: true,
     message: 'Logged out successfully'

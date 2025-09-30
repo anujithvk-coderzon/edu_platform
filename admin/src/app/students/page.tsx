@@ -168,16 +168,48 @@ export default function StudentsPage() {
     try {
       setLoading(true);
 
-      // Fetch real student data from the API
+      // Fetch real student data from the API - this shows only enrolled students
       const studentsResponse = await api.students.getAll();
       if (studentsResponse.success) {
         const realStudents = studentsResponse.data.students || [];
-        const realStats = studentsResponse.data.stats || {
-          totalStudents: 0,
-          activeStudents: 0,
-          newThisMonth: 0,
-          averageProgress: 0,
-          topPerformers: 0,
+
+        // Get total students count from database (like dashboard does)
+        let totalStudentsCount = 0;
+        try {
+          const studentsCountResponse = await api.admin.getStudentsCount();
+          if (studentsCountResponse.success && studentsCountResponse.data?.studentsCount !== undefined) {
+            totalStudentsCount = studentsCountResponse.data.studentsCount;
+          }
+        } catch (error) {
+          console.error('Error fetching students count:', error);
+          // Fallback to enrolled students count
+          totalStudentsCount = realStudents.length;
+        }
+
+        // Calculate stats based on enrolled students but use total count for totalStudents
+        const activeStudents = realStudents.filter(s => s.enrollments.some(e => e.status === 'ACTIVE')).length;
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        const newThisMonth = realStudents.filter(s => new Date(s.joinedAt) > oneMonthAgo).length;
+
+        const totalProgress = realStudents.reduce((sum, s) => {
+          const avgProgress = s.enrollments.length > 0
+            ? s.enrollments.reduce((eSum, e) => eSum + e.progressPercentage, 0) / s.enrollments.length
+            : 0;
+          return sum + avgProgress;
+        }, 0);
+        const averageProgress = realStudents.length > 0 ? totalProgress / realStudents.length : 0;
+
+        const topPerformers = realStudents.filter(s =>
+          s.enrollments.some(e => e.progressPercentage > 80)
+        ).length;
+
+        const realStats = {
+          totalStudents: totalStudentsCount, // Use database count like dashboard
+          activeStudents: activeStudents,
+          newThisMonth: newThisMonth,
+          averageProgress: averageProgress,
+          topPerformers: topPerformers,
           totalRevenue: 0
         };
 

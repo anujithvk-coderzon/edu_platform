@@ -45,6 +45,12 @@ interface Course {
     lastName: string;
     avatar: string;
   };
+  tutor?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
   category: {
     id: string;
     name: string;
@@ -296,22 +302,24 @@ export default function CourseDetailPage() {
               {/* Instructor Info */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center">
-                  {course.creator.avatar ? (
+                  {(course.tutor?.avatar || course.creator.avatar) ? (
                     <img
-                      src={getCdnUrl(course.creator.avatar) || ''}
-                      alt={`${course.creator.firstName} ${course.creator.lastName}`}
+                      src={getCdnUrl(course.tutor?.avatar || course.creator.avatar) || ''}
+                      alt={course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` : `${course.creator.firstName} ${course.creator.lastName}`}
                       className="h-12 w-12 rounded-full border-2 border-slate-200"
                     />
                   ) : (
                     <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center border-2 border-slate-200">
                       <span className="text-sm font-medium text-slate-700">
-                        {course.creator.firstName[0]}{course.creator.lastName[0]}
+                        {course.tutor ? `${course.tutor.firstName[0]}${course.tutor.lastName[0]}` : `${course.creator.firstName[0]}${course.creator.lastName[0]}`}
                       </span>
                     </div>
                   )}
                   <div className="ml-3">
                     <p className="text-sm font-medium text-slate-900">
-                      {course.tutorName || `${course.creator.firstName} ${course.creator.lastName}`}
+                      {course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` :
+                       course.tutorName ||
+                       `${course.creator.firstName} ${course.creator.lastName}`}
                     </p>
                     <p className="text-sm text-slate-600">Course Instructor</p>
                   </div>

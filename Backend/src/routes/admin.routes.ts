@@ -420,7 +420,7 @@ router.post('/materials', authMiddleware, adminOnly,
   [
     body('title').trim().isLength({ min: 1, max: 200 }),
     body('description').optional().trim(),
-    body('type').isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
+    body('type').isIn(['PDF', 'VIDEO', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
         const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
@@ -445,7 +445,7 @@ router.put('/materials/:id', authMiddleware, adminOnly,
     param('id').isLength({ min: 1 }).withMessage('Material ID is required'),
     body('title').optional().trim().isLength({ min: 1, max: 200 }),
     body('description').optional().trim(),
-    body('type').optional().isIn(['PDF', 'VIDEO', 'AUDIO', 'IMAGE', 'DOCUMENT', 'LINK']),
+    body('type').optional().isIn(['PDF', 'VIDEO', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
         const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;

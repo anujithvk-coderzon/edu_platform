@@ -1274,7 +1274,8 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
       tags = []
     } = req.body;
 
-    // If tutorId is provided, verify it's a valid tutor
+    // If tutorId is provided, verify it's a valid tutor and get their name
+    let assignedTutorName = null;
     if (tutorId) {
       const tutor = await prisma.admin.findUnique({
         where: { id: tutorId }
@@ -1286,6 +1287,8 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
           error: { message: 'Invalid tutor ID' }
         });
       }
+
+      assignedTutorName = `${tutor.firstName} ${tutor.lastName}`;
     }
 
     // Use a transaction to ensure atomicity
@@ -1300,7 +1303,7 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
           level,
           ...(categoryId && { categoryId }),
           thumbnail,
-          tutorName: tutorName || `${req.user!.firstName} ${req.user!.lastName}`,
+          tutorName: tutorName || assignedTutorName || `${req.user!.firstName} ${req.user!.lastName}`,
           creatorId: req.user!.id,
           ...(tutorId && { tutorId }), // Save the assigned tutor ID
           status: CourseStatus.DRAFT,
@@ -1391,7 +1394,7 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
     if (status) updates.status = status;
     if (typeof isPublic === 'boolean') updates.isPublic = isPublic;
 
-    // If tutorId is provided, verify it's a valid tutor
+    // If tutorId is provided, verify it's a valid tutor and set tutorName automatically
     if (tutorId) {
       const tutor = await prisma.admin.findUnique({
         where: { id: tutorId }
@@ -1402,6 +1405,11 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
           success: false,
           error: { message: 'Invalid tutor ID' }
         });
+      }
+
+      // Automatically set tutorName to the assigned tutor's name if not explicitly provided
+      if (!tutorName) {
+        updates.tutorName = `${tutor.firstName} ${tutor.lastName}`;
       }
     }
 
@@ -4113,8 +4121,14 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
     const adminId = req.user.id;
 
     // Get admin's courses to find students enrolled in those courses
+    // Include both courses they created AND courses assigned to them as tutor
     const adminCourses = await prisma.course.findMany({
-      where: { creatorId: adminId },
+      where: {
+        OR: [
+          { creatorId: adminId },  // Courses they created
+          { tutorId: adminId }     // Courses assigned to them as tutor
+        ]
+      },
       select: { id: true }
     });
 

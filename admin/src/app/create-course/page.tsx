@@ -38,7 +38,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface Material {
   id: string;
   title: string;
-  type: 'video' | 'audio' | 'pdf' | 'document' | 'link';
+  type: 'video' | 'pdf' | 'link';
   file?: File;
   url?: string;
   duration?: string;
@@ -89,9 +89,7 @@ const levelOptions: SelectOption[] = [
 
 const materialTypes = [
   { value: 'video', label: 'Video Lecture', icon: VideoCameraIcon },
-  { value: 'audio', label: 'Audio File', icon: MusicalNoteIcon },
   { value: 'pdf', label: 'PDF Document', icon: DocumentArrowDownIcon },
-  { value: 'document', label: 'Text Document', icon: DocumentTextIcon },
   { value: 'link', label: 'External Link', icon: BookOpenIcon }
 ];
 
@@ -323,7 +321,7 @@ export default function CreateCoursePage() {
                 if (material.type === 'link' && !material.url) {
                   newErrors[`material-${material.id}-url`] = 'URL is required for link materials';
                 }
-                if (['video', 'audio', 'pdf', 'document'].includes(material.type) && !material.file) {
+                if (['video', 'pdf'].includes(material.type) && !material.file) {
                   newErrors[`material-${material.id}-file`] = 'File is required for this material type';
                 }
               });
@@ -483,7 +481,7 @@ export default function CreateCoursePage() {
                     let fileUrl = material.url;
 
                     // Upload file if it's not a link
-                    if (material.file && ['video', 'audio', 'pdf', 'document'].includes(material.type)) {
+                    if (material.file && ['video', 'pdf'].includes(material.type)) {
                       console.log(`📤 Uploading ${material.type} file for material "${material.title}"`);
                       console.log(`📁 File details: ${material.file.name} (${(material.file.size / 1024 / 1024).toFixed(2)}MB, ${material.file.type})`);
 
@@ -974,16 +972,14 @@ export default function CreateCoursePage() {
                             <FileUpload
                               accept={
                                 material.type === 'video' ? 'video/*' :
-                                material.type === 'audio' ? 'audio/*' :
                                 material.type === 'pdf' ? 'application/pdf' :
-                                'application/*,text/*'
+                                'video/*'
                               }
                               onFileSelect={(files) => handleMaterialFileUpload(chapter.id, material.id, files)}
                               placeholder={`Upload ${material.type} file`}
                               maxSize={
                                 material.type === 'video' ? 200 * 1024 * 1024 : // 200MB for video
-                                material.type === 'audio' ? 100 * 1024 * 1024 : // 100MB for audio
-                                10 * 1024 * 1024 // 10MB for documents
+                                10 * 1024 * 1024 // 10MB for PDF
                               }
                             />
                             {errors[`material-${material.id}-file`] && (

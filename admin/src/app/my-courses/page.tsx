@@ -42,6 +42,12 @@ interface Course {
     lastName: string;
     role: string;
   };
+  tutor?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
   _count?: {
     enrollments: number;
     materials: number;
@@ -330,9 +336,12 @@ const Page = () => {
                       <CardDescription className="line-clamp-3 mt-1 text-slate-600 text-sm">
                         {course.description}
                       </CardDescription>
-                      {user?.role?.toLowerCase() !== 'tutor' && course.creator && (
+                      {user?.role?.toLowerCase() !== 'tutor' && (
                         <div className="mt-2 text-xs text-slate-500">
-                          Assigned to: {course.creator.firstName} {course.creator.lastName}
+                          Assigned to: {course.tutor ?
+                            `${course.tutor.firstName} ${course.tutor.lastName}` :
+                            course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Unassigned'
+                          }
                         </div>
                       )}
                     </div>
@@ -387,9 +396,9 @@ const Page = () => {
                           {course.category.name}
                         </div>
                       )}
-                      {course.tutorName && (
+                      {course.creator && (
                         <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium text-purple-700 bg-purple-50">
-                          By: {course.tutorName}
+                          By: {course.creator.firstName} {course.creator.lastName}
                         </div>
                       )}
                     </div>

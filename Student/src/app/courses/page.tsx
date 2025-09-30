@@ -38,6 +38,12 @@ interface Course {
     lastName: string;
     avatar: string;
   };
+  tutor?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
   category: {
     id: string;
     name: string;
@@ -467,7 +473,9 @@ function CoursesContent() {
                     <p className="text-slate-600 text-sm mb-4 line-clamp-2">{course.description}</p>
 
                     <div className="text-sm text-slate-600 mb-4">
-                      by {course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}
+                      by {course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` :
+                          course.tutorName ||
+                          (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}
                     </div>
 
                     <div className="flex items-center justify-between text-sm text-slate-600 mb-4">

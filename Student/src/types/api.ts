@@ -50,7 +50,7 @@ export interface Material {
   id: string;
   title: string;
   description?: string;
-  type: 'PDF' | 'VIDEO' | 'AUDIO' | 'IMAGE' | 'DOCUMENT' | 'LINK';
+  type: 'PDF' | 'VIDEO' | 'LINK';
   fileUrl?: string;
   content?: string;
   orderIndex: number;

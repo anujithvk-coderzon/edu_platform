@@ -59,6 +59,12 @@ interface Course {
     lastName: string;
     avatar?: string;
   };
+  tutor?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
   category?: {
     id: string;
     name: string;
@@ -270,9 +276,12 @@ export default function CourseViewPage() {
                   Level: {course.level}
                 </div>
               )}
-              {course.tutorName && (
+              <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
+                Created by: {course.creator.firstName} {course.creator.lastName}
+              </div>
+              {(course.tutor && course.tutor.id !== course.creator.id) && (
                 <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200">
-                  Created by: {course.tutorName}
+                  Assigned to: {course.tutor.firstName} {course.tutor.lastName}
                 </div>
               )}
             </div>

@@ -28,6 +28,12 @@ interface Course {
     lastName: string;
     avatar: string;
   };
+  tutor?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  };
   category: {
     id: string;
     name: string;
@@ -143,11 +149,15 @@ export default function CourseCard({ course }: CourseCardProps) {
         <div className="flex items-center text-sm text-slate-600 mb-4 bg-slate-50 rounded-full px-4 py-2">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mr-3">
             <span className="text-white text-xs font-bold">
-              {(course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')).charAt(0)}
+              {(course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` :
+                course.tutorName ||
+                (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')).charAt(0)}
             </span>
           </div>
           <span className="font-medium">
-            👨‍🏫 {course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}
+            👨‍🏫 {course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` :
+                course.tutorName ||
+                (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}
           </span>
         </div>
 

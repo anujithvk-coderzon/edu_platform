@@ -23,9 +23,6 @@ enum EnrollmentStatus {
 enum MaterialType {
   PDF
   VIDEO
-  AUDIO
-  IMAGE
-  DOCUMENT
   LINK
 }
 

@@ -34,7 +34,7 @@ interface Material {
   id: string;
   title: string;
   description?: string;
-  type: 'PDF' | 'VIDEO' | 'AUDIO' | 'IMAGE' | 'DOCUMENT' | 'LINK';
+  type: 'PDF' | 'VIDEO' | 'LINK';
   fileUrl?: string;
   content?: string;
   orderIndex: number;
@@ -129,9 +129,6 @@ interface CourseUpdateData {
 const materialTypes: SelectOption[] = [
   { value: 'PDF', label: 'PDF Document' },
   { value: 'VIDEO', label: 'Video' },
-  { value: 'AUDIO', label: 'Audio' },
-  { value: 'IMAGE', label: 'Image' },
-  { value: 'DOCUMENT', label: 'Document' },
   { value: 'LINK', label: 'External Link' }
 ];
 
@@ -305,14 +302,9 @@ export default function CourseEditPage() {
   const getMaterialIcon = (type: Material['type']) => {
     switch (type) {
       case 'PDF':
-      case 'DOCUMENT':
         return DocumentIcon;
       case 'VIDEO':
         return PlayIcon;
-      case 'AUDIO':
-        return PlayIcon;
-      case 'IMAGE':
-        return PhotoIcon;
       case 'LINK':
         return LinkIcon;
       default:

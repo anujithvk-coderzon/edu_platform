@@ -444,12 +444,7 @@ export default function LearnPage() {
       case 'VIDEO':
         return <VideoCameraIcon className="h-5 w-5" />;
       case 'PDF':
-      case 'DOCUMENT':
         return <DocumentTextIcon className="h-5 w-5" />;
-      case 'AUDIO':
-        return <MusicalNoteIcon className="h-5 w-5" />;
-      case 'IMAGE':
-        return <PhotoIcon className="h-5 w-5" />;
       case 'LINK':
         return <LinkIcon className="h-5 w-5" />;
       default:
@@ -513,115 +508,6 @@ export default function LearnPage() {
           </div>
         );
 
-      case 'DOCUMENT':
-        const getFileExtension = (url: string) => {
-          return url.split('.').pop()?.toLowerCase() || '';
-        };
-
-        const materialUrl = getCdnUrl(currentMaterial.fileUrl) || '';
-        const fileExtension = getFileExtension(materialUrl);
-        const isOfficeDocument = ['xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'].includes(fileExtension);
-
-        return (
-          <div className="bg-white border rounded-lg overflow-hidden">
-            {currentMaterial.fileUrl ? (
-              <div className="w-full max-w-4xl lg:mx-auto">
-                {isOfficeDocument ? (
-                  // Office documents - use Google Docs Viewer or Office Online
-                  <iframe
-                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(materialUrl)}`}
-                    className="w-full h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
-                  />
-                ) : (
-                  // Other documents - try direct iframe
-                  <iframe
-                    src={`${materialUrl}#toolbar=0&navpanes=0&scrollbar=1&statusbar=1&zoom=1&view=FitH`}
-                    className="w-full h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
-                  />
-                )}
-
-                {/* Fallback download link */}
-                <div className="mt-4 text-center p-4">
-                  <p className="text-sm text-slate-600 mb-2">
-                    {isOfficeDocument ? 'Excel/Word/PowerPoint Document' : 'Document'} ({fileExtension.toUpperCase()})
-                  </p>
-                  <a
-                    href={materialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    <DocumentTextIcon className="h-4 w-4 mr-2" />
-                    Open in New Tab
-                  </a>
-                </div>
-              </div>
-            ) : currentMaterial.content ? (
-              <div className="prose max-w-none p-6">
-                <pre className="whitespace-pre-wrap font-sans">{currentMaterial.content}</pre>
-              </div>
-            ) : (
-              <div className="text-center text-slate-500 p-6">
-                <DocumentTextIcon className="h-16 w-16 mx-auto mb-4" />
-                <p>Document content not available</p>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'AUDIO':
-        return (
-          <div className="bg-white border rounded-lg p-6">
-            {currentMaterial.fileUrl ? (
-              <audio
-                controls
-                className="w-auto"
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-                onKeyDown={(e) => {
-                  // Prevent common download shortcuts
-                  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                <source src={getCdnUrl(currentMaterial.fileUrl) || ''} />
-                Your browser does not support the audio tag.
-              </audio>
-            ) : (
-              <div className="text-center text-slate-500">
-                <MusicalNoteIcon className="h-16 w-16 mx-auto mb-4" />
-                <p>Audio content not available</p>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'IMAGE':
-        return (
-          <div className="bg-white border rounded-lg p-6">
-            {currentMaterial.fileUrl ? (
-              <img
-                src={getCdnUrl(currentMaterial.fileUrl) || ''}
-                alt={currentMaterial.title}
-                className="max-w-full h-auto rounded-lg"
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                style={{
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none'
-                }}
-              />
-            ) : (
-              <div className="text-center text-slate-500">
-                <PhotoIcon className="h-16 w-16 mx-auto mb-4" />
-                <p>Image not available</p>
-              </div>
-            )}
-          </div>
-        );
 
       case 'LINK':
         return (

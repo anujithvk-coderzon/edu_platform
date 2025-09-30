@@ -675,6 +675,9 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
         creator: {
           select: { id: true, firstName: true, lastName: true, avatar: true }
         },
+        tutor: {
+          select: { id: true, firstName: true, lastName: true, avatar: true }
+        },
         _count: {
           select: { enrollments: true, reviews: true, materials: true }
         }
@@ -758,6 +761,9 @@ export const GetCourseById = async (req: express.Request, res: express.Response)
         price: true, level: true, duration: true, tutorName: true,
         requirements: true, prerequisites: true,
         creator: {
+          select: { id: true, firstName: true, lastName: true, avatar: true }
+        },
+        tutor: {
           select: { id: true, firstName: true, lastName: true, avatar: true }
         },
         modules: {

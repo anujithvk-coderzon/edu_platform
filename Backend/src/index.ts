@@ -102,7 +102,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       // 'http://localhost:3001',
       // 'http://localhost:3002',
       'https://student-omega-liart.vercel.app',  // Add your student app URL
-      'https://your-admin-app.vercel.app'         // Add your admin app URL
+      'https://edu-platform-gamma-two.vercel.app'         // Add your admin app URL
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

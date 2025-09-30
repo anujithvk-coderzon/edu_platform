@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import Link from 'next/link';
@@ -52,6 +52,7 @@ interface Course {
 
 function CoursesContent() {
   const { user } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -187,6 +188,9 @@ function CoursesContent() {
   const handleEnroll = async (courseId: string) => {
     if (!user) {
       toast.error('Please login to enroll in courses');
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
       return;
     }
 

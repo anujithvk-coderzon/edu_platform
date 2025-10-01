@@ -95,7 +95,7 @@ export const sendVerificationEmail = async (email, otp) => {
 
         const emailData = {
             sender: {
-                name: 'Edu Platform',
+                name: 'Codiin',
                 email: 'anujith.vk@coderzon.com'
             },
             to: [
@@ -124,7 +124,7 @@ export const sendVerificationEmail = async (email, otp) => {
                             <h1>Email Verification</h1>
                         </div>
                         <div class="content">
-                            <h2>Welcome to Coderzon!</h2>
+                            <h2>Welcome to Codiin!</h2>
                             <p>Thank you for registering with us. Please use the following OTP code to verify your email address:</p>
 
                             <div class="otp-box">
@@ -135,7 +135,7 @@ export const sendVerificationEmail = async (email, otp) => {
                             <p>If you didn't request this verification, please ignore this email.</p>
 
                             <div class="footer">
-                                <p>© 2024 Coderzon. All rights reserved.</p>
+                                <p>© 2024 Codiin. All rights reserved.</p>
                             </div>
                         </div>
                     </div>
@@ -191,7 +191,7 @@ export const WelcomeEmail = async (email, firstname) => {
 
         const emailData = {
             sender: {
-                name: 'Edu Platform',
+                name: 'Codiin',
                 email: 'anujith.vk@coderzon.com'
             },
             to: [
@@ -199,7 +199,7 @@ export const WelcomeEmail = async (email, firstname) => {
                     email: email
                 }
             ],
-            subject: 'Welcome to Edu Platform',
+            subject: 'Welcome to Codiin',
             htmlContent: `<!DOCTYPE html>
   <html>
   <head>
@@ -292,7 +292,7 @@ export const WelcomeEmail = async (email, firstname) => {
       <div class="container">
           <!-- Header -->
           <div class="header">
-              <h1>Welcome to Edu Platform</h1>
+              <h1>Welcome to Codiin</h1>
               <p>Your Professional Learning Platform</p>
           </div>
 
@@ -300,7 +300,7 @@ export const WelcomeEmail = async (email, firstname) => {
           <div class="content">
               <div class="welcome-message">
                   <h2>Dear ${firstname},</h2>
-                  <p>Thank you for joining Edu Platform. Your account has been successfully created and you now have access to our comprehensive learning resources.</p>
+                  <p>Thank you for joining Codiin. Your account has been successfully created and you now have access to our comprehensive learning resources.</p>
               </div>
 
               <div style="text-align: center;">
@@ -317,7 +317,7 @@ export const WelcomeEmail = async (email, firstname) => {
 
           <!-- Footer -->
           <div class="footer">
-              <p>© 2024 Edu Platform. All rights reserved.</p>
+              <p>© 2024 Codiin. All rights reserved.</p>
               <p>
                   <a href="#">Privacy Policy</a> •
                   <a href="#">Terms of Service</a> •
@@ -429,7 +429,7 @@ export const ForgetPasswordMail = async function(email: string, otp: string) {
 
         const emailData = {
             sender: {
-                name: 'Edu Platform',
+                name: 'Codiin',
                 email: 'anujith.vk@coderzon.com'
             },
             to: [
@@ -477,7 +477,7 @@ export const ForgetPasswordMail = async function(email: string, otp: string) {
                             <p>For security reasons, this code can only be used once. If you need a new code, please request another password reset.</p>
 
                             <div class="footer">
-                                <p>© 2024 Edu Platform. All rights reserved.</p>
+                                <p>© 2024 Codiin. All rights reserved.</p>
                             </div>
                         </div>
                     </div>

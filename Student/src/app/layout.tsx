@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "EduPlatform - Learn & Grow",
+  title: "Codiin - Learn & Grow",
   description: "Discover amazing courses and accelerate your learning journey",
 };
 

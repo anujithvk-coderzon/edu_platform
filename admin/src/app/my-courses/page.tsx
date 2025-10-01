@@ -297,7 +297,7 @@ const Page = () => {
             </h3>
             <p className="text-slate-600 mb-6 max-w-md mx-auto text-sm">
               {courses.length === 0
-                ? 'Create your first course to get started teaching!'
+                ? 'Create your course to get started teaching!'
                 : 'Try adjusting your search or filter criteria.'
               }
             </p>
@@ -305,7 +305,7 @@ const Page = () => {
               <Link href="/create-course">
                 <Button>
                   <PlusIcon className="w-4 h-4 mr-2" />
-                  Create Your First Course
+                  Create Course
                 </Button>
               </Link>
             )}

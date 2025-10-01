@@ -457,7 +457,7 @@ export default function ProfilePage() {
                     <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">Start creating courses to build your teaching profile!</p>
                     <Link href="/create-course">
                       <Button className="w-full sm:w-auto">
-                        Create Your First Course
+                        Create Course
                       </Button>
                     </Link>
                   </div>

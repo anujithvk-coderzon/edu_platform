@@ -186,20 +186,6 @@ export default function LoginPage() {
             Join thousands of learners on their journey to master programming and technology skills.
           </p>
 
-          <div className="space-y-4 pt-8">
-            <div className="flex items-center space-x-3">
-              <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0" />
-              <p className="text-blue-100">Expert-led courses and tutorials</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0" />
-              <p className="text-blue-100">Interactive coding challenges</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <CheckCircleIcon className="h-5 w-5 text-green-400 flex-shrink-0" />
-              <p className="text-blue-100">Real-world projects and certificates</p>
-            </div>
-          </div>
         </div>
       </div>
 

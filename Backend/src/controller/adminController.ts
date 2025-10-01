@@ -94,20 +94,24 @@ const safeDeleteCourse = async (courseId: string, reason?: string) => {
 // ===== AUTH CONTROLLERS =====
 export const BootstrapAdmin = async (req: express.Request, res: express.Response) => {
   try {
+    // Check if ANY admin exists in the system
+    const adminExists = await prisma.admin.findFirst();
+
+    if (adminExists) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          message: 'Bootstrap endpoint is disabled. First admin has already been created.',
+          hint: 'This endpoint can only be used once for initial setup. Please use the normal authentication system.'
+        }
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
         error: { message: 'Validation failed', details: errors.array() }
-      });
-    }
-
-    const adminExists = await prisma.admin.findFirst();
-    
-    if (adminExists) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Admin already exists. Use /register endpoint.' }
       });
     }
 
@@ -3668,13 +3672,28 @@ export const GetFileInfo = async (req: AuthRequest, res: express.Response) => {
 // ===== ANALYTICS CONTROLLERS =====
 export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response) => {
   try {
-    const tutorId = req.user!.id;
-    
-    // Get tutor's courses with enrollment counts and reviews
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
+
+    // Build where clause based on role
+    let whereClause: any = {};
+
+    if (userRole === 'Admin') {
+      // Admins see ALL courses
+      whereClause = {};
+    } else {
+      // Tutors see only their courses (created or assigned)
+      whereClause = {
+        OR: [
+          { creatorId: userId },
+          { tutorId: userId }
+        ]
+      };
+    }
+
+    // Get courses with enrollment counts and reviews
     const courses = await prisma.course.findMany({
-      where: {
-        creatorId: tutorId
-      },
+      where: whereClause,
       include: {
         _count: {
           select: {
@@ -3706,15 +3725,21 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
     // Calculate completion rates based on actual progress data
     let totalMaterials = 0;
     let totalCompletedMaterials = 0;
-    let totalStudents = 0;
+    let totalEnrollments = 0;
     let totalEarnings = 0;
     let totalReviews = 0;
     let weightedRating = 0;
+    const uniqueStudentIds = new Set<string>();
 
     const courseAnalytics = courses.map(course => {
       const materialCount = course.materials.length;
       const studentCount = course._count.enrollments;
       const reviewCount = course._count.reviews;
+
+      // Track unique students across all courses
+      course.enrollments.forEach(enrollment => {
+        uniqueStudentIds.add(enrollment.studentId);
+      });
 
       // Calculate completion rate for this course based on progressPercentage
       let completionRate = 0;
@@ -3738,7 +3763,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         return sum + Math.floor((enrollment.progressPercentage / 100) * materialCount);
       }, 0);
       totalCompletedMaterials += courseCompletedMaterials;
-      totalStudents += studentCount;
+      totalEnrollments += studentCount;
       // Since there's no payment system implemented yet, revenue should be 0
       // totalEarnings += studentCount * course.price;
       totalReviews += reviewCount;
@@ -3762,6 +3787,9 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
     // Calculate overall completion rate
     const overallCompletionRate = totalMaterials > 0 ? (totalCompletedMaterials / totalMaterials) * 100 : 0;
 
+    // Get unique student count
+    const totalStudents = uniqueStudentIds.size;
+
     // Calculate growth rates (would need historical data for real growth)
     const thisMonthStudents = Math.floor(totalStudents * 0.2);
     const lastMonthStudents = Math.floor(totalStudents * 0.18);
@@ -3776,8 +3804,8 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         growth: 0 // No payment system implemented yet
       },
       students: {
-        total: totalStudents,
-        enrollments: totalStudents, // Total enrollments count (same as total students for now)
+        total: totalStudents, // Unique student count
+        enrollments: totalEnrollments, // Total enrollments count (can be more than students if they enroll in multiple courses)
         thisMonth: thisMonthStudents,
         lastMonth: lastMonthStudents,
         growth: lastMonthStudents > 0 ? ((thisMonthStudents - lastMonthStudents) / lastMonthStudents) * 100 : 0
@@ -3789,7 +3817,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         archived: courses.filter(c => c.status === CourseStatus.ARCHIVED).length
       },
       engagement: {
-        totalEnrollments: totalStudents, // Total enrollment count
+        totalEnrollments: totalEnrollments, // Total enrollment count
         avgRating: totalReviews > 0 ? weightedRating / totalReviews : 0,
         totalReviews: totalReviews,
         completionRate: Math.round(overallCompletionRate * 100) / 100
@@ -4200,20 +4228,30 @@ export const GetStudentsCount = async (req: AuthRequest, res: express.Response) 
 export const GetAllStudents = async (req: AuthRequest, res: express.Response) => {
   try {
     const adminId = req.user.id;
+    const userRole = req.user.role;
 
-    // Get admin's courses to find students enrolled in those courses
-    // Include both courses they created AND courses assigned to them as tutor
-    const adminCourses = await prisma.course.findMany({
-      where: {
-        OR: [
-          { creatorId: adminId },  // Courses they created
-          { tutorId: adminId }     // Courses assigned to them as tutor
-        ]
-      },
-      select: { id: true }
-    });
+    // Check if user is admin - admins see ALL enrollments, tutors see only their courses
+    let courseIds: string[] = [];
 
-    const courseIds = adminCourses.map(course => course.id);
+    if (userRole === 'Admin') {
+      // Admins see all courses - get all course IDs
+      const allCourses = await prisma.course.findMany({
+        select: { id: true }
+      });
+      courseIds = allCourses.map(course => course.id);
+    } else {
+      // Tutors see only their courses
+      const tutorCourses = await prisma.course.findMany({
+        where: {
+          OR: [
+            { creatorId: adminId },  // Courses they created
+            { tutorId: adminId }     // Courses assigned to them as tutor
+          ]
+        },
+        select: { id: true }
+      });
+      courseIds = tutorCourses.map(course => course.id);
+    }
 
     if (courseIds.length === 0) {
       return res.json({
@@ -4232,7 +4270,7 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
       });
     }
 
-    // Get all students enrolled in admin's courses with comprehensive data
+    // Get all students enrolled in the relevant courses with comprehensive data
     const enrollments = await prisma.enrollment.findMany({
       where: {
         courseId: { in: courseIds }
@@ -4245,6 +4283,22 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
               select: {
                 materials: true,
                 assignments: true
+              }
+            },
+            creator: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            },
+            tutor: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
               }
             }
           }
@@ -4292,7 +4346,19 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
         submittedAssignments: 0, // Will be calculated later
         gradedAssignments: 0, // Will be calculated later
         completedMaterialsList: [], // Will be populated later
-        submittedAssignmentsList: [] // Will be populated later
+        submittedAssignmentsList: [], // Will be populated later
+        creator: enrollment.course.creator ? {
+          id: enrollment.course.creator.id,
+          firstName: enrollment.course.creator.firstName,
+          lastName: enrollment.course.creator.lastName,
+          email: enrollment.course.creator.email
+        } : null,
+        tutor: enrollment.course.tutor ? {
+          id: enrollment.course.tutor.id,
+          firstName: enrollment.course.tutor.firstName,
+          lastName: enrollment.course.tutor.lastName,
+          email: enrollment.course.tutor.email
+        } : null
       });
 
       student.totalMaterials += enrollment.course._count.materials;
@@ -4309,7 +4375,8 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
         }
       });
 
-      student.totalSpentHours = Math.round(progressRecords.reduce((sum, p) => sum + p.timeSpent, 0) / 60); // Convert minutes to hours
+      const totalMinutes = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
+      student.totalSpentHours = Math.round(totalMinutes / 60); // Convert minutes to hours
       student.totalCourses = student.enrollments.length;
       student.completedCourses = student.enrollments.filter((e: any) => e.status === 'COMPLETED').length;
 

@@ -231,7 +231,7 @@ const Page = () => {
             </div>
           </Link>
 
-          <Link href="/courses" className="group">
+          <Link href="/my-courses" className="group">
             <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
@@ -372,7 +372,7 @@ const Page = () => {
                   </div>
                   <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">No courses yet</p>
                   <Link href="/create-course">
-                    <Button className="w-full sm:w-auto">Create Your First Course</Button>
+                    <Button className="w-full sm:w-auto">Create Course</Button>
                   </Link>
                 </div>
               )}

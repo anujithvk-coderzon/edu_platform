@@ -341,8 +341,10 @@ class ApiClient {
   // Admin endpoints
   admin = {
     getStudentsCount: () => this.get<ApiResponse>('/students/count'),
+    getAllRegisteredStudents: () => this.get<ApiResponse>('/students/registered'),
     toggleTutorStatus: (tutorId: string, isActive: boolean) =>
       this.put<ApiResponse>(`/admin/tutors/${tutorId}/status`, { isActive }),
+    deleteUser: (userId: string) => this.delete<ApiResponse>(`/students/${userId}`)
   };
 }
 

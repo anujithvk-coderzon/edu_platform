@@ -175,6 +175,187 @@ export const sendVerificationEmail = async (email, otp) => {
 
 
 
+export const sendTutorVerificationEmail = async (email, otp) => {
+    try {
+        const apiKey = process.env.API_KEY;
+
+        if (!apiKey) {
+            console.error('API_KEY not found in environment variables');
+            return { success: false, error: 'Email service not configured' };
+        }
+
+        const url = 'https://api.brevo.com/v3/smtp/email';
+
+        const emailData = {
+            sender: {
+                name: 'Codiin',
+                email: 'anujith.vk@coderzon.com'
+            },
+            to: [
+                {
+                    email: email
+                }
+            ],
+            subject: 'Tutor Registration - Email Verification',
+            htmlContent: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                        .otp-box { background: white; border: 2px solid #4F46E5; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0; }
+                        .otp-code { font-size: 32px; font-weight: bold; color: #4F46E5; letter-spacing: 5px; }
+                        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+                        .note { background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>🎓 Tutor Registration</h1>
+                        </div>
+                        <div class="content">
+                            <h2>Welcome to Codiin!</h2>
+                            <p>Thank you for your interest in becoming a tutor on our platform. Please use the following OTP code to verify your email address:</p>
+
+                            <div class="otp-box">
+                                <div class="otp-code">${otp}</div>
+                            </div>
+
+                            <p><strong>This code will expire in 10 minutes.</strong></p>
+
+                            <div class="note">
+                                <strong>📋 Next Steps:</strong>
+                                <p>After email verification, your registration request will be sent to our admin team for review. You'll receive a welcome email once your account is approved and activated.</p>
+                            </div>
+
+                            <p>If you didn't request this registration, please ignore this email.</p>
+
+                            <div class="footer">
+                                <p>© 2024 Codiin. All rights reserved.</p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `
+        };
+
+        const response = await axios.post(url, emailData, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Tutor verification email sent successfully:', response.data);
+        return { success: true };
+    } catch (error) {
+        console.error('Tutor verification email error:', error.response?.data || error.message);
+        return {
+            success: false,
+            error: error.response?.data?.message || error.message || 'Failed to send email. Please try again.'
+        };
+    }
+};
+
+export const sendTutorWelcomeEmail = async (email, firstname) => {
+    try {
+        const apiKey = process.env.API_KEY;
+
+        if (!apiKey) {
+            console.error('API_KEY not found in environment variables');
+            return { success: false, error: 'Email service not configured' };
+        }
+
+        const url = 'https://api.brevo.com/v3/smtp/email';
+
+        const emailData = {
+            sender: {
+                name: 'Codiin',
+                email: 'anujith.vk@coderzon.com'
+            },
+            to: [
+                {
+                    email: email
+                }
+            ],
+            subject: 'Welcome to Codiin - Your Tutor Account is Active!',
+            htmlContent: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                        .welcome-box { background: white; border: 2px solid #10B981; border-radius: 8px; padding: 20px; margin: 20px 0; }
+                        .btn { display: inline-block; background: #10B981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+                        .features { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                        .feature-item { padding: 10px 0; border-bottom: 1px solid #E5E7EB; }
+                        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>🎉 Welcome to Codiin!</h1>
+                        </div>
+                        <div class="content">
+                            <div class="welcome-box">
+                                <h2>Congratulations, ${firstname}!</h2>
+                                <p>Your tutor account has been approved and activated. You can now login to your dashboard and start creating amazing courses!</p>
+                            </div>
+
+                            <div class="features">
+                                <h3>What you can do now:</h3>
+                                <div class="feature-item">✅ Create and publish courses</div>
+                                <div class="feature-item">✅ Upload course materials (videos, PDFs, etc.)</div>
+                                <div class="feature-item">✅ Manage your students</div>
+                                <div class="feature-item">✅ Track student progress</div>
+                                <div class="feature-item">✅ Create assignments and grade submissions</div>
+                            </div>
+
+                            <div style="text-align: center;">
+                                <a href="${process.env.ADMIN_URL || 'http://localhost:3001'}/login" class="btn">Login to Dashboard</a>
+                            </div>
+
+                            <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+
+                            <div class="footer">
+                                <p>© 2024 Codiin. All rights reserved.</p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `
+        };
+
+        const response = await axios.post(url, emailData, {
+            headers: {
+                'accept': 'application/json',
+                'api-key': apiKey,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('Tutor welcome email sent successfully:', response.data);
+        return { success: true };
+    } catch (error) {
+        console.error('Tutor welcome email error:', error.response?.data || error.message);
+        return {
+            success: false,
+            error: error.response?.data?.message || error.message || 'Failed to send email. Please try again.'
+        };
+    }
+};
+
 export const WelcomeEmail = async (email, firstname) => {
     console.log('📧 WelcomeEmail function called with:', { email, firstname });
 

@@ -15,7 +15,7 @@ type UserRole = "Admin" | "Tutor";
 
 // Import utilities
 import { deleteUploadedFile, deleteMultipleFiles } from '../utils/fileUtils';
-import { generateOTP, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
+import { generateOTP, storeOTP, verifyOTP, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp, sendTutorVerificationEmail, sendTutorWelcomeEmail } from '../utils/EmailVerification';
 import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local, Delete_File_Local } from '../utils/localStorage';
@@ -137,6 +137,7 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
         firstName,
         lastName,
         role: "Admin",
+        isActive: true, // Bootstrap admin should be active
       },
       select: {
         id: true,
@@ -144,6 +145,7 @@ export const BootstrapAdmin = async (req: express.Request, res: express.Response
         firstName: true,
         lastName: true,
         role: true,
+        isActive: true,
         createdAt: true
       }
     });
@@ -204,6 +206,9 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Admins should be active by default, tutors should be inactive
+    const isActive = userRole === 'Admin' ? true : false;
+
     const user = await prisma.admin.create({
       data: {
         email,
@@ -211,6 +216,7 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
         firstName,
         lastName,
         role: userRole,
+        isActive: isActive,
       },
       select: {
         id: true,
@@ -218,6 +224,7 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
         firstName: true,
         lastName: true,
         role: true,
+        isActive: true,
         createdAt: true
       }
     });
@@ -228,7 +235,10 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
 
     return res.status(201).json({
       success: true,
-      data: { user }
+      data: { user },
+      message: userRole === 'Admin'
+        ? 'Admin created successfully and is active.'
+        : 'Tutor created successfully. Please activate the tutor account before they can login.'
     });
   } catch (error) {
     console.error('RegisterUser error:', error);
@@ -279,6 +289,7 @@ export const RegisterTutor = async (req: AuthRequest, res: express.Response) => 
         firstName,
         lastName,
         role: "Tutor",
+        isActive: false, // Admin must activate the tutor
       },
       select: {
         id: true,
@@ -286,6 +297,7 @@ export const RegisterTutor = async (req: AuthRequest, res: express.Response) => 
         firstName: true,
         lastName: true,
         role: true,
+        isActive: true,
         createdAt: true
       }
     });
@@ -293,10 +305,163 @@ export const RegisterTutor = async (req: AuthRequest, res: express.Response) => 
     return res.status(201).json({
       success: true,
       data: { tutor },
-      message: 'Tutor registered successfully'
+      message: 'Tutor created successfully. Please activate the tutor account before they can login.'
     });
   } catch (error) {
     console.error('RegisterTutor error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+// ===== PUBLIC TUTOR REGISTRATION WITH EMAIL VERIFICATION =====
+
+export const CheckTutorEmail = async (req: express.Request, res: express.Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Please provide a valid email address', details: errors.array() }
+    });
+  }
+
+  const { email } = req.body;
+  const existingAdmin = await prisma.admin.findUnique({ where: { email } });
+
+  if (existingAdmin) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'An account with this email already exists' }
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Email is available',
+    data: { email, available: true }
+  });
+};
+
+export const SendTutorVerificationEmail = async (req: express.Request, res: express.Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Please provide a valid email address', details: errors.array() }
+    });
+  }
+
+  const { email } = req.body;
+  const existingAdmin = await prisma.admin.findUnique({ where: { email } });
+
+  if (existingAdmin) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'An account with this email already exists' }
+    });
+  }
+
+  const otp = generateOTP();
+  storeOTP(email, otp, null);
+  const emailResult = await sendTutorVerificationEmail(email, otp);
+
+  if (!emailResult.success) {
+    return res.status(500).json({
+      success: false,
+      error: { message: emailResult.error || 'Failed to send verification email. Please try again.' }
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Verification code sent to your email. Please check your inbox.',
+    data: { email }
+  });
+};
+
+export const VerifyTutorOTP = async (req: express.Request, res: express.Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Validation failed', details: errors.array() }
+    });
+  }
+
+  const { email, otp } = req.body;
+  const verification = verifyOTP(email, otp);
+
+  if (!verification.valid) {
+    return res.status(400).json({
+      success: false,
+      error: { message: verification.message || 'Invalid or expired OTP. Please try again.' }
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Email verified successfully. You can now complete your registration.',
+    data: { email, verified: true }
+  });
+};
+
+export const RegisterTutorPublic = async (req: express.Request, res: express.Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Validation failed', details: errors.array() }
+      });
+    }
+
+    const { email, password, firstName, lastName } = req.body;
+
+    // Check if email already exists
+    const existingUser = await prisma.admin.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'User already exists with this email' }
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create tutor with isActive = false (requires admin approval)
+    const tutor = await prisma.admin.create({
+      data: {
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        role: "Tutor",
+        isActive: false, // Default to inactive, admin must activate
+        isVerified: true // Email is verified through OTP
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        isActive: true,
+        createdAt: true
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: { tutor },
+      message: 'Tutor registration request submitted successfully. Your account will be activated by an admin.'
+    });
+  } catch (error) {
+    console.error('RegisterTutorPublic error:', error);
     return res.status(500).json({
       success: false,
       error: { message: 'Internal server error' }
@@ -1177,18 +1342,38 @@ export const ToggleTutorStatus = async (req: AuthRequest, res: express.Response)
       });
     }
 
-    // Update tutor status
+    // Check if this is the first time activating (was inactive before AND welcome email hasn't been sent)
+    const shouldSendWelcomeEmail = !tutor.isActive && isActive && !tutor.welcomeEmailSent;
+
+    // Update tutor status and welcome email flag if needed
+    const updateData: any = { isActive };
+    if (shouldSendWelcomeEmail) {
+      updateData.welcomeEmailSent = true;
+    }
+
     const updatedTutor = await prisma.admin.update({
       where: { id },
-      data: { isActive },
+      data: updateData,
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
-        isActive: true
+        isActive: true,
+        welcomeEmailSent: true
       }
     });
+
+    // Send welcome email only on first-time activation
+    if (shouldSendWelcomeEmail) {
+      try {
+        await sendTutorWelcomeEmail(updatedTutor.email, updatedTutor.firstName);
+        console.log(`Welcome email sent to ${updatedTutor.email}`);
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail the activation if email fails, but log the error
+      }
+    }
 
     return res.json({
       success: true,
@@ -4221,6 +4406,50 @@ export const GetStudentsCount = async (req: AuthRequest, res: express.Response) 
     return res.status(500).json({
       success: false,
       error: { message: 'Failed to get students count.' }
+    });
+  }
+};
+
+export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Get all students directly from Student table, sorted by registration date (newest first)
+    const students = await prisma.student.findMany({
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        avatar: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Map to consistent format
+    const formattedStudents = students.map(student => ({
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      avatar: student.avatar,
+      registeredAt: student.createdAt.toISOString(),
+      lastActive: student.updatedAt.toISOString()
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        students: formattedStudents
+      }
+    });
+  } catch (error) {
+    console.error('Get all registered students error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to get registered students.' }
     });
   }
 };

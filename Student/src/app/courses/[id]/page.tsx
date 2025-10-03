@@ -256,7 +256,7 @@ export default function CourseDetailPage() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push('/courses')}
             className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition-colors"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />

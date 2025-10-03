@@ -9,7 +9,12 @@ import {
   ChartBarIcon,
   CurrencyDollarIcon,
   PlusIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  CalendarIcon,
+  UserIcon,
+  EnvelopeIcon,
+  ClockIcon,
+  FunnelIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { api } from '../lib/api';
@@ -35,6 +40,22 @@ interface DashboardData {
   recentActivities: any[];
 }
 
+interface RegisteredStudent {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt: string;
+}
+
+type TimePeriod = '1week' | '1month' | '6months';
+
+const timePeriodLabels = {
+  '1week': 'Last 7 Days',
+  '1month': 'Last 30 Days',
+  '6months': 'Last 6 Months'
+};
+
 const Page = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,13 +75,75 @@ const Page = () => {
     recentActivities: []
   });
   const { user } = useAuth();
+  const [students, setStudents] = useState<RegisteredStudent[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<RegisteredStudent[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1month');
+
+  useEffect(() => {
+    filterStudentsByPeriod();
+  }, [students, selectedPeriod]);
+
+  const filterStudentsByPeriod = () => {
+    const now = new Date();
+    let cutoffDate = new Date();
+
+    switch (selectedPeriod) {
+      case '1week':
+        cutoffDate.setDate(now.getDate() - 7);
+        break;
+      case '1month':
+        cutoffDate.setMonth(now.getMonth() - 1);
+        break;
+      case '6months':
+        cutoffDate.setMonth(now.getMonth() - 6);
+        break;
+    }
+
+    const filtered = students.filter(student => {
+      const registrationDate = new Date(student.createdAt);
+      return registrationDate >= cutoffDate;
+    });
+
+    // Sort by most recent first
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    setFilteredStudents(filtered);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+
+    if (diffInDays > 0) {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    } else if (diffInHours > 0) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else if (diffInMinutes > 0) {
+      return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    } else {
+      return 'Just now';
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // Get current user
         const userResponse = await api.auth.getMe();
         if (userResponse.success) {
@@ -124,6 +207,23 @@ const Page = () => {
               recentActivities: []
             });
           }
+        }
+
+        // Fetch all registered students directly from Student table
+        try {
+          const studentsResponse = await api.admin.getAllRegisteredStudents();
+          if (studentsResponse.success && studentsResponse.data?.students) {
+            const registeredStudents: RegisteredStudent[] = studentsResponse.data.students.map((student: any) => ({
+              id: student.id,
+              firstName: student.firstName,
+              lastName: student.lastName,
+              email: student.email,
+              createdAt: student.registeredAt // This is the student's registration date from DB
+            }));
+            setStudents(registeredStudents);
+          }
+        } catch (error) {
+          console.error('Error fetching registered students:', error);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -258,6 +358,138 @@ const Page = () => {
               </div>
             </div>
           </Link>
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">Recent Activity</h2>
+                <p className="text-sm text-slate-600">Track recent student registrations</p>
+              </div>
+              {filteredStudents.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <ChartBarIcon className="w-5 h-5 text-slate-500" />
+                  <span className="text-sm text-slate-600">
+                    {filteredStudents.length} registrations
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Time Period Filter */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <FunnelIcon className="w-4 h-4 text-slate-600" />
+                <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                  Filter by Time Period
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                {(Object.keys(timePeriodLabels) as TimePeriod[]).map((period) => (
+                  <Button
+                    key={period}
+                    variant={selectedPeriod === period ? 'default' : 'outline'}
+                    onClick={() => setSelectedPeriod(period)}
+                    size="sm"
+                    className={`
+                      ${selectedPeriod === period
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                      }
+                    `}
+                  >
+                    <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="text-xs sm:text-sm">{timePeriodLabels[period]}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Students List */}
+            {filteredStudents.length > 0 ? (
+              <div className="space-y-3">
+                {filteredStudents.slice(0, 5).map((student) => (
+                  <div
+                    key={student.id}
+                    className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 hover:bg-white hover:shadow-sm transition-all duration-200"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                      {/* Student Info */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
+                          {student.firstName.charAt(0)}{student.lastName.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500 flex-shrink-0" />
+                            <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate">
+                              {student.firstName} {student.lastName}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <EnvelopeIcon className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500 flex-shrink-0" />
+                            <p className="text-xs sm:text-sm text-slate-600 truncate">
+                              {student.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Registration Date */}
+                      <div className="flex flex-col sm:items-end gap-1 flex-shrink-0 pl-13 sm:pl-0">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
+                          <span className="text-xs sm:text-sm font-medium text-slate-700">
+                            {formatDate(student.createdAt)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2 sm:justify-end">
+                          <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                          <span className="text-xs text-blue-600 font-medium">
+                            {getTimeAgo(student.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 px-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <UserGroupIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" />
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
+                  No registrations found
+                </h3>
+                <p className="text-slate-600 text-xs sm:text-sm max-w-md mx-auto">
+                  No students registered in the selected time period.
+                </p>
+              </div>
+            )}
+
+            {/* View All Button */}
+            {filteredStudents.length > 0 && (
+              <div className="mt-6 text-center">
+                <Link href="/registrations">
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto bg-white hover:bg-blue-50 text-blue-600 border-blue-300 hover:border-blue-400"
+                  >
+                    View All Registrations
+                    <ArrowRightIcon className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+                {filteredStudents.length > 5 && (
+                  <p className="text-xs text-slate-500 mt-2">
+                    Showing 5 of {filteredStudents.length} registrations
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Statistics */}

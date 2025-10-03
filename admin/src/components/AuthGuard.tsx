@@ -10,7 +10,7 @@ interface AuthGuardProps {
 }
 
 // Pages that don't require authentication
-const publicRoutes = ['/login', '/forgot-password'];
+const publicRoutes = ['/login', '/forgot-password', '/register-tutor'];
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, loading, isAuthenticated } = useAuth();

@@ -33,3 +33,9 @@ function validateEnv(): EnvConfig {
 }
 
 export const env = validateEnv();
+
+// Export individual values for easier imports
+export const API_BASE_URL = env.API_BASE_URL;
+export const ADMIN_API_URL = env.ADMIN_API_URL;
+export const BACKEND_URL = env.BACKEND_URL;
+export const CDN_HOST = env.CDN_HOST;

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../../lib/api';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Cog6ToothIcon, UserIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, UserIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { getCdnUrl } from '../../utils/cdn';
 import toast from 'react-hot-toast';
 
@@ -25,6 +25,8 @@ export default function ManageUsersPage() {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTutors();
@@ -63,6 +65,26 @@ export default function ManageUsersPage() {
       toast.error(error.message || 'Failed to update tutor status');
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteUser = async (tutorId: string) => {
+    try {
+      setDeletingId(tutorId);
+      const response = await api.admin.deleteUser(tutorId);
+
+      if (response.success) {
+        setTutors(prev => prev.filter(tutor => tutor.id !== tutorId));
+        toast.success('User deleted successfully');
+        setDeleteConfirmId(null);
+      } else {
+        toast.error(response.error?.message || 'Failed to delete user');
+      }
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.message || 'Failed to delete user');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -192,20 +214,51 @@ export default function ManageUsersPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Button
-                          onClick={() => toggleTutorStatus(tutor.id, tutor.isActive)}
-                          disabled={updatingId === tutor.id}
-                          variant={tutor.isActive ? 'outline' : 'default'}
-                          className={tutor.isActive ? 'text-red-600 border-red-300 hover:bg-red-50' : 'bg-green-600 hover:bg-green-700'}
-                        >
-                          {updatingId === tutor.id ? (
-                            'Updating...'
-                          ) : tutor.isActive ? (
-                            'Deactivate'
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => toggleTutorStatus(tutor.id, tutor.isActive)}
+                            disabled={updatingId === tutor.id || deletingId === tutor.id}
+                            variant={tutor.isActive ? 'outline' : 'default'}
+                            className={tutor.isActive ? 'text-red-600 border-red-300 hover:bg-red-50' : 'bg-green-600 hover:bg-green-700'}
+                          >
+                            {updatingId === tutor.id ? (
+                              'Updating...'
+                            ) : tutor.isActive ? (
+                              'Deactivate'
+                            ) : (
+                              'Activate'
+                            )}
+                          </Button>
+
+                          {deleteConfirmId === tutor.id ? (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                onClick={() => handleDeleteUser(tutor.id)}
+                                disabled={deletingId === tutor.id}
+                                variant="default"
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                {deletingId === tutor.id ? 'Deleting...' : 'Confirm'}
+                              </Button>
+                              <Button
+                                onClick={() => setDeleteConfirmId(null)}
+                                disabled={deletingId === tutor.id}
+                                variant="outline"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
                           ) : (
-                            'Activate'
+                            <Button
+                              onClick={() => setDeleteConfirmId(tutor.id)}
+                              disabled={updatingId === tutor.id || deletingId === tutor.id}
+                              variant="outline"
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </Button>
                           )}
-                        </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

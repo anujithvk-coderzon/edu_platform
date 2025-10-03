@@ -90,7 +90,14 @@ import {
 
   // Student Management Controllers
   GetStudentsCount,
-  GetAllStudents
+  GetAllRegisteredStudents,
+  GetAllStudents,
+
+  // Public Tutor Registration Controllers
+  CheckTutorEmail,
+  SendTutorVerificationEmail,
+  VerifyTutorOTP,
+  RegisterTutorPublic
 } from '../controller/adminController';
 
 // Import assignment controllers
@@ -167,6 +174,44 @@ router.post('/auth/logout', authMiddleware, (req, res) => {
   });
 });
 
+// ===== PUBLIC TUTOR REGISTRATION ROUTES (No Auth Required) =====
+
+// Check if tutor email is available
+router.post('/auth/tutor/check-email',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  asyncHandler(CheckTutorEmail)
+);
+
+// Send verification email to tutor
+router.post('/auth/tutor/verify-email',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  asyncHandler(SendTutorVerificationEmail)
+);
+
+// Verify tutor OTP
+router.post('/auth/tutor/verify-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').isString().isLength({ min: 6, max: 6 }),
+  ],
+  asyncHandler(VerifyTutorOTP)
+);
+
+// Complete tutor registration
+router.post('/auth/tutor/register',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('password').isLength({ min: 6 }),
+    body('firstName').trim().isLength({ min: 1 }),
+    body('lastName').trim().isLength({ min: 1 }),
+  ],
+  asyncHandler(RegisterTutorPublic)
+);
+
 // Forgot password
 router.post('/auth/forgot-password',
   [
@@ -220,6 +265,9 @@ router.put('/auth/change-password', authMiddleware,
 
 // Get students count
 router.get('/students/count', authMiddleware, adminOnly, GetStudentsCount);
+
+// Get all registered students (from Student table directly)
+router.get('/students/registered', authMiddleware, adminOnly, GetAllRegisteredStudents);
 
 // Get all students
 router.get('/students', authMiddleware, adminOnly,

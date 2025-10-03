@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '../../components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
@@ -330,7 +331,22 @@ const Page = () => {
                   </Button>
                 </div>
               </form>
+
             </CardContent>
+
+            {/* Register as Tutor Link - Outside CardContent */}
+            <div className="px-4 sm:px-6 md:px-8 pb-6 text-center">
+              <p className="text-sm text-slate-600 mb-3">
+                Want to become a tutor?
+              </p>
+              <a
+                href="/register-tutor"
+                className="w-full bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 text-blue-700 border border-blue-300 hover:border-blue-400 font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2"
+              >
+                <AcademicCapIcon className="h-5 w-5" />
+                <span>Register as Tutor</span>
+              </a>
+            </div>
           </Card>
 
         </div>

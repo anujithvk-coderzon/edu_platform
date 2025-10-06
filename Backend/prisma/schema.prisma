@@ -10,8 +10,10 @@ datasource db {
 
 enum CourseStatus {
   DRAFT
+  PENDING_REVIEW
   PUBLISHED
   ARCHIVED
+  REJECTED
 }
 
 enum EnrollmentStatus {
@@ -42,8 +44,7 @@ model Admin {
   role               String   @default("Tutor") // admin or tutor
   avatar             String?
   isVerified         Boolean  @default(false)
-  isActive           Boolean  @default(false)
-  welcomeEmailSent   Boolean  @default(false)
+  isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -102,6 +103,8 @@ model Course {
   tutorName     String? // Display name for the tutor/organization
   requirements  String[] @default([])
   prerequisites String[] @default([])
+  rejectionReason String? // Reason for rejection if status is REJECTED
+  rejectedAt      DateTime? // Date when course was rejected
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -234,6 +237,18 @@ model AssignmentSubmission {
 
   @@unique([assignmentId, studentId])
   @@map("assignment_submissions")
+}
+
+model TutorRequest {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tutor_requests")
 }
 
 model Review {

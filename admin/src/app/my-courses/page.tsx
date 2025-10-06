@@ -15,7 +15,8 @@ import {
   StarIcon,
   AcademicCapIcon,
   CheckCircleIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { api } from '../../lib/api';
@@ -35,7 +36,7 @@ interface Course {
   level?: string;
   price: number;
   duration?: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  status: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'ARCHIVED' | 'REJECTED';
   tutorName?: string;
   creator?: {
     firstName: string;
@@ -54,6 +55,8 @@ interface Course {
     reviews: number;
   };
   averageRating?: number;
+  rejectionReason?: string;
+  rejectedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -114,8 +117,12 @@ const Page = () => {
     switch (status) {
       case 'PUBLISHED':
         return 'bg-green-100 text-green-800';
+      case 'PENDING_REVIEW':
+        return 'bg-blue-100 text-blue-800';
       case 'DRAFT':
         return 'bg-yellow-100 text-yellow-800';
+      case 'REJECTED':
+        return 'bg-red-100 text-red-800';
       case 'ARCHIVED':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -153,35 +160,54 @@ const Page = () => {
   };
 
   const handlePublishCourse = async (courseId: string, courseTitle: string) => {
-    const confirmed = confirm(
-      `Are you sure you want to publish "${courseTitle}"?\n\nOnce published, this course will be visible to all students and available for enrollment.`
-    );
-    
+    const isAdmin = user?.role?.toLowerCase() === 'admin';
+    const course = courses.find(c => c.id === courseId);
+    const isDraft = course?.status === 'DRAFT';
+
+    const confirmMessage = isAdmin
+      ? `Are you sure you want to publish "${courseTitle}"?\n\nOnce published, this course will be visible to all students and available for enrollment.`
+      : `Are you sure you want to submit "${courseTitle}" for review?\n\nThe course will be sent to admins for approval before being published.`;
+
+    const confirmed = confirm(confirmMessage);
+
     if (!confirmed) return;
 
     try {
       setState(prev => ({ ...prev, publishingCourseId: courseId }));
-      const response = await api.courses.publish(courseId);
-      
+
+      // Admins always publish, Tutors can only submit for review
+      const response = isAdmin
+        ? await api.courses.publish(courseId)
+        : await api.courses.submitForReview(courseId);
+
       if (response.success) {
-        setState(prev => ({ 
-          ...prev, 
-          courses: prev.courses.map(course => 
-            course.id === courseId 
-              ? { ...course, status: 'PUBLISHED' as const }
+        const newStatus: Course['status'] = isAdmin ? 'PUBLISHED' : 'PENDING_REVIEW';
+        setState(prev => ({
+          ...prev,
+          courses: prev.courses.map(course =>
+            course.id === courseId
+              ? { ...course, status: newStatus }
               : course
           ),
           publishingCourseId: ''
         }));
-        toast.success(`Course "${courseTitle}" published successfully!`);
+
+        const successMessage = isAdmin
+          ? `Course "${courseTitle}" published successfully!`
+          : `Course "${courseTitle}" submitted for review!`;
+        toast.success(successMessage);
+
+        // Notify navbar to update count if course was pending review
+        if (course?.status === 'PENDING_REVIEW') {
+          window.dispatchEvent(new Event('pendingCoursesUpdated'));
+        }
       } else {
         setState(prev => ({ ...prev, publishingCourseId: '' }));
-        toast.error(response.error?.message || 'Failed to publish course');
+        toast.error(response.error?.message || (isAdmin ? 'Failed to publish course' : 'Failed to submit course'));
       }
     } catch (error: any) {
-      console.error('Error publishing course:', error);
       setState(prev => ({ ...prev, publishingCourseId: '' }));
-      toast.error(error.message || 'Failed to publish course');
+      toast.error(error.message || (isAdmin ? 'Failed to publish course' : 'Failed to submit course'));
     }
   };
 
@@ -271,7 +297,9 @@ const Page = () => {
                 >
                   <option value="ALL">All Status</option>
                   <option value="PUBLISHED">Published</option>
+                  <option value="PENDING_REVIEW">Pending Review</option>
                   <option value="DRAFT">Draft</option>
+                  <option value="REJECTED">Rejected</option>
                   <option value="ARCHIVED">Archived</option>
                 </select>
               </div>
@@ -326,7 +354,7 @@ const Page = () => {
                     <AcademicCapIcon className="h-12 w-12 text-slate-600" />
                   )}
                   <span className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(course.status)}`}>
-                    {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
+                    {course.status === 'PENDING_REVIEW' ? 'Pending Review' : course.status.charAt(0) + course.status.slice(1).toLowerCase()}
                   </span>
                 </div>
                 <CardHeader>
@@ -389,6 +417,19 @@ const Page = () => {
                       </div>
                     </div>
 
+                    {/* Rejection Reason */}
+                    {course.status === 'REJECTED' && course.rejectionReason && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                        <div className="flex items-start">
+                          <XCircleIcon className="w-4 h-4 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
+                          <div>
+                            <div className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</div>
+                            <div className="text-xs text-red-700">{course.rejectionReason}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Category and Tutor Name */}
                     <div className="flex flex-wrap gap-2">
                       {course.category && (
@@ -431,9 +472,9 @@ const Page = () => {
                         </Link>
                       </div>
 
-                      {/* Second Row - Publish (if draft) and Delete */}
+                      {/* Second Row - Publish/Submit and Delete */}
                       <div className="flex flex-row gap-1.5 sm:gap-2 w-full">
-                        {course.status === 'DRAFT' ? (
+                        {course.status === 'DRAFT' || (course.status === 'PENDING_REVIEW' && user?.role?.toLowerCase() === 'admin') ? (
                           <>
                             <Button
                               size="sm"
@@ -448,12 +489,48 @@ const Page = () => {
                                 <CheckCircleIcon className="w-3 h-3 sm:mr-1" />
                               )}
                               <span className="hidden sm:inline">
-                                {publishingCourseId === course.id ? 'Publishing...' : 'Publish'}
+                                {publishingCourseId === course.id
+                                  ? (user?.role?.toLowerCase() === 'admin' ? 'Publishing...' : 'Submitting...')
+                                  : (user?.role?.toLowerCase() === 'admin' ? 'Publish' : 'Submit for Review')
+                                }
                               </span>
                               <span className="sm:hidden">
-                                {publishingCourseId === course.id ? '...' : 'Pub'}
+                                {publishingCourseId === course.id ? '...' : (user?.role?.toLowerCase() === 'admin' ? 'Pub' : 'Submit')}
                               </span>
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteCourse(course.id, course.title)}
+                              disabled={deletingCourseId === course.id}
+                              className="flex-1 border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs px-2 sm:px-3"
+                            >
+                              {deletingCourseId === course.id ? (
+                                <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                              ) : (
+                                <TrashIcon className="w-3 h-3 sm:mr-1" />
+                              )}
+                              <span className="hidden sm:inline">
+                                {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
+                              </span>
+                              <span className="sm:hidden">
+                                {deletingCourseId === course.id ? '...' : 'Del'}
+                              </span>
+                            </Button>
+                          </>
+                        ) : course.status === 'REJECTED' ? (
+                          <>
+                            <Link href={`/courses/${course.id}/edit`} className="flex-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full text-xs px-2 sm:px-3 border-orange-300 text-orange-700 hover:bg-orange-50"
+                              >
+                                <PencilIcon className="w-3 h-3 sm:mr-1" />
+                                <span className="hidden sm:inline">Fix & Resubmit</span>
+                                <span className="sm:hidden">Fix</span>
+                              </Button>
+                            </Link>
                             <Button
                               variant="outline"
                               size="sm"

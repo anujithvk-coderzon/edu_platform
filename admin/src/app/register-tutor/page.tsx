@@ -40,15 +40,21 @@ export default function RegisterTutorPage() {
       const data = await response.json();
       console.log('Response data:', data);
 
-      if (data.success) {
+      if (response.ok && data.success) {
         toast.success('Verification code sent to your email!');
         setStep(2);
       } else {
+        // Show the specific error message from backend
         toast.error(data.error?.message || 'Failed to send verification code');
       }
     } catch (error) {
       console.error('Send OTP error:', error);
-      toast.error('Network error. Please try again.');
+      // Only show network error if it's actually a network issue
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -70,7 +76,7 @@ export default function RegisterTutorPage() {
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         toast.success('Email verified successfully!');
         setStep(3);
       } else {
@@ -78,7 +84,11 @@ export default function RegisterTutorPage() {
       }
     } catch (error) {
       console.error('Verify OTP error:', error);
-      toast.error('Network error. Please try again.');
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -113,15 +123,19 @@ export default function RegisterTutorPage() {
 
       const data = await response.json();
 
-      if (data.success) {
-        toast.success('Tutor registration request submitted successfully! Your account will be activated by an admin.');
+      if (response.ok && data.success) {
+        toast.success('Registration request submitted successfully! You will be notified once approved.');
         setTimeout(() => router.push('/login'), 2000);
       } else {
         toast.error(data.error?.message || 'Registration failed');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error('Network error. Please try again.');
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

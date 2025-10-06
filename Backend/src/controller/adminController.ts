@@ -15,7 +15,7 @@ type UserRole = "Admin" | "Tutor";
 
 // Import utilities
 import { deleteUploadedFile, deleteMultipleFiles } from '../utils/fileUtils';
-import { generateOTP, storeOTP, verifyOTP, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp, sendTutorVerificationEmail, sendTutorWelcomeEmail } from '../utils/EmailVerification';
+import { generateOTP, storeOTP, verifyOTP, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp, sendTutorVerificationEmail, sendTutorWelcomeEmail, StudentWelcomeEmail, StaffWelcomeEmail, sendTutorPendingApprovalEmail, sendTutorRejectionEmail, sendCourseRejectionEmail, sendCoursePublishedEmail } from '../utils/EmailVerification';
 import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local, Delete_File_Local } from '../utils/localStorage';
@@ -206,9 +206,7 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Admins should be active by default, tutors should be inactive
-    const isActive = userRole === 'Admin' ? true : false;
-
+    // All users created by admin should be active by default
     const user = await prisma.admin.create({
       data: {
         email,
@@ -216,7 +214,8 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
         firstName,
         lastName,
         role: userRole,
-        isActive: isActive,
+        isActive: true,
+        isVerified: true,
       },
       select: {
         id: true,
@@ -229,6 +228,13 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
       }
     });
 
+    // Send welcome email to the newly created user (Admin/Tutor)
+    const emailResult = await StaffWelcomeEmail(email, firstName, userRole);
+    if (!emailResult.success) {
+      console.error('Failed to send welcome email:', emailResult.error);
+      // Don't fail the user creation if email fails, just log it
+    }
+
     // DO NOT generate token or set cookies when creating a user
     // This is a user creation endpoint, not a login endpoint
     // The admin should remain logged in as themselves
@@ -236,9 +242,7 @@ export const RegisterUser = async (req: express.Request, res: express.Response) 
     return res.status(201).json({
       success: true,
       data: { user },
-      message: userRole === 'Admin'
-        ? 'Admin created successfully and is active.'
-        : 'Tutor created successfully. Please activate the tutor account before they can login.'
+      message: `${userRole} created successfully and is active. A welcome email has been sent.`
     });
   } catch (error) {
     console.error('RegisterUser error:', error);
@@ -354,12 +358,24 @@ export const SendTutorVerificationEmail = async (req: express.Request, res: expr
   }
 
   const { email } = req.body;
+
+  // Check if email already exists in admin table (active tutor/admin)
   const existingAdmin = await prisma.admin.findUnique({ where: { email } });
 
   if (existingAdmin) {
     return res.status(400).json({
       success: false,
-      error: { message: 'An account with this email already exists' }
+      error: { message: 'An account with this email already exists. Please login instead.' }
+    });
+  }
+
+  // Check if there's already a tutor request
+  const existingRequest = await prisma.tutorRequest.findUnique({ where: { email } });
+
+  if (existingRequest) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'A registration request with this email is already pending approval. Please wait for admin review.' }
     });
   }
 
@@ -419,7 +435,7 @@ export const RegisterTutorPublic = async (req: express.Request, res: express.Res
 
     const { email, password, firstName, lastName } = req.body;
 
-    // Check if email already exists
+    // Check if email already exists in admin table
     const existingUser = await prisma.admin.findUnique({
       where: { email }
     });
@@ -431,34 +447,48 @@ export const RegisterTutorPublic = async (req: express.Request, res: express.Res
       });
     }
 
+    // Check if email already has a pending request
+    const existingRequest = await prisma.tutorRequest.findUnique({
+      where: { email }
+    });
+
+    if (existingRequest) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'A registration request with this email is already pending approval' }
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create tutor with isActive = false (requires admin approval)
-    const tutor = await prisma.admin.create({
+    // Store registration request in tutor_request table
+    const tutorRequest = await prisma.tutorRequest.create({
       data: {
         email,
         password: hashedPassword,
         firstName,
-        lastName,
-        role: "Tutor",
-        isActive: false, // Default to inactive, admin must activate
-        isVerified: true // Email is verified through OTP
+        lastName
       },
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
-        isActive: true,
         createdAt: true
       }
     });
 
+    // Send pending approval email to the tutor
+    const emailResult = await sendTutorPendingApprovalEmail(email, firstName);
+    if (!emailResult.success) {
+      console.error('Failed to send pending approval email:', emailResult.error);
+      // Don't fail the registration if email fails, just log it
+    }
+
     return res.status(201).json({
       success: true,
-      data: { tutor },
-      message: 'Tutor registration request submitted successfully. Your account will be activated by an admin.'
+      data: { tutorRequest },
+      message: 'Tutor registration request submitted successfully. You will be notified once your request is reviewed by an admin.'
     });
   } catch (error) {
     console.error('RegisterTutorPublic error:', error);
@@ -1065,6 +1095,207 @@ export const GetUserStats = async (req: AuthRequest, res: express.Response) => {
   }
 };
 
+// ===== TUTOR REQUEST CONTROLLERS =====
+export const GetPendingTutorRequestsCount = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can view tutor requests
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can view tutor requests' }
+      });
+    }
+
+    // Count all tutor requests (all are pending since processed ones are deleted)
+    const count = await prisma.tutorRequest.count();
+
+    return res.json({
+      success: true,
+      data: { count }
+    });
+  } catch (error) {
+    console.error('GetPendingTutorRequestsCount error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+export const GetAllTutorRequests = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can view tutor requests
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can view tutor requests' }
+      });
+    }
+
+    // Get all tutor requests (all are pending since processed ones are deleted)
+    const requests = await prisma.tutorRequest.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+
+    return res.json({
+      success: true,
+      data: { requests }
+    });
+  } catch (error) {
+    console.error('GetAllTutorRequests error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+export const AcceptTutorRequest = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can accept tutor requests
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can accept tutor requests' }
+      });
+    }
+
+    const { requestId } = req.params;
+
+    // Get the tutor request
+    const tutorRequest = await prisma.tutorRequest.findUnique({
+      where: { id: requestId }
+    });
+
+    if (!tutorRequest) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Tutor request not found' }
+      });
+    }
+
+    // Check if email already exists (race condition protection)
+    const existingUser = await prisma.admin.findUnique({
+      where: { email: tutorRequest.email }
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'A user with this email already exists' }
+      });
+    }
+
+    // Create the tutor account and delete the request in a transaction
+    const tutor = await prisma.$transaction(async (tx) => {
+      // Create the tutor account
+      const newTutor = await tx.admin.create({
+        data: {
+          email: tutorRequest.email,
+          password: tutorRequest.password, // Already hashed
+          firstName: tutorRequest.firstName,
+          lastName: tutorRequest.lastName,
+          role: "Tutor",
+          isActive: true,
+          isVerified: true
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          isActive: true,
+          createdAt: true
+        }
+      });
+
+      // Delete the tutor request after successful account creation
+      await tx.tutorRequest.delete({
+        where: { id: requestId }
+      });
+
+      return newTutor;
+    });
+
+    // Send welcome email to the tutor
+    const emailResult = await sendTutorWelcomeEmail(tutor.email, tutor.firstName);
+    if (!emailResult.success) {
+      console.error('Failed to send welcome email:', emailResult.error);
+      // Don't fail the request acceptance if email fails
+    }
+
+    return res.json({
+      success: true,
+      data: { tutor },
+      message: 'Tutor request accepted successfully. Welcome email has been sent.'
+    });
+  } catch (error) {
+    console.error('AcceptTutorRequest error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+export const RejectTutorRequest = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can reject tutor requests
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can reject tutor requests' }
+      });
+    }
+
+    const { requestId } = req.params;
+
+    // Get the tutor request
+    const tutorRequest = await prisma.tutorRequest.findUnique({
+      where: { id: requestId }
+    });
+
+    if (!tutorRequest) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Tutor request not found' }
+      });
+    }
+
+    // Send rejection email first, then delete the request
+    const emailResult = await sendTutorRejectionEmail(tutorRequest.email, tutorRequest.firstName);
+    if (!emailResult.success) {
+      console.error('Failed to send rejection email:', emailResult.error);
+      // Don't fail the request rejection if email fails
+    }
+
+    // Delete the tutor request
+    await prisma.tutorRequest.delete({
+      where: { id: requestId }
+    });
+
+    return res.json({
+      success: true,
+      message: 'Tutor request rejected successfully. Rejection email has been sent.'
+    });
+  } catch (error) {
+    console.error('RejectTutorRequest error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
 // ===== COURSE CONTROLLERS =====
 export const GetAllCourses = async (req: AuthRequest, res: express.Response) => {
   try {
@@ -1342,38 +1573,21 @@ export const ToggleTutorStatus = async (req: AuthRequest, res: express.Response)
       });
     }
 
-    // Check if this is the first time activating (was inactive before AND welcome email hasn't been sent)
-    const shouldSendWelcomeEmail = !tutor.isActive && isActive && !tutor.welcomeEmailSent;
-
-    // Update tutor status and welcome email flag if needed
-    const updateData: any = { isActive };
-    if (shouldSendWelcomeEmail) {
-      updateData.welcomeEmailSent = true;
-    }
-
+    // Update tutor status
     const updatedTutor = await prisma.admin.update({
       where: { id },
-      data: updateData,
+      data: { isActive },
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
-        isActive: true,
-        welcomeEmailSent: true
+        isActive: true
       }
     });
 
-    // Send welcome email only on first-time activation
-    if (shouldSendWelcomeEmail) {
-      try {
-        await sendTutorWelcomeEmail(updatedTutor.email, updatedTutor.firstName);
-        console.log(`Welcome email sent to ${updatedTutor.email}`);
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
-        // Don't fail the activation if email fails, but log the error
-      }
-    }
+    // Note: Welcome emails are only sent during initial account creation
+    // or when accepting tutor registration requests, not when toggling status
 
     return res.json({
       success: true,
@@ -1739,7 +1953,8 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
   }
 };
 
-export const PublishCourse = async (req: AuthRequest, res: express.Response) => {
+// Tutor submits course for admin review
+export const SubmitCourseForReview = async (req: AuthRequest, res: express.Response) => {
   try {
     const { id } = req.params;
 
@@ -1754,15 +1969,84 @@ export const PublishCourse = async (req: AuthRequest, res: express.Response) => 
       });
     }
 
-    // Access control: Admin can publish any course, Tutors can publish courses they created or are assigned to
-    if (req.user!.role !== "Admin") {
-      const hasAccess = course.creatorId === req.user!.id || course.tutorId === req.user!.id;
-      if (!hasAccess) {
-        return res.status(403).json({
-          success: false,
-          error: { message: 'Not authorized to publish this course' }
-        });
+    // Only course creator or assigned tutor can submit for review
+    const hasAccess = course.creatorId === req.user!.id || course.tutorId === req.user!.id;
+    if (!hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Not authorized to submit this course' }
+      });
+    }
+
+    if (course.status !== CourseStatus.DRAFT && course.status !== CourseStatus.REJECTED) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Only draft or rejected courses can be submitted for review' }
+      });
+    }
+
+    const updatedCourse = await prisma.course.update({
+      where: { id },
+      data: {
+        status: CourseStatus.PENDING_REVIEW,
+        rejectionReason: null, // Clear rejection reason when resubmitting
+        rejectedAt: null
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       }
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        course: updatedCourse,
+        message: 'Course submitted for review successfully!'
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+// Admin-only: Publish course (approve)
+export const PublishCourse = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const { id } = req.params;
+
+    // Only admins can publish courses
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can publish courses' }
+      });
+    }
+
+    const course = await prisma.course.findUnique({
+      where: { id }
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Course not found' }
+      });
     }
 
     if (course.status === CourseStatus.PUBLISHED) {
@@ -1774,9 +2058,11 @@ export const PublishCourse = async (req: AuthRequest, res: express.Response) => 
 
     const updatedCourse = await prisma.course.update({
       where: { id },
-      data: { 
+      data: {
         status: CourseStatus.PUBLISHED,
-        isPublic: true
+        isPublic: true,
+        rejectionReason: null, // Clear any previous rejection reason
+        rejectedAt: null
       },
       include: {
         creator: {
@@ -1784,7 +2070,17 @@ export const PublishCourse = async (req: AuthRequest, res: express.Response) => 
             id: true,
             firstName: true,
             lastName: true,
-            avatar: true
+            avatar: true,
+            email: true
+          }
+        },
+        tutor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            email: true
           }
         },
         category: {
@@ -1803,15 +2099,194 @@ export const PublishCourse = async (req: AuthRequest, res: express.Response) => 
       }
     });
 
+    // Send email notification to course creator/tutor about publication
+    const recipientEmail = updatedCourse.tutor?.email || updatedCourse.creator.email;
+    const recipientName = updatedCourse.tutor ?
+      `${updatedCourse.tutor.firstName} ${updatedCourse.tutor.lastName}` :
+      `${updatedCourse.creator.firstName} ${updatedCourse.creator.lastName}`;
+
+    await sendCoursePublishedEmail(recipientEmail, recipientName, updatedCourse.title);
+
     return res.json({
       success: true,
-      data: { 
+      data: {
         course: updatedCourse,
-        message: 'Course published successfully!'
+        message: 'Course published successfully! Notification email has been sent.'
       }
     });
   } catch (error) {
-    console.error('PublishCourse error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+// Admin-only: Reject course
+export const RejectCourse = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body; // Optional rejection reason
+
+    // Only admins can reject courses
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can reject courses' }
+      });
+    }
+
+    const course = await prisma.course.findUnique({
+      where: { id }
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Course not found' }
+      });
+    }
+
+    if (course.status !== CourseStatus.PENDING_REVIEW) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Only pending courses can be rejected' }
+      });
+    }
+
+    // Set course to REJECTED status
+    const updatedCourse = await prisma.course.update({
+      where: { id },
+      data: {
+        status: CourseStatus.REJECTED,
+        isPublic: false,
+        rejectionReason: reason || 'No reason provided',
+        rejectedAt: new Date()
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            email: true
+          }
+        },
+        tutor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // Send email notification to course creator/tutor with rejection reason
+    const recipientEmail = updatedCourse.tutor?.email || updatedCourse.creator.email;
+    const recipientName = updatedCourse.tutor ?
+      `${updatedCourse.tutor.firstName} ${updatedCourse.tutor.lastName}` :
+      `${updatedCourse.creator.firstName} ${updatedCourse.creator.lastName}`;
+
+    await sendCourseRejectionEmail(recipientEmail, recipientName, updatedCourse.title, reason || 'No reason provided');
+
+    return res.json({
+      success: true,
+      data: {
+        course: updatedCourse,
+        message: 'Course rejected successfully. Notification email has been sent.'
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+// Admin-only: Get pending courses count
+export const GetPendingCoursesCount = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can view pending courses count
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can view pending courses' }
+      });
+    }
+
+    const count = await prisma.course.count({
+      where: { status: CourseStatus.PENDING_REVIEW }
+    });
+
+    return res.json({
+      success: true,
+      data: { count }
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+// Admin-only: Get all pending courses
+export const GetPendingCourses = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Only admins can view pending courses
+    if (req.user!.role !== "Admin") {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only admins can view pending courses' }
+      });
+    }
+
+    const courses = await prisma.course.findMany({
+      where: { status: CourseStatus.PENDING_REVIEW },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true,
+            email: true
+          }
+        },
+        tutor: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatar: true
+          }
+        },
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        _count: {
+          select: {
+            enrollments: true,
+            materials: true,
+            modules: true
+          }
+        }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    return res.json({
+      success: true,
+      data: { courses }
+    });
+  } catch (error) {
     return res.status(500).json({
       success: false,
       error: { message: 'Internal server error' }

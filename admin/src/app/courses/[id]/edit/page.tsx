@@ -26,8 +26,11 @@ import {
   ClipboardDocumentListIcon,
   CalendarIcon,
   XMarkIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { useAuth } from '../../../../contexts/AuthContext';
 import { getImageUrl } from '../../../../utils/imageUtils';
 
 interface Material {
@@ -105,6 +108,9 @@ interface Course {
   price: number;
   duration: number;
   isPublic: boolean;
+  status?: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'ARCHIVED' | 'REJECTED';
+  rejectionReason?: string;
+  rejectedAt?: string;
   thumbnail?: string;
   thumbnailFile?: File;
   tutorName?: string;
@@ -137,6 +143,7 @@ export default function CourseEditPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const courseId = params.id as string;
+  const { user } = useAuth();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
@@ -293,6 +300,34 @@ export default function CourseEditPage() {
     } catch (error: any) {
       console.error('Error saving course:', error);
       toast.error('Failed to update course');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    if (!course) return;
+
+    const confirmed = confirm(
+      `Are you sure you want to submit "${course.title}" for review?\n\nThe course will be sent to admins for approval before being published.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setSaving(true);
+      const response = await api.courses.submitForReview(courseId);
+
+      if (response.success) {
+        toast.success('Course submitted for review successfully!');
+        // Reload course data to get updated status
+        await loadCourseData();
+      } else {
+        toast.error(response.error?.message || 'Failed to submit course');
+      }
+    } catch (error: any) {
+      console.error('Error submitting course:', error);
+      toast.error(error.message || 'Failed to submit course');
     } finally {
       setSaving(false);
     }
@@ -994,24 +1029,41 @@ export default function CourseEditPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Visibility
-              </label>
-              <Select
-                options={[
-                  { value: 'false', label: 'Private (Hidden from students)' },
-                  { value: 'true', label: 'Public (Visible to students)' }
-                ]}
-                value={course?.isPublic ? 'true' : 'false'}
-                onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Course must be both &quot;Published&quot; and &quot;Public&quot; to appear in the student course catalog
-              </p>
-            </div>
-            
-            <div className="flex justify-end space-x-6 pt-6 border-t border-indigo-200/50">
+            {/* Visibility - Admin Only */}
+            {user?.role?.toLowerCase() === 'admin' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Visibility
+                </label>
+                <Select
+                  options={[
+                    { value: 'false', label: 'Private (Hidden from students)' },
+                    { value: 'true', label: 'Public (Visible to students)' }
+                  ]}
+                  value={course?.isPublic ? 'true' : 'false'}
+                  onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Course must be both &quot;Published&quot; and &quot;Public&quot; to appear in the student course catalog
+                </p>
+              </div>
+            )}
+
+            {/* Rejection Reason Alert */}
+            {course?.status === 'REJECTED' && course?.rejectionReason && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
+                <div className="flex items-start">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-red-800 mb-1">Course Rejected</h4>
+                    <p className="text-sm text-red-700 mb-2"><strong>Reason:</strong> {course.rejectionReason}</p>
+                    <p className="text-xs text-red-600">Please address the feedback above and resubmit your course for review.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3 pt-6 border-t border-indigo-200/50">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -1037,6 +1089,26 @@ export default function CourseEditPage() {
                   <span>Save Changes</span>
                 )}
               </Button>
+              {/* Submit for Review button - only show for DRAFT and REJECTED courses for tutors */}
+              {user?.role?.toLowerCase() === 'tutor' && (course?.status === 'DRAFT' || course?.status === 'REJECTED') && (
+                <Button
+                  onClick={handleSubmitForReview}
+                  disabled={saving || loading}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {saving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircleIcon className="w-4 h-4" />
+                      <span>Submit for Review</span>
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

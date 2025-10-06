@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../contexts/AuthContext';
 import { getCdnUrl } from '../../utils/cdn';
+import { api } from '../../lib/api';
 import {
   BookOpenIcon,
   HomeIcon,
@@ -19,7 +20,8 @@ import {
   ChartBarIcon,
   UserGroupIcon,
   UserPlusIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  BellIcon
 } from '@heroicons/react/24/outline';
 
 interface NavItem {
@@ -49,12 +51,86 @@ const Navbar = () => {
     mobileMenuOpen: false,
     userMenuOpen: false
   });
+  const [pendingRequestsCount, setPendingRequestsCount] = useState<number>(0);
+  const [pendingCoursesCount, setPendingCoursesCount] = useState<number>(0);
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, loading } = useAuth();
 
   // Destructure state for easier access
   const { mobileMenuOpen, userMenuOpen } = state;
+
+  // Fetch pending tutor requests count for admins
+  useEffect(() => {
+    const fetchPendingRequestsCount = async () => {
+      if (user?.role?.toLowerCase() !== 'tutor') {
+        try {
+          const response: any = await api.get('/tutor-requests/count');
+
+          if (response.success && response.data) {
+            setPendingRequestsCount(response.data.count);
+          }
+        } catch (error) {
+          // Silently fail - count will remain at 0
+        }
+      }
+    };
+
+    if (user) {
+      fetchPendingRequestsCount();
+
+      // Listen for custom event to refresh count
+      const handleRefreshCount = () => {
+        fetchPendingRequestsCount();
+      };
+
+      window.addEventListener('tutorRequestUpdated', handleRefreshCount);
+
+      // Refresh count every 60 seconds
+      const interval = setInterval(fetchPendingRequestsCount, 60000);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('tutorRequestUpdated', handleRefreshCount);
+      };
+    }
+  }, [user]);
+
+  // Fetch pending courses count for admins
+  useEffect(() => {
+    const fetchPendingCoursesCount = async () => {
+      if (user?.role?.toLowerCase() === 'admin') {
+        try {
+          const response: any = await api.courses.getPendingCount();
+
+          if (response.success && response.data) {
+            setPendingCoursesCount(response.data.count);
+          }
+        } catch (error) {
+          // Silently fail - count will remain at 0
+        }
+      }
+    };
+
+    if (user) {
+      fetchPendingCoursesCount();
+
+      // Listen for custom event to refresh count
+      const handleRefreshCoursesCount = () => {
+        fetchPendingCoursesCount();
+      };
+
+      window.addEventListener('pendingCoursesUpdated', handleRefreshCoursesCount);
+
+      // Refresh count every 60 seconds
+      const interval = setInterval(fetchPendingCoursesCount, 60000);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('pendingCoursesUpdated', handleRefreshCoursesCount);
+      };
+    }
+  }, [user]);
 
 
   // Dynamic navigation based on user role
@@ -150,9 +226,39 @@ const Navbar = () => {
           </div>
 
           {/* Right side */}
-          <div className="hidden sm:ml-3 md:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-3 md:ml-6 sm:flex sm:items-center sm:space-x-2 md:space-x-3">
+            {/* Tutor Requests Bell icon for admin users */}
+            {user?.role?.toLowerCase() !== 'tutor' && (
+              <Link
+                href="/registrations"
+                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-colors duration-200"
+                aria-label={`Tutor registration requests${pendingRequestsCount > 0 ? ` (${pendingRequestsCount} pending)` : ''}`}
+              >
+                <BellIcon className="h-6 w-6" />
+                {pendingRequestsCount > 0 && (
+                  <span className="absolute top-1 right-1 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-red-600 rounded-full border-2 border-white shadow-sm">
+                    {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            {/* Pending Courses icon for admin users only */}
+            {user?.role?.toLowerCase() === 'admin' && (
+              <Link
+                href="/pending-courses"
+                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-green-600 hover:bg-slate-50 rounded-lg transition-colors duration-200"
+                aria-label={`Pending course reviews${pendingCoursesCount > 0 ? ` (${pendingCoursesCount} pending)` : ''}`}
+              >
+                <BookOpenIcon className="h-6 w-6" />
+                {pendingCoursesCount > 0 && (
+                  <span className="absolute top-1 right-1 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-green-600 rounded-full border-2 border-white shadow-sm">
+                    {pendingCoursesCount > 9 ? '9+' : pendingCoursesCount}
+                  </span>
+                )}
+              </Link>
+            )}
             {/* User menu */}
-            <div className="ml-2 md:ml-3 relative">
+            <div className="relative">
               <div>
                 <Button
                   variant="ghost"
@@ -216,7 +322,37 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-1 sm:space-x-2">
+            {/* Tutor Requests Bell icon for mobile */}
+            {user?.role?.toLowerCase() !== 'tutor' && (
+              <Link
+                href="/registrations"
+                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg transition-colors duration-200 sm:hidden"
+                aria-label={`Tutor registration requests${pendingRequestsCount > 0 ? ` (${pendingRequestsCount} pending)` : ''}`}
+              >
+                <BellIcon className="h-6 w-6" />
+                {pendingRequestsCount > 0 && (
+                  <span className="absolute top-1 right-1 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-red-600 rounded-full border-2 border-white shadow-sm">
+                    {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
+                  </span>
+                )}
+              </Link>
+            )}
+            {/* Pending Courses icon for mobile (admin only) */}
+            {user?.role?.toLowerCase() === 'admin' && (
+              <Link
+                href="/pending-courses"
+                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-green-600 hover:bg-slate-50 rounded-lg transition-colors duration-200 sm:hidden"
+                aria-label={`Pending course reviews${pendingCoursesCount > 0 ? ` (${pendingCoursesCount} pending)` : ''}`}
+              >
+                <BookOpenIcon className="h-6 w-6" />
+                {pendingCoursesCount > 0 && (
+                  <span className="absolute top-1 right-1 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-green-600 rounded-full border-2 border-white shadow-sm">
+                    {pendingCoursesCount > 9 ? '9+' : pendingCoursesCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <Button
               variant="ghost"
               className="inline-flex items-center justify-center p-1.5 sm:p-2 rounded-xl text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300"

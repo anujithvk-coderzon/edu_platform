@@ -360,14 +360,15 @@ const Page = () => {
           </Link>
         </div>
 
-        {/* Recent Activity Section */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">Recent Activity</h2>
-                <p className="text-sm text-slate-600">Track recent student registrations</p>
-              </div>
+        {/* Recent Activity Section - Admin Only */}
+        {user?.role?.toLowerCase() === 'admin' && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">Recent Activity</h2>
+                  <p className="text-sm text-slate-600">Track recent student registrations</p>
+                </div>
               {filteredStudents.length > 1 && (
                 <div className="flex items-center gap-2">
                   <ChartBarIcon className="w-5 h-5 text-slate-500" />
@@ -491,6 +492,7 @@ const Page = () => {
             )}
           </div>
         </div>
+        )}
 
         {/* Statistics */}
         <div className="mb-6 sm:mb-8">

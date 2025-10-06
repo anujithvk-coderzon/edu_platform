@@ -62,13 +62,10 @@ class ApiClient {
           data = await response.json();
         } catch (parseError) {
           // Handle JSON parsing errors
-          console.error(`JSON parsing failed for ${url}:`, parseError);
           throw new Error(`Failed to parse response as JSON. Status: ${response.status}`);
         }
       } else {
         // Handle non-JSON responses (like HTML error pages)
-        const textResponse = await response.text();
-        console.error(`Non-JSON response from ${url}:`, textResponse.substring(0, 500));
         throw new Error(`Server returned non-JSON response. Status: ${response.status}. Content-Type: ${contentType || 'unknown'}`);
       }
 
@@ -108,11 +105,7 @@ class ApiClient {
 
       return data;
     } catch (error) {
-      // For auth/me endpoint, don't log 401 errors as they're expected
-      const errorMessage = error instanceof Error ? error.message : '';
-      if (!(endpoint === '/auth/me' && errorMessage.includes('401'))) {
-        console.error(`API Error (${url}):`, error);
-      }
+      // Re-throw the error without logging sensitive data
       throw error;
     }
   }
@@ -147,8 +140,6 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
 
     try {
-      console.log(`🚀 Starting upload to ${url}`);
-
       // Create AbortController for timeout handling
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
@@ -163,20 +154,15 @@ class ApiClient {
       });
 
       clearTimeout(timeoutId);
-      console.log(`📡 Upload response received: ${response.status}`);
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.error(`❌ Upload failed: ${response.status} - ${data.error?.message}`);
         throw new Error(data.error?.message || `HTTP error! status: ${response.status}`);
       }
 
-      console.log(`✅ Upload successful:`, data);
       return data;
     } catch (error) {
-      console.error(`❌ Upload Error (${url}):`, error);
-
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           throw new Error('Upload timed out. Please check your connection and try again.');
@@ -206,7 +192,11 @@ class ApiClient {
     create: (data: any) => this.post<ApiResponse>('/courses', data),
     update: (id: string, data: any) => this.put<ApiResponse>(`/courses/${id}`, data),
     delete: (id: string) => this.delete<ApiResponse>(`/courses/${id}`),
+    submitForReview: (id: string) => this.put<ApiResponse>(`/courses/${id}/submit-review`),
     publish: (id: string) => this.put<ApiResponse>(`/courses/${id}/publish`),
+    reject: (id: string, reason?: string) => this.put<ApiResponse>(`/courses/${id}/reject`, { reason }),
+    getPendingCount: () => this.get<ApiResponse>('/courses/pending/count'),
+    getPending: () => this.get<ApiResponse>('/courses/pending'),
     getCategories: () => this.get<ApiResponse>('/courses/categories/all'),
     createCategory: (data: { name: string; description?: string }) => this.post<ApiResponse>('/categories', data),
   };

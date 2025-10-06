@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import prisma from '../DB/DB_Config';
-import { generateOTP, storeOTP, verifyOTP, sendVerificationEmail, WelcomeEmail, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
+import { generateOTP, storeOTP, verifyOTP, sendVerificationEmail, StudentWelcomeEmail, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
 import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local } from '../utils/localStorage';
@@ -199,7 +199,7 @@ export const VerifyOtp = async (req: express.Request, res: express.Response) => 
   });
 
   try {
-    await WelcomeEmail(userData.email, userData.firstName);
+    await StudentWelcomeEmail(userData.email, userData.firstName);
   } catch (error) {
     console.error('⚠️ Welcome email error but registration continues:', error);
   }

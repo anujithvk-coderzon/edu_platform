@@ -21,10 +21,12 @@ export interface Course {
   price: number;
   duration?: number;
   level?: string;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  status: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'ARCHIVED' | 'REJECTED';
   isPublic: boolean;
   creatorId: string;
   categoryId?: string;
+  rejectionReason?: string;
+  rejectedAt?: string;
   createdAt: string;
   updatedAt: string;
   creator?: {

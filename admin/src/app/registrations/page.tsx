@@ -1,98 +1,110 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/Card';
+import { useRouter } from 'next/navigation';
+import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import {
-  CalendarIcon,
-  UserIcon,
-  EnvelopeIcon,
-  ClockIcon,
-  UserGroupIcon,
-  FunnelIcon,
-  AcademicCapIcon
-} from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  EnvelopeIcon,
+  UserIcon
+} from '@heroicons/react/24/outline';
 
-interface RegisteredStudent {
+interface TutorRequest {
   id: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
   createdAt: string;
+  updatedAt: string;
 }
 
-type TimePeriod = '1week' | '1month' | '6months';
-
-const timePeriodLabels = {
-  '1week': 'Last 7 Days',
-  '1month': 'Last 30 Days',
-  '6months': 'Last 6 Months'
-};
-
-export default function RegistrationsPage() {
-  const [students, setStudents] = useState<RegisteredStudent[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<RegisteredStudent[]>([]);
+export default function TutorRegistrationsPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [requests, setRequests] = useState<TutorRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1month');
+  const [processing, setProcessing] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStudents();
-  }, []);
+    if (!authLoading && !user) {
+      router.push('/login');
+      return;
+    }
 
-  useEffect(() => {
-    filterStudentsByPeriod();
-  }, [students, selectedPeriod]);
+    if (!authLoading && user?.role?.toLowerCase() === 'tutor') {
+      router.push('/');
+      return;
+    }
 
-  const fetchStudents = async () => {
+    if (user) {
+      fetchRequests();
+    }
+  }, [user, authLoading, router]);
+
+  const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await api.admin.getAllRegisteredStudents();
+      const response: any = await api.get(`/tutor-requests`);
 
-      if (response.success && response.data?.students) {
-        const registeredStudents: RegisteredStudent[] = response.data.students.map((student: any) => ({
-          id: student.id,
-          firstName: student.firstName,
-          lastName: student.lastName,
-          email: student.email,
-          createdAt: student.registeredAt
-        }));
-        setStudents(registeredStudents);
+      if (response.success && response.data) {
+        setRequests(response.data.requests);
       }
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      setStudents([]);
+    } catch (error: any) {
+      alert(error.message || 'Failed to fetch tutor requests');
     } finally {
       setLoading(false);
     }
   };
 
-  const filterStudentsByPeriod = () => {
-    const now = new Date();
-    let cutoffDate = new Date();
-
-    switch (selectedPeriod) {
-      case '1week':
-        cutoffDate.setDate(now.getDate() - 7);
-        break;
-      case '1month':
-        cutoffDate.setMonth(now.getMonth() - 1);
-        break;
-      case '6months':
-        cutoffDate.setMonth(now.getMonth() - 6);
-        break;
+  const handleAccept = async (requestId: string) => {
+    if (!confirm('Are you sure you want to accept this tutor registration request?')) {
+      return;
     }
 
-    const filtered = students.filter(student => {
-      const registrationDate = new Date(student.createdAt);
-      return registrationDate >= cutoffDate;
-    });
+    try {
+      setProcessing(requestId);
+      const response: any = await api.post(`/tutor-requests/${requestId}/accept`);
 
-    // Sort by most recent first
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      if (response.success) {
+        alert('Tutor request accepted successfully! Welcome email has been sent.');
+        fetchRequests(); // Refresh the list
 
-    setFilteredStudents(filtered);
+        // Notify Navbar to update the count
+        window.dispatchEvent(new Event('tutorRequestUpdated'));
+      }
+    } catch (error: any) {
+      alert(error.message || 'Failed to accept tutor request');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    if (!confirm('Are you sure you want to reject this tutor registration request? A rejection email will be sent.')) {
+      return;
+    }
+
+    try {
+      setProcessing(requestId);
+      const response: any = await api.post(`/tutor-requests/${requestId}/reject`);
+
+      if (response.success) {
+        alert('Tutor request rejected. Rejection email has been sent.');
+        fetchRequests(); // Refresh the list
+
+        // Notify Navbar to update the count
+        window.dispatchEvent(new Event('tutorRequestUpdated'));
+      }
+    } catch (error: any) {
+      alert(error.message || 'Failed to reject tutor request');
+    } finally {
+      setProcessing(null);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -106,184 +118,94 @@ export default function RegistrationsPage() {
     });
   };
 
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-
-    if (diffInDays > 0) {
-      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    } else if (diffInHours > 0) {
-      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    } else if (diffInMinutes > 0) {
-      return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
-    } else {
-      return 'Just now';
-    }
-  };
-
-  if (loading) {
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="animate-pulse">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6">
-              <div className="h-8 bg-slate-200 rounded w-1/3 mb-4"></div>
-              <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-            </div>
-            <div className="h-96 bg-white rounded-xl shadow-sm border border-slate-200"></div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading tutor registration requests...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-2">
-                    Student Registrations
-                  </h1>
-                  <p className="text-slate-600 text-sm sm:text-base">
-                    View all student registrations on the platform
-                  </p>
-                </div>
-                {filteredStudents.length > 1 && (
-                  <div className="flex items-center gap-2">
-                    <UserGroupIcon className="w-5 h-5 text-slate-500" />
-                    <span className="text-sm text-slate-600">
-                      {filteredStudents.length} registrations
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div>
-                <Link href="/register-tutor">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-                    <AcademicCapIcon className="w-5 h-5 mr-2" />
-                    Register as Tutor
-                  </Button>
-                </Link>
-              </div>
+    <div className="min-h-screen bg-slate-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900">Pending Tutor Registration Requests</h1>
+          <p className="mt-2 text-slate-600">
+            Review and approve or reject tutor registration requests
+          </p>
+          {requests.length > 0 && (
+            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">
+              <ClockIcon className="w-4 h-4 mr-2" />
+              {requests.length} pending {requests.length === 1 ? 'request' : 'requests'}
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Time Period Filter */}
-        <Card className="mb-6 bg-white shadow-sm border border-slate-200">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <FunnelIcon className="w-5 h-5 text-slate-600" />
-              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                Filter by Time Period
-              </h3>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {(Object.keys(timePeriodLabels) as TimePeriod[]).map((period) => (
-                <Button
-                  key={period}
-                  variant={selectedPeriod === period ? 'default' : 'outline'}
-                  onClick={() => setSelectedPeriod(period)}
-                  className={`
-                    ${selectedPeriod === period
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
-                    }
-                  `}
-                >
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  {timePeriodLabels[period]}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Students List */}
-        <Card className="bg-white shadow-sm border border-slate-200">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg font-semibold text-slate-900">
-              Registered Students - {timePeriodLabels[selectedPeriod]}
-            </CardTitle>
-            {filteredStudents.length > 1 && (
-              <CardDescription className="text-slate-600 text-sm">
-                Showing {filteredStudents.length} students registered in the selected period
-              </CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            {filteredStudents.length > 0 ? (
-              <div className="space-y-3">
-                {filteredStudents.map((student) => (
-                  <div
-                    key={student.id}
-                    className="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:bg-white hover:shadow-sm transition-all duration-200"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      {/* Student Info */}
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-base shadow-md flex-shrink-0">
-                          {student.firstName.charAt(0)}{student.lastName.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <UserIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                            <h3 className="text-base font-semibold text-slate-900 truncate">
-                              {student.firstName} {student.lastName}
-                            </h3>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <EnvelopeIcon className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                            <p className="text-sm text-slate-600 truncate">
-                              {student.email}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Registration Date */}
-                      <div className="flex flex-col sm:items-end gap-1 flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                          <CalendarIcon className="w-4 h-4 text-slate-500" />
-                          <span className="text-sm font-medium text-slate-700">
-                            {formatDate(student.createdAt)}
+        {/* Requests List */}
+        {requests.length === 0 ? (
+          <Card className="p-12 text-center">
+            <UserIcon className="mx-auto h-12 w-12 text-slate-400" />
+            <h3 className="mt-2 text-sm font-medium text-slate-900">No pending requests</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              There are no pending tutor registration requests at this time.
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {requests.map((request) => (
+              <Card key={request.id} className="p-6 hover:shadow-md transition-shadow">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center space-x-3">
+                          <h3 className="text-lg font-semibold text-slate-900">
+                            {request.firstName} {request.lastName}
+                          </h3>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <ClockIcon className="w-4 h-4 mr-1" />
+                            PENDING
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 sm:justify-end">
-                          <ClockIcon className="w-4 h-4 text-blue-500" />
-                          <span className="text-xs text-blue-600 font-medium">
-                            {getTimeAgo(student.createdAt)}
-                          </span>
+                        <div className="mt-1 flex items-center text-sm text-slate-500">
+                          <EnvelopeIcon className="h-4 w-4 mr-1" />
+                          {request.email}
                         </div>
                       </div>
                     </div>
+                    <div className="mt-3 text-xs text-slate-500">
+                      <p>Submitted: {formatDate(request.createdAt)}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 px-4">
-                <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <UserGroupIcon className="w-8 h-8 text-slate-600" />
+
+                  <div className="mt-4 md:mt-0 md:ml-6 flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={() => handleAccept(request.id)}
+                      disabled={processing === request.id}
+                      className="bg-green-600 hover:bg-green-700 text-white inline-flex items-center"
+                    >
+                      <CheckCircleIcon className="h-4 w-4 mr-2" />
+                      {processing === request.id ? 'Accepting...' : 'Accept'}
+                    </Button>
+                    <Button
+                      onClick={() => handleReject(request.id)}
+                      disabled={processing === request.id}
+                      variant="outline"
+                      className="border-red-300 text-red-600 hover:bg-red-50 inline-flex items-center"
+                    >
+                      <XCircleIcon className="h-4 w-4 mr-2" />
+                      {processing === request.id ? 'Rejecting...' : 'Reject'}
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  No registrations found
-                </h3>
-                <p className="text-slate-600 text-sm max-w-md mx-auto">
-                  No students registered in the selected time period. Try selecting a different time range.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

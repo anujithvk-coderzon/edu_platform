@@ -31,6 +31,12 @@ import {
   DeleteUser,
   GetUserStats,
 
+  // Tutor Request Management Controllers
+  GetPendingTutorRequestsCount,
+  GetAllTutorRequests,
+  AcceptTutorRequest,
+  RejectTutorRequest,
+
   // Course Management Controllers
   GetAllCourses,
   GetMyCourses,
@@ -39,7 +45,11 @@ import {
   GetCourseById,
   CreateCourse,
   UpdateCourse,
+  SubmitCourseForReview,
   PublishCourse,
+  RejectCourse,
+  GetPendingCoursesCount,
+  GetPendingCourses,
   DeleteCourse,
   CleanupOrphanedCourses,
 
@@ -300,6 +310,25 @@ router.delete('/students/:id', authMiddleware, adminOnly, DeleteUser);
 // Get user statistics
 router.get('/students/stats/overview', authMiddleware, adminOnly, GetUserStats);
 
+// ===== TUTOR REQUEST MANAGEMENT ROUTES =====
+
+// Get pending tutor requests count
+router.get('/tutor-requests/count', authMiddleware, adminOnly, GetPendingTutorRequestsCount);
+
+// Get all tutor requests
+router.get('/tutor-requests', authMiddleware, adminOnly,
+  [
+    query('status').optional().isIn(['PENDING', 'ACCEPTED', 'REJECTED']),
+  ],
+  GetAllTutorRequests
+);
+
+// Accept tutor request
+router.post('/tutor-requests/:requestId/accept', authMiddleware, adminOnly, AcceptTutorRequest);
+
+// Reject tutor request
+router.post('/tutor-requests/:requestId/reject', authMiddleware, adminOnly, RejectTutorRequest);
+
 // ===== COURSE MANAGEMENT ROUTES =====
 
 // Get all courses (admin view)
@@ -317,6 +346,12 @@ router.get('/courses', authMiddleware,
 
 // Get my courses
 router.get('/courses/my-courses', authMiddleware, GetMyCourses);
+
+// Get pending courses count (Admin only) - Must be before /courses/:id
+router.get('/courses/pending/count', authMiddleware, adminOnly, GetPendingCoursesCount);
+
+// Get all pending courses (Admin only) - Must be before /courses/:id
+router.get('/courses/pending', authMiddleware, adminOnly, GetPendingCourses);
 
 // Get all tutors
 router.get('/tutors', authMiddleware, adminOnly, GetAllTutors);
@@ -382,8 +417,14 @@ router.put('/courses/:id', authMiddleware,
   UpdateCourse
 );
 
-// Publish course
+// Submit course for review (Tutor only)
+router.put('/courses/:id/submit-review', authMiddleware, SubmitCourseForReview);
+
+// Publish course (Admin only)
 router.put('/courses/:id/publish', authMiddleware, adminOnly, PublishCourse);
+
+// Reject course (Admin only)
+router.put('/courses/:id/reject', authMiddleware, adminOnly, RejectCourse);
 
 // Delete course
 router.delete('/courses/:id', authMiddleware, adminOnly, DeleteCourse);

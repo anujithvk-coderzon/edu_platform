@@ -50,7 +50,7 @@ interface Course {
   level: string;
   price: number;
   duration: number;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  status: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'ARCHIVED';
   thumbnail?: string;
   tutorName?: string;
   creator: {
@@ -105,10 +105,64 @@ export default function CourseViewPage() {
         setError('Course not found or you do not have permission to view it');
       }
     } catch (error) {
-      console.error('Error loading course:', error);
       setError('Failed to load course data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmitForReview = async () => {
+    if (!course) return;
+
+    if (!confirm('Are you sure you want to submit this course for admin review?')) {
+      return;
+    }
+
+    try {
+      const response: any = await api.courses.submitForReview(course.id);
+      if (response.success) {
+        toast.success('Course submitted for review successfully!');
+        loadCourseData(); // Refresh to show updated status
+
+        // Notify Navbar to update pending courses count
+        window.dispatchEvent(new Event('pendingCoursesUpdated'));
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit course for review');
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!course) return;
+
+    if (!confirm('Are you sure you want to publish this course? It will be visible to students.')) {
+      return;
+    }
+
+    try {
+      const response: any = await api.courses.publish(course.id);
+      if (response.success) {
+        toast.success('Course published successfully!');
+        loadCourseData(); // Refresh to show updated status
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to publish course');
+    }
+  };
+
+  const handleReject = async () => {
+    if (!course) return;
+
+    const reason = prompt('Please provide a reason for rejection (optional):');
+
+    try {
+      const response: any = await api.courses.reject(course.id, reason || undefined);
+      if (response.success) {
+        toast.success('Course rejected and sent back to draft');
+        loadCourseData(); // Refresh to show updated status
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reject course');
     }
   };
 
@@ -144,12 +198,29 @@ export default function CourseViewPage() {
     switch (status) {
       case 'PUBLISHED':
         return 'bg-green-100 text-green-800 border border-green-200';
+      case 'PENDING_REVIEW':
+        return 'bg-blue-100 text-blue-800 border border-blue-200';
       case 'DRAFT':
         return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
       case 'ARCHIVED':
         return 'bg-slate-100 text-slate-800 border border-slate-200';
       default:
         return 'bg-slate-100 text-slate-800 border border-slate-200';
+    }
+  };
+
+  const getStatusLabel = (status: Course['status']) => {
+    switch (status) {
+      case 'PUBLISHED':
+        return 'Published';
+      case 'PENDING_REVIEW':
+        return 'Pending Review';
+      case 'DRAFT':
+        return 'Draft';
+      case 'ARCHIVED':
+        return 'Archived';
+      default:
+        return status;
     }
   };
 
@@ -211,10 +282,44 @@ export default function CourseViewPage() {
                     {course.title}
                   </h1>
                   <span className={`px-3 py-1 rounded text-xs font-medium ${getStatusColor(course.status)} w-fit`}>
-                    {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
+                    {getStatusLabel(course.status)}
                   </span>
                 </div>
                 <p className="text-slate-600 text-sm sm:text-base leading-relaxed">{course.description}</p>
+              </div>
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                {isOwner && (
+                  <Link href={`/courses/${course.id}/edit`}>
+                    <Button variant="outline" className="w-full sm:w-auto">
+                      <PencilIcon className="w-4 h-4 mr-2" />
+                      Edit Course
+                    </Button>
+                  </Link>
+                )}
+                {/* Tutor: Submit for Review button (only for DRAFT courses) */}
+                {user?.role === 'Tutor' && isOwner && course.status === 'DRAFT' && (
+                  <Button onClick={handleSubmitForReview} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
+                    Submit for Review
+                  </Button>
+                )}
+                {/* Admin: Publish and Reject buttons (only for PENDING_REVIEW courses) */}
+                {user?.role === 'Admin' && course.status === 'PENDING_REVIEW' && (
+                  <>
+                    <Button onClick={handlePublish} className="w-full sm:w-auto bg-green-600 hover:bg-green-700">
+                      Publish Course
+                    </Button>
+                    <Button onClick={handleReject} variant="outline" className="w-full sm:w-auto border-red-300 text-red-600 hover:bg-red-50">
+                      Reject Course
+                    </Button>
+                  </>
+                )}
+                {/* Admin: Publish button (for DRAFT courses if admin wants to publish directly) */}
+                {user?.role === 'Admin' && course.status === 'DRAFT' && (
+                  <Button onClick={handlePublish} className="w-full sm:w-auto bg-green-600 hover:bg-green-700">
+                    Publish Course
+                  </Button>
+                )}
               </div>
             </div>
 

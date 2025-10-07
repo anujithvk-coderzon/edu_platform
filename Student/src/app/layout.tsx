@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "../styles/materialProtection.css";
 import Navbar from "../components/layout/Navbar";
 import { AuthProvider } from "../contexts/AuthContext";
 import { Toaster } from "react-hot-toast";

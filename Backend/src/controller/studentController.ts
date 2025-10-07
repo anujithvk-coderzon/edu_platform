@@ -2,16 +2,18 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
+import { randomUUID } from 'crypto';
 import prisma from '../DB/DB_Config';
 import { generateOTP, storeOTP, verifyOTP, sendVerificationEmail, StudentWelcomeEmail, StoreForgetOtp, VerifyForgetOtp, ForgetPasswordMail, ClearForgetOtp } from '../utils/EmailVerification';
 import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local } from '../utils/localStorage';
+import { recalculateAndUpdateProgress } from '../utils/progressCalculator';
 
 // ===== UTILITY FUNCTIONS =====
-const generateToken = (studentId: string) => {
+const generateToken = (studentId: string, sessionToken: string) => {
   return jwt.sign(
-    { id: studentId, type: 'student' },
+    { id: studentId, type: 'student', sessionToken },
     process.env.JWT_SECRET as string,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as jwt.SignOptions
   );
@@ -178,8 +180,18 @@ export const VerifyOtp = async (req: express.Request, res: express.Response) => 
   }
 
   const userData = verification.userData;
+
+  // Generate session token for single active session control
+  const sessionToken = randomUUID();
+  const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+
   const student = await prisma.student.create({
-    data: userData,
+    data: {
+      ...userData,
+      activeSessionToken: sessionToken,
+      lastLoginAt: new Date(),
+      lastLoginIP: clientIP as string
+    },
     select: {
       id: true, email: true, firstName: true, lastName: true, phone: true,
       dateOfBirth: true, gender: true, country: true, city: true,
@@ -188,7 +200,7 @@ export const VerifyOtp = async (req: express.Request, res: express.Response) => 
     }
   });
 
-  const token = generateToken(student.id);
+  const token = generateToken(student.id, sessionToken);
   const isProduction = process.env.NODE_ENV === 'production';
 
   res.cookie('student_token', token, {
@@ -264,7 +276,21 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
     });
   }
 
-  const token = generateToken(student.id);
+  // Generate new session token (invalidates previous sessions)
+  const sessionToken = randomUUID();
+  const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+
+  // Update student with new session token
+  await prisma.student.update({
+    where: { id: student.id },
+    data: {
+      activeSessionToken: sessionToken,
+      lastLoginAt: new Date(),
+      lastLoginIP: clientIP as string
+    }
+  });
+
+  const token = generateToken(student.id, sessionToken);
   const isProduction = process.env.NODE_ENV === 'production';
 
   res.cookie('student_token', token, {
@@ -281,7 +307,22 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
   });
 };
 
-export const LogoutStudent = (req: express.Request, res: express.Response) => {
+export const LogoutStudent = async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.student_token;
+
+  // Clear session token from database if authenticated
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+      await prisma.student.update({
+        where: { id: decoded.id },
+        data: { activeSessionToken: null }
+      });
+    } catch (error) {
+      // Token invalid, just clear cookie
+    }
+  }
+
   const isProduction = process.env.NODE_ENV === 'production';
 
   res.clearCookie('student_token', {
@@ -1233,31 +1274,16 @@ export const CompleteMaterial = async (req: express.Request, res: express.Respon
       create: { studentId: studentId, courseId: material.courseId, materialId: material.id, isCompleted: true, lastAccessed: new Date() }
     });
 
-    const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-      prisma.material.count({ where: { courseId: material.courseId } }),
-      prisma.progress.count({ where: { studentId: studentId, courseId: material.courseId, isCompleted: true } }),
-      prisma.assignment.count({ where: { courseId: material.courseId } }),
-      prisma.assignmentSubmission.count({ where: { studentId, assignment: { courseId: material.courseId } } })
-    ]);
-
-    const totalItems = totalMaterials + totalAssignments;
-    const completedItems = completedMaterials + submittedAssignments;
-    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-    await prisma.enrollment.update({
-      where: { studentId_courseId: { studentId: studentId, courseId: material.courseId } },
-      data: {
-        progressPercentage,
-        ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
-      }
-    });
+    // Use centralized progress calculator
+    const stats = await recalculateAndUpdateProgress(studentId, material.courseId);
 
     res.json({
       success: true,
       data: {
-        progressPercentage, isCompleted: true,
-        totalItems: totalMaterials + totalAssignments,
-        completedItems: completedMaterials + submittedAssignments
+        progressPercentage: stats.progressPercentage,
+        isCompleted: true,
+        totalItems: stats.totalItems,
+        completedItems: stats.completedItems
       }
     });
   } catch (error) {

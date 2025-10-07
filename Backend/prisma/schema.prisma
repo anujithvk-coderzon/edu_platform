@@ -75,6 +75,9 @@ model Student {
   company     String?
   isVerified  Boolean   @default(false)
   isActive    Boolean   @default(true)
+  activeSessionToken String?  // For single active session control
+  lastLoginAt        DateTime?
+  lastLoginIP        String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

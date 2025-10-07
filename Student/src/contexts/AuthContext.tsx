@@ -92,6 +92,13 @@ const authApi = {
     } catch (error) {
       // Don't log 401 errors as they're expected when user is not logged in
       const errorMessage = error instanceof Error ? error.message : '';
+
+      // Handle session expired error
+      if (errorMessage.includes('logged in from another device')) {
+        studentStorage.clearStudentData();
+        return null;
+      }
+
       if (!errorMessage.includes('401') && !errorMessage.includes('Access denied')) {
         console.error('Error getting current user:', error);
       }

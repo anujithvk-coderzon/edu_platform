@@ -57,6 +57,14 @@ class ApiClient {
           return data;
         }
 
+        // Check for session expired error
+        if (response.status === 401 && data.error?.message?.includes('logged in from another device')) {
+          // Clear local storage and redirect to login
+          studentStorage.clearStudentData();
+          window.location.href = '/login?session_expired=true';
+          throw new Error(data.error.message);
+        }
+
         // Enhanced error handling for validation errors
         if (data.error?.message === 'Validation failed' && data.error?.details) {
           const validationDetails = data.error.details.map((detail: any) =>

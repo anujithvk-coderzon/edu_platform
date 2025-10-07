@@ -27,6 +27,10 @@ import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/sol
 import toast from 'react-hot-toast';
 import { getImageUrl } from '@/utils/imageUtils';
 import { getCdnUrl } from '@/utils/cdn';
+import ProtectedVideo from '@/components/protected/ProtectedVideo';
+import CustomPDFViewer from '@/components/protected/CustomPDFViewer';
+import ProtectedImage from '@/components/protected/ProtectedImage';
+import { disableSaveShortcuts } from '@/utils/materialProtection';
 
 interface Material {
   id: string;
@@ -152,6 +156,12 @@ export default function LearnPage() {
     window.addEventListener('resize', handleResize);
 
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Enable material protection (disable save shortcuts)
+  useEffect(() => {
+    const cleanup = disableSaveShortcuts();
+    return () => cleanup();
   }, []);
 
 
@@ -460,21 +470,11 @@ export default function LearnPage() {
         return (
           <div className="rounded-lg overflow-hidden">
             {currentMaterial.fileUrl ? (
-              <video
-                controls
-                className="w-full md:w-5/6 h-auto rounded-lg mx-auto max-h-80 md:max-h-none"
+              <ProtectedVideo
                 src={getCdnUrl(currentMaterial.fileUrl) || ''}
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-                onKeyDown={(e) => {
-                  // Prevent common download shortcuts
-                  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                Your browser does not support the video tag.
-              </video>
+                className="w-full md:w-5/6 h-auto rounded-lg mx-auto max-h-80 md:max-h-none"
+                watermarkText={user?.email || 'Protected Content'}
+              />
             ) : (
               <div className="bg-slate-100 text-slate-600 text-center p-6 md:p-12 rounded-lg border border-slate-200">
                 <VideoCameraIcon className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 opacity-50" />
@@ -486,17 +486,16 @@ export default function LearnPage() {
 
       case 'PDF':
         return (
-          <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="bg-white border rounded-lg overflow-hidden p-4">
             {currentMaterial.fileUrl ? (
-              <div className="w-full max-w-4xl lg:mx-auto">
-                <iframe
-                  src={`${getCdnUrl(currentMaterial.fileUrl)}#toolbar=0&navpanes=0&scrollbar=1&statusbar=1&zoom=1&view=FitH`}
-                  className="w-full h-96 sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[800px]"
+              <div className="w-full max-w-4xl mx-auto">
+                <CustomPDFViewer
+                  src={getCdnUrl(currentMaterial.fileUrl) || ''}
+                  className="w-full"
                 />
-
               </div>
             ) : currentMaterial.content ? (
-              <div className="prose max-w-none p-6">
+              <div className="prose max-w-none p-6 protected-content" onContextMenu={(e) => e.preventDefault()}>
                 <pre className="whitespace-pre-wrap font-sans">{currentMaterial.content}</pre>
               </div>
             ) : (

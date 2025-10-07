@@ -13,6 +13,7 @@ export interface AuthRequest extends Request {
     role?: AdminRole; // Admin role: "Admin" or "Tutor"
     firstName: string;
     lastName: string;
+    sessionToken?: string; // Session token for validation
   };
   file?: Express.Multer.File;
   files?: Express.Multer.File[];
@@ -88,7 +89,8 @@ export const authMiddleware = async (
           firstName: true,
           lastName: true,
           isActive: true,
-          isVerified: true
+          isVerified: true,
+          activeSessionToken: true
         }
       });
     }
@@ -105,6 +107,16 @@ export const authMiddleware = async (
         success: false,
         error: { message: 'Account is deactivated.' }
       });
+    }
+
+    // For students: Validate session token to prevent concurrent logins
+    if (userType === 'student' && decoded.sessionToken) {
+      if (!user.activeSessionToken || user.activeSessionToken !== decoded.sessionToken) {
+        return res.status(401).json({
+          success: false,
+          error: { message: 'Session expired. You have been logged in from another device.' }
+        });
+      }
     }
 
     // Validate that the token cookie matches the user type

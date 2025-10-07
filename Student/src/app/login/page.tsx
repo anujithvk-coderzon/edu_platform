@@ -48,6 +48,19 @@ export default function LoginPage() {
   // Destructure for easier access
   const { email, password } = loginData;
 
+  // Check for session expired query parameter
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_expired') === 'true') {
+      toast.error('Your session has expired. You have been logged in from another device.', {
+        duration: 5000,
+        icon: '🔒'
+      });
+      // Clear the query parameter
+      window.history.replaceState({}, '', '/login');
+    }
+  }, []);
+
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {

@@ -9,6 +9,7 @@ import fs from 'fs';
 import prisma from '../DB/DB_Config';
 import { AuthRequest } from '../middleware/auth';
 import { CourseStatus, MaterialType, EnrollmentStatus } from '@prisma/client';
+import { recalculateAndUpdateProgress, calculateCourseProgress, calculateProgressFromCounts } from '../utils/progressCalculator';
 
 // Define user role type since we're using string roles
 type UserRole = "Admin" | "Tutor";
@@ -3488,39 +3489,13 @@ export const CompleteMaterial = async (req: AuthRequest, res: express.Response) 
       }
     });
 
-    const totalMaterials = await prisma.material.count({
-      where: { courseId: material.courseId }
-    });
-
-    const completedMaterials = await prisma.progress.count({
-      where: {
-        studentId: userId,
-        courseId: material.courseId,
-        isCompleted: true
-      }
-    });
-
-    const progressPercentage = totalMaterials > 0
-      ? Math.min(100, Math.round((completedMaterials / totalMaterials) * 100))
-      : 0;
-
-    await prisma.enrollment.update({
-      where: {
-        studentId_courseId: {
-          studentId: userId,
-          courseId: material.courseId
-        }
-      },
-      data: {
-        progressPercentage,
-        ...(progressPercentage === 100 && { completedAt: new Date() })
-      }
-    });
+    // Use centralized progress calculator (includes both materials AND assignments)
+    const stats = await recalculateAndUpdateProgress(userId, material.courseId);
 
     return res.json({
       success: true,
       data: {
-        progressPercentage,
+        progressPercentage: stats.progressPercentage,
         isCompleted: true
       }
     });
@@ -3894,9 +3869,11 @@ export const GetEnrollmentProgress = async (req: AuthRequest, res: express.Respo
       progress: progressMap.get(material.id) || null
     }));
 
-    const totalMaterials = materials.length;
     const completedMaterials = progressRecords.filter(p => p.isCompleted).length;
     const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
+
+    // Use centralized progress calculator to include both materials AND assignments
+    const progressStats = await calculateCourseProgress(userId, courseId);
 
     return res.json({
       success: true,
@@ -3904,9 +3881,11 @@ export const GetEnrollmentProgress = async (req: AuthRequest, res: express.Respo
         enrollment,
         materials: materialsWithProgress,
         stats: {
-          totalMaterials,
-          completedMaterials,
-          progressPercentage: totalMaterials > 0 ? Math.min(100, Math.round((completedMaterials / totalMaterials) * 100)) : 0,
+          totalMaterials: progressStats.totalMaterials,
+          completedMaterials: progressStats.completedMaterials,
+          totalAssignments: progressStats.totalAssignments,
+          submittedAssignments: progressStats.submittedAssignments,
+          progressPercentage: progressStats.progressPercentage,
           totalTimeSpent
         }
       }
@@ -4716,50 +4695,17 @@ export const SubmitAssignment = async (req: AuthRequest, res: express.Response) 
     });
 
     // Update enrollment progress to include this new assignment submission
-    const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-      prisma.material.count({ where: { courseId: assignment.courseId } }),
-      prisma.progress.count({
-        where: {
-          studentId: studentId,
-          courseId: assignment.courseId,
-          isCompleted: true
-        }
-      }),
-      prisma.assignment.count({ where: { courseId: assignment.courseId } }),
-      prisma.assignmentSubmission.count({
-        where: {
-          studentId,
-          assignment: { courseId: assignment.courseId }
-        }
-      })
-    ]);
-
-    // Calculate progress including both materials and assignments
-    const totalItems = totalMaterials + totalAssignments;
-    const completedItems = completedMaterials + submittedAssignments;
-    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-    await prisma.enrollment.update({
-      where: {
-        studentId_courseId: {
-          studentId: studentId,
-          courseId: assignment.courseId
-        }
-      },
-      data: {
-        progressPercentage,
-        ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
-      }
-    });
+    // Use centralized progress calculator
+    const stats = await recalculateAndUpdateProgress(studentId, assignment.courseId);
 
     res.status(201).json({
       success: true,
       data: {
         submission,
         progressUpdate: {
-          progressPercentage,
-          totalItems,
-          completedItems: completedItems
+          progressPercentage: stats.progressPercentage,
+          totalItems: stats.totalItems,
+          completedItems: stats.completedItems
         }
       }
     });

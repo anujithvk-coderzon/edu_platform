@@ -3,6 +3,7 @@ import prisma from '../DB/DB_Config';
 import { AuthRequest } from '../middleware/auth';
 import * as fs from 'fs';
 import * as path from 'path';
+import { recalculateAndUpdateProgress } from '../utils/progressCalculator';
 
 // ===== ADMIN ASSIGNMENT CONTROLLERS =====
 
@@ -674,50 +675,17 @@ export const SubmitAssignment = async (req: AuthRequest, res: Response) => {
     });
 
     // Update enrollment progress to include this new assignment submission
-    const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-      prisma.material.count({ where: { courseId: assignment.courseId } }),
-      prisma.progress.count({
-        where: {
-          studentId: studentId,
-          courseId: assignment.courseId,
-          isCompleted: true
-        }
-      }),
-      prisma.assignment.count({ where: { courseId: assignment.courseId } }),
-      prisma.assignmentSubmission.count({
-        where: {
-          studentId,
-          assignment: { courseId: assignment.courseId }
-        }
-      })
-    ]);
-
-    // Calculate progress including both materials and assignments
-    const totalItems = totalMaterials + totalAssignments;
-    const completedItems = completedMaterials + submittedAssignments;
-    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-    await prisma.enrollment.update({
-      where: {
-        studentId_courseId: {
-          studentId: studentId,
-          courseId: assignment.courseId
-        }
-      },
-      data: {
-        progressPercentage,
-        ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
-      }
-    });
+    // Use centralized progress calculator
+    const stats = await recalculateAndUpdateProgress(studentId, assignment.courseId);
 
     res.status(201).json({
       success: true,
       data: {
         submission,
         progressUpdate: {
-          progressPercentage,
-          totalItems,
-          completedItems: completedItems
+          progressPercentage: stats.progressPercentage,
+          totalItems: stats.totalItems,
+          completedItems: stats.completedItems
         }
       }
     });

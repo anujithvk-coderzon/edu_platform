@@ -247,4 +247,35 @@ router.post('/assignments/upload', upload_assignment, asyncHandler(UploadAssignm
 // Get platform-wide statistics (public endpoint)
 router.get('/platform/stats', asyncHandler(GetPlatformStats));
 
+// ===== PDF PROXY FOR CORS =====
+// Proxy PDF files to avoid CORS issues with react-pdf
+router.get('/proxy/pdf', async (req: express.Request, res: express.Response) => {
+  try {
+    const { url } = req.query;
+
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'PDF URL is required' });
+    }
+
+    // Fetch PDF from Bunny CDN
+    const axios = require('axios');
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      headers: {
+        'Accept': 'application/pdf',
+      }
+    });
+
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+
+    res.send(response.data);
+  } catch (error) {
+    console.error('PDF proxy error:', error);
+    res.status(500).json({ error: 'Failed to fetch PDF' });
+  }
+});
+
 export default router;

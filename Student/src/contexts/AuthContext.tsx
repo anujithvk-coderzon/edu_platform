@@ -148,7 +148,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     initAuth();
-  }, []);
+
+    // Periodically check session validity (every 30 seconds)
+    const sessionCheckInterval = setInterval(async () => {
+      if (user) {
+        try {
+          const currentUser = await authApi.getCurrentUser();
+          if (!currentUser) {
+            // Session is invalid, log out
+            setUser(null);
+            window.location.href = '/login?session_expired=true';
+          }
+        } catch (error) {
+          // Session check failed, likely logged out from another device
+          const errorMessage = error instanceof Error ? error.message : '';
+          if (errorMessage.includes('logged in from another device') || errorMessage.includes('Session expired')) {
+            setUser(null);
+            studentStorage.clearStudentData();
+            window.location.href = '/login?session_expired=true';
+          }
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(sessionCheckInterval);
+  }, [user]);
 
   const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
     setLoading(true);

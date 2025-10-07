@@ -89,7 +89,15 @@ const authMiddleware = async (req, res, next) => {
             });
         }
         // For students: Validate session token to prevent concurrent logins
-        if (userType === 'student' && decoded.sessionToken) {
+        if (userType === 'student') {
+            // Session token is required for students
+            if (!decoded.sessionToken) {
+                return res.status(401).json({
+                    success: false,
+                    error: { message: 'Invalid session. Please login again.' }
+                });
+            }
+            // Check if session token matches the active one in database
             if (!user.activeSessionToken || user.activeSessionToken !== decoded.sessionToken) {
                 return res.status(401).json({
                     success: false,

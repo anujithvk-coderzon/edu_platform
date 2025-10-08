@@ -3,6 +3,7 @@ import { body, query } from 'express-validator';
 
 // Import middleware
 import { asyncHandler } from '../middleware/errorHandler';
+import { authMiddleware } from '../middleware/auth';
 
 // Import multer configurations
 import { upload_assignment, upload_avatar } from '../multer/multer';
@@ -159,9 +160,10 @@ router.post('/auth/reset-password',
   asyncHandler(ResetPassword)
 );
 
-router.get('/auth/me', asyncHandler(GetCurrentUser));
+router.get('/auth/me', authMiddleware, asyncHandler(GetCurrentUser));
 
 router.put('/auth/profile',
+  authMiddleware,
   [
     body('firstName').optional().trim().isLength({ min: 1 }),
     body('lastName').optional().trim().isLength({ min: 1 }),
@@ -172,6 +174,7 @@ router.put('/auth/profile',
 
 // Change Password endpoint
 router.put('/auth/change-password',
+  authMiddleware,
   [
     body('currentPassword').notEmpty().withMessage('Current password is required'),
     body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
@@ -179,7 +182,7 @@ router.put('/auth/change-password',
   asyncHandler(ChangePassword)
 );
 
-router.post('/uploads/avatar', upload_avatar, asyncHandler(UploadStudentAvatar));
+router.post('/uploads/avatar', authMiddleware, upload_avatar, asyncHandler(UploadStudentAvatar));
 
 // ===== COURSES ROUTES =====
 router.get('/courses',
@@ -198,20 +201,20 @@ router.get('/courses/categories/all', asyncHandler(GetAllCategories));
 // ===== ENROLLMENT ROUTES =====
 
 // Get my enrollments
-router.get('/enrollments/my-enrollments', asyncHandler(GetMyEnrollments));
+router.get('/enrollments/my-enrollments', authMiddleware, asyncHandler(GetMyEnrollments));
 
 // Enroll in a course
-router.post('/enrollments/enroll', asyncHandler(EnrollInCourse));
+router.post('/enrollments/enroll', authMiddleware, asyncHandler(EnrollInCourse));
 
 // Get progress for a specific course
-router.get('/enrollments/progress/:courseId', asyncHandler(GetEnrollmentProgress));
+router.get('/enrollments/progress/:courseId', authMiddleware, asyncHandler(GetEnrollmentProgress));
 
 // ===== MATERIALS ENDPOINTS =====
 // Get material by ID
-router.get('/materials/:id', asyncHandler(GetMaterialById));
+router.get('/materials/:id', authMiddleware, asyncHandler(GetMaterialById));
 
 // Mark material as complete
-router.post('/materials/:id/complete', asyncHandler(CompleteMaterial));
+router.post('/materials/:id/complete', authMiddleware, asyncHandler(CompleteMaterial));
 
 // Test endpoint to check file accessibility
 router.get('/test/file/:filename', asyncHandler(TestFileAccess));
@@ -222,26 +225,26 @@ router.get('/courses/:id', asyncHandler(GetCourseById));
 
 // ===== REVIEW ENDPOINTS =====
 // Submit a course review
-router.post('/reviews', asyncHandler(SubmitReview));
+router.post('/reviews', authMiddleware, asyncHandler(SubmitReview));
 
 // Get reviews for a course
 router.get('/reviews/course/:courseId', asyncHandler(GetCourseReviews));
 
 // Get user's review for a specific course
-router.get('/reviews/my-review/:courseId', asyncHandler(GetMyReview));
+router.get('/reviews/my-review/:courseId', authMiddleware, asyncHandler(GetMyReview));
 
 // ===== ASSIGNMENT ENDPOINTS =====
 // Get assignments for enrolled courses
-router.get('/assignments/course/:courseId', asyncHandler(GetCourseAssignments));
+router.get('/assignments/course/:courseId', authMiddleware, asyncHandler(GetCourseAssignments));
 
 // Submit assignment
-router.post('/assignments/:assignmentId/submit', asyncHandler(SubmitAssignment));
+router.post('/assignments/:assignmentId/submit', authMiddleware, asyncHandler(SubmitAssignment));
 
 // Get assignment submission
-router.get('/assignments/:assignmentId/submission', asyncHandler(GetAssignmentSubmission));
+router.get('/assignments/:assignmentId/submission', authMiddleware, asyncHandler(GetAssignmentSubmission));
 
 // Upload assignment file
-router.post('/assignments/upload', upload_assignment, asyncHandler(UploadAssignmentFile));
+router.post('/assignments/upload', authMiddleware, upload_assignment, asyncHandler(UploadAssignmentFile));
 
 // ===== PUBLIC PLATFORM STATISTICS =====
 // Get platform-wide statistics (public endpoint)

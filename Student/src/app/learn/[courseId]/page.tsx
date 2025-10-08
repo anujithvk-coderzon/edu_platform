@@ -145,7 +145,8 @@ export default function LearnPage() {
       if (window.innerWidth >= 768) {
         setShowSidebar(true);
       } else {
-        setShowSidebar(false);
+        // On mobile, show sidebar initially so users can see the materials list
+        setShowSidebar(true);
       }
     };
 
@@ -223,11 +224,16 @@ export default function LearnPage() {
 
         setModules(organizedChapters);
 
-        // Set current material to first incomplete or first material
-        const firstIncomplete = materialsWithProgress.find((m: Material) => !m.progress?.isCompleted);
-        const initialMaterial = firstIncomplete || materialsWithProgress[0];
-        if (initialMaterial) {
-          setCurrentMaterial(initialMaterial);
+        // Only auto-select material on desktop, not on mobile
+        // On mobile, users should see the materials list first
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+        if (!isMobile && materialsWithProgress.length > 0) {
+          const firstIncomplete = materialsWithProgress.find((m: Material) => !m.progress?.isCompleted);
+          const initialMaterial = firstIncomplete || materialsWithProgress[0];
+          if (initialMaterial) {
+            setCurrentMaterial(initialMaterial);
+          }
         }
       }
     } catch (error) {
@@ -930,7 +936,7 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
   return (
     <button
       onClick={() => onSelect(assignment)}
-      className={`w-full p-3 sm:p-4 text-left border rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md ${
+      className={`w-full p-2.5 sm:p-3 md:p-4 text-left border rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-md ${
         hasSubmission
           ? isGraded
             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 hover:from-green-100 hover:to-emerald-100'
@@ -940,9 +946,9 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
           : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-indigo-200'
       }`}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col w-full">
         <div className="flex items-start flex-1 min-w-0">
-          <div className={`p-1.5 sm:p-2 rounded-xl mr-2 sm:mr-3 flex-shrink-0 ${
+          <div className={`p-1 sm:p-1.5 rounded-lg mr-2 flex-shrink-0 ${
             hasSubmission
               ? isGraded
                 ? 'bg-green-100 border border-green-200'
@@ -951,7 +957,7 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
               ? 'bg-red-100 border border-red-200'
               : 'bg-indigo-100 border border-indigo-200'
           }`}>
-            <ClipboardDocumentListIcon className={`h-4 w-4 sm:h-5 sm:w-5 ${
+            <ClipboardDocumentListIcon className={`h-4 w-4 ${
               hasSubmission
                 ? isGraded
                   ? 'text-green-600'
@@ -962,13 +968,13 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
             }`} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="mb-2">
-              <h4 className="font-semibold text-sm sm:text-base text-slate-900 break-words line-clamp-2 mb-1">
+            <div className="mb-1.5 sm:mb-2">
+              <h4 className="font-semibold text-xs sm:text-sm text-slate-900 break-words line-clamp-2 mb-1">
                 {assignment.title}
               </h4>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {hasSubmission && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium inline-block ${
+                  <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium inline-block whitespace-nowrap ${
                     isGraded
                       ? 'bg-green-100 text-green-700 border border-green-200'
                       : 'bg-blue-100 text-blue-700 border border-blue-200'
@@ -977,39 +983,39 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
                   </span>
                 )}
                 {!hasSubmission && isOverdue && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700 border border-red-200 inline-block">
+                  <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700 border border-red-200 inline-block whitespace-nowrap">
                     ⏰ Overdue
                   </span>
                 )}
               </div>
             </div>
-            <p className="text-sm text-slate-600 mb-3 line-clamp-2 whitespace-pre-line">
+            <p className="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3 line-clamp-2 break-words">
               {assignment.description}
             </p>
-            <div className="flex flex-col gap-2 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
                 {assignment.dueDate && (
-                  <div className={`inline-flex items-center px-2 py-1 rounded-lg ${
+                  <div className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg whitespace-nowrap ${
                     isOverdue
                       ? 'bg-red-100 text-red-700'
                       : 'bg-slate-100 text-slate-600'
                   }`}>
-                    <CalendarIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                    <span className={`${isOverdue ? 'font-medium' : ''}`}>
-                      {isOverdue ? 'Was due' : 'Due'} {new Date(assignment.dueDate).toLocaleDateString()}
+                    <CalendarIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
+                    <span className={`${isOverdue ? 'font-medium' : ''} truncate max-w-[120px] sm:max-w-none`}>
+                      {isOverdue ? 'Due' : 'Due'} {new Date(assignment.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 )}
-                <div className="inline-flex items-center px-2 py-1 bg-slate-100 text-slate-600 rounded-lg">
-                  <span>Max: {assignment.maxScore} pts</span>
+                <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-100 text-slate-600 rounded-md sm:rounded-lg whitespace-nowrap">
+                  <span className="truncate">Max: {assignment.maxScore}pts</span>
                 </div>
               </div>
               {isGraded && (
-                <div className="inline-flex items-center gap-1 flex-wrap">
-                  <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200">
-                    <span>📊 Score: {submissionGrade}/{assignment.maxScore}</span>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-md sm:rounded-lg font-medium border border-green-200 whitespace-nowrap">
+                    <span className="truncate">📊 {submissionGrade}/{assignment.maxScore}</span>
                   </div>
-                  <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-lg font-medium border border-green-200">
+                  <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-md sm:rounded-lg font-medium border border-green-200 whitespace-nowrap">
                     <span>{Math.round((submissionGrade! / assignment.maxScore) * 100)}%</span>
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import "../styles/materialProtection.css";
 import Navbar from "../components/layout/Navbar";
 import { AuthProvider } from "../contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
+import ScrollToTop from "../components/ScrollToTop";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased bg-gray-50`}>
         <AuthProvider>
+          <ScrollToTop />
           <div className="min-h-screen">
             <Navbar />
             <main className="flex-1">
@@ -32,13 +34,31 @@ export default function RootLayout({
             </main>
           </div>
           <Toaster
-            position="top-right"
+            position="top-center"
             toastOptions={{
-              duration: 4000,
+              duration: 3000,
               style: {
                 background: '#363636',
                 color: '#fff',
+                maxWidth: '90vw',
               },
+              success: {
+                duration: 2500,
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 3500,
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+            containerStyle={{
+              top: 80,
             }}
           />
         </AuthProvider>

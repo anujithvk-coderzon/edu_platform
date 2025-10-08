@@ -280,6 +280,13 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
   const sessionToken = randomUUID();
   const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
 
+  console.log('🔐 Login:', {
+    email: student.email,
+    newSessionToken: sessionToken.substring(0, 12) + '...',
+    clientIP,
+    timestamp: new Date().toISOString()
+  });
+
   // Update student with new session token
   await prisma.student.update({
     where: { id: student.id },
@@ -292,6 +299,8 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
 
   const token = generateToken(student.id, sessionToken);
   const isProduction = process.env.NODE_ENV === 'production';
+
+  console.log('🎫 JWT generated with sessionToken:', sessionToken.substring(0, 12) + '...');
 
   res.cookie('student_token', token, {
     httpOnly: true,
@@ -460,7 +469,8 @@ export const GetCurrentUser = async (req: express.Request, res: express.Response
       where: { id: decoded.id },
       select: {
         id: true, email: true, firstName: true, lastName: true,
-        avatar: true, isVerified: true, createdAt: true, updatedAt: true
+        avatar: true, isVerified: true, createdAt: true, updatedAt: true,
+        activeSessionToken: true // Include for debugging
       }
     });
 
@@ -471,7 +481,22 @@ export const GetCurrentUser = async (req: express.Request, res: express.Response
       });
     }
 
-    res.json({ success: true, data: { user: student } });
+    // Validate session token (redundant check - middleware already does this)
+    if (decoded.sessionToken && student.activeSessionToken !== decoded.sessionToken) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          message: 'Session expired. You have been logged in from another device.',
+          debug: process.env.NODE_ENV === 'development' ? {
+            jwtSession: decoded.sessionToken?.substring(0, 8) + '...',
+            dbSession: student.activeSessionToken?.substring(0, 8) + '...'
+          } : undefined
+        }
+      });
+    }
+
+    const { activeSessionToken, ...studentWithoutSession } = student;
+    res.json({ success: true, data: { user: studentWithoutSession } });
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -1688,6 +1713,63 @@ export const UploadAssignmentFile = async (req: express.Request, res: express.Re
     return res.status(401).json({
       success: false,
       error: { message: 'Invalid token.' }
+    });
+  }
+};
+
+// ===== DEBUG SESSION ENDPOINT =====
+export const DebugSessionInfo = async (req: express.Request, res: express.Response) => {
+  const token = req.cookies.student_token;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'No token provided' }
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+
+    const student = await prisma.student.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        activeSessionToken: true,
+        lastLoginAt: true,
+        lastLoginIP: true
+      }
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Student not found' }
+      });
+    }
+
+    const sessionMatch = student.activeSessionToken === decoded.sessionToken;
+
+    res.json({
+      success: true,
+      data: {
+        studentId: student.id,
+        email: student.email,
+        jwtSessionToken: decoded.sessionToken?.substring(0, 12) + '...',
+        dbSessionToken: student.activeSessionToken?.substring(0, 12) + '...',
+        sessionMatch: sessionMatch,
+        lastLoginAt: student.lastLoginAt,
+        lastLoginIP: student.lastLoginIP,
+        message: sessionMatch
+          ? 'Session is valid ✓'
+          : 'Session mismatch - You have been logged in from another device!'
+      }
+    });
+  } catch (error: any) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid token', details: error.message }
     });
   }
 };

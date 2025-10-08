@@ -246,12 +246,12 @@ export default function Home() {
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 relative z-10">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-20 relative z-10">
+          <div className="text-center mb-8 md:mb-12">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 text-white px-2">
               {user ? `Welcome back, ${user.firstName}!` : 'Advance Your Career with Expert-Led Courses'}
             </h1>
-            <p className="text-lg md:text-xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4">
               {user
                 ? 'Continue your learning journey with our professional courses designed for career growth'
                 : `Access ${stats.totalCourses > 0 ? `${stats.totalCourses}+` : 'premium'} courses from industry experts and transform your career`
@@ -259,19 +259,19 @@ export default function Home() {
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-10">
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-6 md:mb-10 px-4">
               <div className="relative group">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for courses, topics, or skills..."
-                  className="w-full px-6 py-4 text-slate-900 bg-white rounded-xl focus:outline-none focus:ring-4 focus:ring-white/30 pl-14 text-base placeholder:text-slate-400 shadow-xl hover:shadow-2xl transition-all duration-300"
+                  placeholder="Search for courses..."
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 text-slate-900 bg-white rounded-xl focus:outline-none focus:ring-4 focus:ring-white/30 pl-10 sm:pl-14 pr-20 sm:pr-24 text-sm sm:text-base placeholder:text-slate-400 shadow-xl hover:shadow-2xl transition-all duration-300"
                 />
-                <MagnifyingGlassIcon className="absolute left-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <MagnifyingGlassIcon className="absolute left-3 sm:left-5 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-all duration-300 font-medium"
+                  className="absolute right-1.5 sm:right-2 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-lg hover:bg-slate-800 transition-all duration-300 font-medium text-xs sm:text-sm"
                 >
                   Search
                 </button>
@@ -279,21 +279,21 @@ export default function Home() {
             </form>
 
             {/* CTA Buttons */}
-            <div className="flex gap-4 justify-center flex-wrap">
+            <div className="flex gap-3 sm:gap-4 justify-center flex-wrap px-4">
               <Link href="/my-courses">
-                <button className="bg-white text-slate-900 px-8 py-3 rounded-xl font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl">
+                <button className="bg-white text-slate-900 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
                   My Courses
                 </button>
               </Link>
               {user ? (
                 <Link href="/courses">
-                  <button className="border-2 border-white/80 text-white px-8 py-3 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300">
+                  <button className="border-2 border-white/80 text-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 text-sm sm:text-base">
                     Browse All Courses
                   </button>
                 </Link>
               ) : (
                 <Link href="/register">
-                  <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl">
+                  <button className="bg-slate-900 text-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
                     Start Free Trial
                   </button>
                 </Link>
@@ -302,25 +302,25 @@ export default function Home() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center mt-16">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <AcademicCapIcon className="h-8 w-8 mx-auto text-white mb-3" />
-              <div className="text-3xl font-bold text-white">{stats.totalCourses || 0}+</div>
-              <div className="text-white/80 text-sm mt-1">Professional Courses</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 text-center mt-8 md:mt-12 lg:mt-16 px-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/20">
+              <AcademicCapIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-white mb-2 sm:mb-3" />
+              <div className="text-2xl sm:text-3xl font-bold text-white">{stats.totalCourses || 0}+</div>
+              <div className="text-white/80 text-xs sm:text-sm mt-1">Professional Courses</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <UsersIcon className="h-8 w-8 mx-auto text-white mb-3" />
-              <div className="text-3xl font-bold text-white">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/20">
+              <UsersIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-white mb-2 sm:mb-3" />
+              <div className="text-2xl sm:text-3xl font-bold text-white">
                 {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '-'}
               </div>
-              <div className="text-white/80 text-sm mt-1">Active Students</div>
+              <div className="text-white/80 text-xs sm:text-sm mt-1">Active Students</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <StarIcon className="h-8 w-8 mx-auto text-white mb-3" />
-              <div className="text-3xl font-bold text-white">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/20">
+              <StarIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-white mb-2 sm:mb-3" />
+              <div className="text-2xl sm:text-3xl font-bold text-white">
                 {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '-'}
               </div>
-              <div className="text-white/80 text-sm mt-1">Average Rating</div>
+              <div className="text-white/80 text-xs sm:text-sm mt-1">Average Rating</div>
             </div>
           </div>
         </div>

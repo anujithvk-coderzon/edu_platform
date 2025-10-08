@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { api } from '../lib/api';
 import { studentStorage } from '../utils/storage';
 
@@ -132,6 +133,7 @@ const authApi = {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -150,12 +152,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // Separate effect for session checking to avoid recreation on user state change
+  // Check session validity on navigation
   useEffect(() => {
-    if (!user) return;
+    if (!user || !pathname) return;
 
-    // Periodically check session validity (every 30 seconds)
-    const sessionCheckInterval = setInterval(async () => {
+    // Skip session check on auth pages
+    if (pathname.startsWith('/login') || pathname.startsWith('/register')) return;
+
+    const checkSession = async () => {
       try {
         const currentUser = await authApi.getCurrentUser();
         if (!currentUser) {
@@ -172,10 +176,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           window.location.href = '/login?session_expired=true';
         }
       }
-    }, 30000); // Check every 30 seconds
+    };
 
-    return () => clearInterval(sessionCheckInterval);
-  }, [user?.id]); // Only recreate if user ID changes (login/logout)
+    checkSession();
+  }, [pathname, user?.id]);
 
   const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
     setLoading(true);

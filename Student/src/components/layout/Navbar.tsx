@@ -50,13 +50,13 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20 sm:h-24">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+        <div className="flex justify-between items-center h-16 sm:h-20 lg:h-24">
           {/* Logo and Main Nav */}
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/" className="flex items-center">
-                <div className="h-16 w-16 sm:h-20 sm:w-20 relative">
+                <div className="h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 relative">
                   <Image
                     src="/logo.png"
                     alt="Codiin Logo"
@@ -67,7 +67,7 @@ export default function Navbar() {
                 </div>
               </Link>
             </div>
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-1">
+            <div className="hidden md:ml-6 lg:ml-8 md:flex md:space-x-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -75,14 +75,14 @@ export default function Navbar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      'inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
+                      'inline-flex items-center px-2 lg:px-3 py-2 rounded-lg text-xs lg:text-sm font-medium transition-colors duration-200',
                       isActive
                         ? 'bg-blue-600 text-white'
                         : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
                     )}
                   >
                     <item.icon className={cn(
-                      "w-4 h-4 mr-2",
+                      "w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2",
                       isActive ? "text-white" : "text-slate-500"
                     )} />
                     {item.name}
@@ -93,10 +93,10 @@ export default function Navbar() {
           </div>
 
           {/* Right side */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden md:ml-4 lg:ml-6 md:flex md:items-center">
             {user ? (
-              /* User menu */
-              <div className="ml-3 relative">
+              // User menu
+              <div className="ml-2 lg:ml-3 relative">
                 <div>
                   <button
                     className="flex items-center text-sm rounded-lg p-2 hover:bg-slate-50 transition-colors"
@@ -161,7 +161,7 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              /* Login/Register buttons */
+              // Login/Register buttons
               <div className="flex items-center gap-3">
                 <Link href="/login">
                   <button className="text-slate-700 hover:text-slate-900 px-4 py-2 text-sm font-medium transition-colors">
@@ -178,9 +178,9 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="sm:hidden flex items-center">
+          <div className="md:hidden flex items-center">
             <button
-              className="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300"
+              className="inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <span className="sr-only">Open main menu</span>
@@ -196,8 +196,8 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-white border-t border-slate-200">
-          <div className="pt-2 pb-3 space-y-1 px-2">
+        <div className="md:hidden bg-white border-t border-slate-200">
+          <div className="pt-2 pb-3 space-y-1 px-3">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (

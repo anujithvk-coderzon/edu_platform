@@ -30,7 +30,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-sm font-semibold text-slate-700 mb-2"
+          className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
         >
           {label}
         </label>
@@ -39,7 +39,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
         <select
           id={selectId}
           className={cn(
-            'block w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50 appearance-none pr-10',
+            'block w-full rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50 appearance-none pr-8 sm:pr-10',
             error && 'border-red-400 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50',
             className
           )}
@@ -55,8 +55,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-          <svg className="w-5 h-5 text-slate-500 group-focus-within:text-indigo-600 transition-colors duration-200" fill="none" viewBox="0 0 20 20">
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 sm:pr-3 pointer-events-none">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-indigo-600 transition-colors duration-200" fill="none" viewBox="0 0 20 20">
             <path
               d="M6 8L10 12L14 8"
               stroke="currentColor"
@@ -68,8 +68,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
         </div>
       </div>
       {error && (
-        <p className="text-sm text-red-600 font-medium flex items-center mt-1">
-          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+        <p className="text-xs sm:text-sm text-red-600 font-medium flex items-center mt-1">
+          <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
           {error}

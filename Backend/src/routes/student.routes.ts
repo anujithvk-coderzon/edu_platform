@@ -54,7 +54,10 @@ import {
   UploadAssignmentFile,
 
   // Platform Stats
-  GetPlatformStats
+  GetPlatformStats,
+
+  // Debug
+  DebugSessionInfo
 } from '../controller/studentController';
 
 const router = express.Router();
@@ -249,6 +252,10 @@ router.post('/assignments/upload', authMiddleware, upload_assignment, asyncHandl
 // ===== PUBLIC PLATFORM STATISTICS =====
 // Get platform-wide statistics (public endpoint)
 router.get('/platform/stats', asyncHandler(GetPlatformStats));
+
+// ===== DEBUG ENDPOINT (DEVELOPMENT ONLY) =====
+// Check session token validity - helps debug multi-device login issues
+router.get('/debug/session', asyncHandler(DebugSessionInfo));
 
 // ===== PDF PROXY FOR CORS =====
 // Proxy PDF files to avoid CORS issues with react-pdf

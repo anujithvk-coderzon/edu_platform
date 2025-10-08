@@ -263,13 +263,13 @@ function CoursesContent() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 md:py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
                 Explore Courses
               </h1>
-              <p className="text-slate-600">
+              <p className="text-xs sm:text-sm md:text-base text-slate-600">
                 {totalCourses > 0 ? `${totalCourses} courses available` : 'Loading courses...'} - Find your perfect learning path
               </p>
             </div>
@@ -281,10 +281,10 @@ function CoursesContent() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search courses..."
-                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900"
+                className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 text-sm sm:text-base"
               />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <MagnifyingGlassIcon className="h-5 w-5 text-slate-400" />
+              <div className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2">
+                <MagnifyingGlassIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
               </div>
             </div>
           </div>
@@ -293,15 +293,15 @@ function CoursesContent() {
 
       {/* Filters */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 md:py-6">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-slate-700 text-xs sm:text-sm"
             >
-              <FunnelIcon className="h-5 w-5" />
+              <FunnelIcon className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Filters</span>
-              <ChevronDownIcon className={`h-4 w-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <ChevronDownIcon className={`h-3 w-3 sm:h-4 sm:w-4 transform transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
 
 
@@ -310,7 +310,7 @@ function CoursesContent() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900"
+                className="px-2 sm:px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 text-xs sm:text-sm"
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -323,17 +323,17 @@ function CoursesContent() {
 
           {/* Expanded Filters */}
           {showFilters && (
-            <div className="mt-6 p-6 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-3 sm:mt-4 md:mt-6 p-3 sm:p-4 md:p-6 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                 {/* Level */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
                     Level
                   </label>
                   <select
                     value={selectedLevel}
                     onChange={(e) => setSelectedLevel(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900"
+                    className="w-full px-2.5 sm:px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 text-xs sm:text-sm"
                   >
                     <option value="">All Levels</option>
                     {levels.map((level) => (
@@ -346,13 +346,13 @@ function CoursesContent() {
 
                 {/* Price Range */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5 sm:mb-2">
                     Price
                   </label>
                   <select
                     value={priceRange}
                     onChange={(e) => setPriceRange(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900"
+                    className="w-full px-2.5 sm:px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-900 text-xs sm:text-sm"
                   >
                     <option value="">All Prices</option>
                     {priceRanges.map((range) => (
@@ -364,13 +364,13 @@ function CoursesContent() {
                 </div>
 
                 {/* Clear Filters */}
-                <div className="flex items-end">
+                <div className="flex items-end sm:col-span-2 md:col-span-1">
                   {hasActiveFilters && (
                     <button
                       onClick={clearFilters}
-                      className="w-full px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                      className="w-full px-3 sm:px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
                     >
-                      <XMarkIcon className="h-4 w-4" />
+                      <XMarkIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>Clear All</span>
                     </button>
                   )}
@@ -381,35 +381,35 @@ function CoursesContent() {
 
           {/* Active Filters Display */}
           {hasActiveFilters && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 sm:mt-4 flex flex-wrap gap-1.5 sm:gap-2">
               {searchQuery && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-200">
-                  Search: "{searchQuery}"
+                <span className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs sm:text-sm border border-blue-200">
+                  <span className="truncate max-w-[150px] sm:max-w-none">Search: "{searchQuery}"</span>
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="hover:bg-blue-100 rounded-full p-1 transition-colors"
+                    className="hover:bg-blue-100 rounded-full p-0.5 sm:p-1 transition-colors flex-shrink-0"
                   >
                     <XMarkIcon className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {selectedLevel && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-sm border border-purple-200">
+                <span className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs sm:text-sm border border-purple-200">
                   Level: {selectedLevel}
                   <button
                     onClick={() => setSelectedLevel('')}
-                    className="hover:bg-purple-100 rounded-full p-1 transition-colors"
+                    className="hover:bg-purple-100 rounded-full p-0.5 sm:p-1 transition-colors flex-shrink-0"
                   >
                     <XMarkIcon className="h-3 w-3" />
                   </button>
                 </span>
               )}
               {priceRange && (
-                <span className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 rounded-lg text-sm border border-orange-200">
+                <span className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 bg-orange-50 text-orange-700 rounded-lg text-xs sm:text-sm border border-orange-200">
                   Price: {priceRanges.find(p => p.value === priceRange)?.label}
                   <button
                     onClick={() => setPriceRange('')}
-                    className="hover:bg-orange-100 rounded-full p-1 transition-colors"
+                    className="hover:bg-orange-100 rounded-full p-0.5 sm:p-1 transition-colors flex-shrink-0"
                   >
                     <XMarkIcon className="h-3 w-3" />
                   </button>

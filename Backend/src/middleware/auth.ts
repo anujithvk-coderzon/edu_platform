@@ -111,8 +111,17 @@ export const authMiddleware = async (
 
     // For students: Validate session token to prevent concurrent logins
     if (userType === 'student') {
+      console.log('🔍 Validating session for student:', {
+        email: user.email,
+        hasJwtSession: !!decoded.sessionToken,
+        hasDbSession: !!user.activeSessionToken,
+        jwtSession: decoded.sessionToken?.substring(0, 12) + '...',
+        dbSession: user.activeSessionToken?.substring(0, 12) + '...'
+      });
+
       // Session token is required for students
       if (!decoded.sessionToken) {
+        console.log('❌ Session validation failed: No sessionToken in JWT for student', user.email);
         return res.status(401).json({
           success: false,
           error: { message: 'Invalid session. Please login again.' }
@@ -121,11 +130,21 @@ export const authMiddleware = async (
 
       // Check if session token matches the active one in database
       if (!user.activeSessionToken || user.activeSessionToken !== decoded.sessionToken) {
+        console.log('❌ Session validation REJECTED:', {
+          student: user.email,
+          jwtSession: decoded.sessionToken?.substring(0, 12) + '...',
+          dbSession: user.activeSessionToken?.substring(0, 12) + '...',
+          match: false,
+          reason: !user.activeSessionToken ? 'No DB session' : 'Session mismatch'
+        });
         return res.status(401).json({
           success: false,
           error: { message: 'Session expired. You have been logged in from another device.' }
         });
       }
+
+      // Session is valid
+      console.log('✅ Session ACCEPTED for:', user.email, '- Session tokens match');
     }
 
     // Validate that the token cookie matches the user type

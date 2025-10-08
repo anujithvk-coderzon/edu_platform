@@ -9,6 +9,7 @@ import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local } from '../utils/localStorage';
 import { recalculateAndUpdateProgress } from '../utils/progressCalculator';
+import { AuthRequest } from '../middleware/auth';
 
 // ===== UTILITY FUNCTIONS =====
 const generateToken = (studentId: string, sessionToken: string) => {
@@ -436,250 +437,149 @@ export const ResetPassword = async (req: express.Request, res: express.Response)
   });
 };
 
-export const GetCurrentUser = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
+export const GetCurrentUser = async (req: AuthRequest, res: express.Response) => {
+  // authMiddleware already validated the session token
+  const student = await prisma.student.findUnique({
+    where: { id: req.user!.id },
+    select: {
+      id: true, email: true, firstName: true, lastName: true,
+      avatar: true, isVerified: true, createdAt: true, updatedAt: true
+    }
+  });
 
-  if (!token) {
-    return res.status(401).json({
+  if (!student) {
+    return res.status(404).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'Student not found.' }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-
-    if (decoded.type !== 'student') {
-      return res.status(401).json({
-        success: false,
-        error: { message: 'Invalid token type.' }
-      });
-    }
-
-    const student = await prisma.student.findUnique({
-      where: { id: decoded.id },
-      select: {
-        id: true, email: true, firstName: true, lastName: true,
-        avatar: true, isVerified: true, createdAt: true, updatedAt: true
-      }
-    });
-
-    if (!student) {
-      return res.status(401).json({
-        success: false,
-        error: { message: 'Student not found.' }
-      });
-    }
-
-    res.json({ success: true, data: { user: student } });
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
+  res.json({ success: true, data: { user: student } });
 };
 
-export const UpdateProfile = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
+export const UpdateProfile = async (req: AuthRequest, res: express.Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'Validation failed', details: errors.array() }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+  const updates: any = {};
+  const { firstName, lastName, avatar } = req.body;
 
-    if (decoded.type !== 'student') {
-      return res.status(401).json({
-        success: false,
-        error: { message: 'Invalid token type.' }
-      });
+  if (firstName) updates.firstName = firstName;
+  if (lastName) updates.lastName = lastName;
+  if (avatar) updates.avatar = avatar;
+
+  const student = await prisma.student.update({
+    where: { id: req.user!.id },
+    data: updates,
+    select: {
+      id: true, email: true, firstName: true, lastName: true,
+      avatar: true, updatedAt: true
     }
+  });
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Validation failed', details: errors.array() }
-      });
-    }
-
-    const updates: any = {};
-    const { firstName, lastName, avatar } = req.body;
-
-    if (firstName) updates.firstName = firstName;
-    if (lastName) updates.lastName = lastName;
-    if (avatar) updates.avatar = avatar;
-
-    const student = await prisma.student.update({
-      where: { id: decoded.id },
-      data: updates,
-      select: {
-        id: true, email: true, firstName: true, lastName: true,
-        avatar: true, updatedAt: true
-      }
-    });
-
-    res.json({ success: true, data: { user: student } });
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
+  res.json({ success: true, data: { user: student } });
 };
 
-export const ChangePassword = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
+export const ChangePassword = async (req: AuthRequest, res: express.Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'Validation failed', details: errors.array() }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+  const { currentPassword, newPassword } = req.body;
+  const student = await prisma.student.findUnique({
+    where: { id: req.user!.id },
+    select: { id: true, email: true, password: true, firstName: true, lastName: true }
+  });
 
-    if (decoded.type !== 'student') {
-      return res.status(401).json({
-        success: false,
-        error: { message: 'Invalid token type.' }
-      });
-    }
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Validation failed', details: errors.array() }
-      });
-    }
-
-    const { currentPassword, newPassword } = req.body;
-    const student = await prisma.student.findUnique({
-      where: { id: decoded.id },
-      select: { id: true, email: true, password: true, firstName: true, lastName: true }
-    });
-
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        error: { message: 'Student not found.' }
-      });
-    }
-
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, student.password);
-    if (!isCurrentPasswordValid) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Current password is incorrect.' }
-      });
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-    await prisma.student.update({
-      where: { id: student.id },
-      data: { password: hashedNewPassword }
-    });
-
-    res.json({
-      success: true,
-      message: 'Password changed successfully!'
-    });
-  } catch (error) {
-    console.error('Change password error:', error);
-    return res.status(401).json({
+  if (!student) {
+    return res.status(404).json({
       success: false,
-      error: { message: 'Invalid token.' }
+      error: { message: 'Student not found.' }
     });
   }
+
+  const isCurrentPasswordValid = await bcrypt.compare(currentPassword, student.password);
+  if (!isCurrentPasswordValid) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Current password is incorrect.' }
+    });
+  }
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+  await prisma.student.update({
+    where: { id: student.id },
+    data: { password: hashedNewPassword }
+  });
+
+  res.json({
+    success: true,
+    message: 'Password changed successfully!'
+  });
 };
 
-export const UploadStudentAvatar = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
+export const UploadStudentAvatar = async (req: AuthRequest, res: express.Response) => {
+  if (!req.file) {
+    return res.status(400).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'No avatar file uploaded' }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+  const currentStudent = await prisma.student.findUnique({
+    where: { id: req.user!.id },
+    select: { avatar: true }
+  });
 
-    if (decoded.type !== 'student') {
-      return res.status(401).json({
-        success: false,
-        error: { message: 'Invalid token type.' }
-      });
+  let avatarUrl: string | null = null;
+
+  if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
+    console.log('📂 Using local storage for avatar');
+    avatarUrl = await Upload_Files_Local('avatars', req.file);
+  } else {
+    console.log('☁️ Using Bunny CDN storage for avatar');
+    avatarUrl = await Upload_Files('avatars', req.file);
+  }
+
+  if (currentStudent?.avatar) {
+    try {
+      console.log('🗑️ Deleting old avatar from CDN:', currentStudent.avatar);
+      await Delete_File(currentStudent.avatar);
+    } catch (error) {
+      console.error('❌ Error deleting old avatar:', error);
     }
+  }
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'No avatar file uploaded' }
-      });
-    }
-
-    const currentStudent = await prisma.student.findUnique({
-      where: { id: decoded.id },
-      select: { avatar: true }
-    });
-
-    let avatarUrl: string | null = null;
-
-    if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
-      console.log('📂 Using local storage for avatar');
-      avatarUrl = await Upload_Files_Local('avatars', req.file);
-    } else {
-      console.log('☁️ Using Bunny CDN storage for avatar');
-      avatarUrl = await Upload_Files('avatars', req.file);
-    }
-
-    if (currentStudent?.avatar) {
-      try {
-        console.log('🗑️ Deleting old avatar from CDN:', currentStudent.avatar);
-        await Delete_File(currentStudent.avatar);
-      } catch (error) {
-        console.error('❌ Error deleting old avatar:', error);
-      }
-    }
-
-    if (!avatarUrl) {
-      return res.status(500).json({
-        success: false,
-        error: { message: 'Failed to upload avatar to storage' }
-      });
-    }
-
-    const student = await prisma.student.update({
-      where: { id: decoded.id },
-      data: { avatar: avatarUrl },
-      select: {
-        id: true, email: true, firstName: true, lastName: true,
-        avatar: true, updatedAt: true
-      }
-    });
-
-    res.json({
-      success: true,
-      data: { url: avatarUrl, user: student },
-      message: 'Avatar uploaded successfully'
-    });
-  } catch (error) {
-    console.error('Avatar upload error:', error);
-    return res.status(401).json({
+  if (!avatarUrl) {
+    return res.status(500).json({
       success: false,
-      error: { message: 'Invalid token.' }
+      error: { message: 'Failed to upload avatar to storage' }
     });
   }
+
+  const student = await prisma.student.update({
+    where: { id: req.user!.id },
+    data: { avatar: avatarUrl },
+    select: {
+      id: true, email: true, firstName: true, lastName: true,
+      avatar: true, updatedAt: true
+    }
+  });
+
+  res.json({
+    success: true,
+    data: { url: avatarUrl, user: student },
+    message: 'Avatar uploaded successfully'
+  });
 };
 
 // ===== COURSES CONTROLLERS =====
@@ -899,19 +799,8 @@ export const GetCourseById = async (req: express.Request, res: express.Response)
 };
 
 // ===== ENROLLMENT CONTROLLERS =====
-export const GetMyEnrollments = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const userId = decoded.id;
+export const GetMyEnrollments = async (req: AuthRequest, res: express.Response) => {
+  const userId = req.user!.id;
 
     const enrollments = await prisma.enrollment.findMany({
       where: { studentId: userId },
@@ -969,33 +858,15 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
       })
     );
 
-    res.json({
-      success: true,
-      data: { enrollments: enrichedEnrollments }
-    });
-  } catch (error) {
-    console.error('Error verifying token:', error);
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
+  res.json({
+    success: true,
+    data: { enrollments: enrichedEnrollments }
+  });
 };
 
-export const EnrollInCourse = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const userId = decoded.id;
-    const { courseId } = req.body;
+export const EnrollInCourse = async (req: AuthRequest, res: express.Response) => {
+  const userId = req.user!.id;
+  const { courseId } = req.body;
 
     if (!courseId) {
       return res.status(400).json({
@@ -1035,34 +906,16 @@ export const EnrollInCourse = async (req: express.Request, res: express.Response
       }
     });
 
-    res.status(201).json({
-      success: true,
-      data: { enrollment },
-      message: 'Successfully enrolled in course'
-    });
-  } catch (error) {
-    console.error('Error enrolling in course:', error);
-    return res.status(500).json({
-      success: false,
-      error: { message: 'Failed to enroll in course' }
-    });
-  }
+  res.status(201).json({
+    success: true,
+    data: { enrollment },
+    message: 'Successfully enrolled in course'
+  });
 };
 
-export const GetEnrollmentProgress = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const userId = decoded.id;
-    const { courseId } = req.params;
+export const GetEnrollmentProgress = async (req: AuthRequest, res: express.Response) => {
+  const userId = req.user!.id;
+  const { courseId } = req.params;
 
     const enrollment = await prisma.enrollment.findUnique({
       where: { studentId_courseId: { studentId: userId, courseId } }
@@ -1149,30 +1002,12 @@ export const GetEnrollmentProgress = async (req: express.Request, res: express.R
         }
       }
     });
-  } catch (error) {
-    console.error('Error verifying token:', error);
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
 };
 
 // ===== MATERIAL CONTROLLERS =====
-export const GetMaterialById = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { id } = req.params;
+export const GetMaterialById = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { id } = req.params;
 
     const material = await prisma.material.findUnique({
       where: { id },
@@ -1218,29 +1053,11 @@ export const GetMaterialById = async (req: express.Request, res: express.Respons
       success: true,
       data: { material: processedMaterial }
     });
-  } catch (error) {
-    console.error('Error fetching material:', error);
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
 };
 
-export const CompleteMaterial = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { id } = req.params;
+export const CompleteMaterial = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { id } = req.params;
 
     const material = await prisma.material.findUnique({
       where: { id },
@@ -1286,13 +1103,6 @@ export const CompleteMaterial = async (req: express.Request, res: express.Respon
         completedItems: stats.completedItems
       }
     });
-  } catch (error) {
-    console.error('Error marking material complete:', error);
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
 };
 
 export const TestFileAccess = async (req: express.Request, res: express.Response) => {
@@ -1307,57 +1117,39 @@ export const TestFileAccess = async (req: express.Request, res: express.Response
 };
 
 // ===== REVIEW CONTROLLERS =====
-export const SubmitReview = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
+export const SubmitReview = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { courseId, rating, comment } = req.body;
 
-  if (!token) {
-    return res.status(401).json({
+  if (!courseId || !rating || rating < 1 || rating > 5) {
+    return res.status(400).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'Course ID and rating (1-5) are required' }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { courseId, rating, comment } = req.body;
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { studentId_courseId: { studentId: studentId, courseId } }
+  });
 
-    if (!courseId || !rating || rating < 1 || rating > 5) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Course ID and rating (1-5) are required' }
-      });
-    }
-
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { studentId_courseId: { studentId: studentId, courseId } }
-    });
-
-    if (!enrollment) {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'You must be enrolled in this course to review it' }
-      });
-    }
-
-    const review = await prisma.review.upsert({
-      where: { courseId_studentId: { courseId, studentId: studentId } },
-      update: { rating, comment: comment || null },
-      create: { courseId, studentId: studentId, rating, comment: comment || null }
-    });
-
-    res.json({
-      success: true,
-      data: { review },
-      message: 'Review submitted successfully'
-    });
-  } catch (error) {
-    console.error('Error submitting review:', error);
-    return res.status(500).json({
+  if (!enrollment) {
+    return res.status(403).json({
       success: false,
-      error: { message: 'Failed to submit review' }
+      error: { message: 'You must be enrolled in this course to review it' }
     });
   }
+
+  const review = await prisma.review.upsert({
+    where: { courseId_studentId: { courseId, studentId: studentId } },
+    update: { rating, comment: comment || null },
+    create: { courseId, studentId: studentId, rating, comment: comment || null }
+  });
+
+  res.json({
+    success: true,
+    data: { review },
+    message: 'Review submitted successfully'
+  });
 };
 
 export const GetCourseReviews = async (req: express.Request, res: express.Response) => {
@@ -1404,292 +1196,202 @@ export const GetCourseReviews = async (req: express.Request, res: express.Respon
   }
 };
 
-export const GetMyReview = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
+export const GetMyReview = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { courseId } = req.params;
 
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
+  const review = await prisma.review.findUnique({
+    where: { courseId_studentId: { courseId, studentId: studentId } }
+  });
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { courseId } = req.params;
-
-    const review = await prisma.review.findUnique({
-      where: { courseId_studentId: { courseId, studentId: studentId } }
-    });
-
-    res.json({
-      success: true,
-      data: { review }
-    });
-  } catch (error) {
-    console.error('Error fetching user review:', error);
-    return res.status(500).json({
-      success: false,
-      error: { message: 'Failed to fetch review' }
-    });
-  }
+  res.json({
+    success: true,
+    data: { review }
+  });
 };
 
 // ===== ASSIGNMENT CONTROLLERS =====
-export const GetCourseAssignments = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
+export const GetCourseAssignments = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { courseId } = req.params;
 
-  if (!token) {
-    return res.status(401).json({
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { studentId_courseId: { studentId: studentId, courseId } }
+  });
+
+  if (!enrollment) {
+    return res.status(403).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'You are not enrolled in this course.' }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { courseId } = req.params;
-
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { studentId_courseId: { studentId: studentId, courseId } }
-    });
-
-    if (!enrollment) {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'You are not enrolled in this course.' }
-      });
-    }
-
-    const assignments = await prisma.assignment.findMany({
-      where: { courseId },
-      include: {
-        submissions: {
-          where: { studentId },
-          select: {
-            id: true, status: true, score: true,
-            submittedAt: true, gradedAt: true
-          }
+  const assignments = await prisma.assignment.findMany({
+    where: { courseId },
+    include: {
+      submissions: {
+        where: { studentId },
+        select: {
+          id: true, status: true, score: true,
+          submittedAt: true, gradedAt: true
         }
-      },
-      orderBy: { createdAt: 'asc' }
-    });
+      }
+    },
+    orderBy: { createdAt: 'asc' }
+  });
 
-    res.json({
-      success: true,
-      data: { assignments }
-    });
-  } catch (error) {
-    console.error('Get course assignments error:', error);
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
+  res.json({
+    success: true,
+    data: { assignments }
+  });
 };
 
-export const SubmitAssignment = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
+export const SubmitAssignment = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { assignmentId } = req.params;
+  const { content, fileUrl } = req.body;
 
-  if (!token) {
-    return res.status(401).json({
+  const assignment = await prisma.assignment.findUnique({
+    where: { id: assignmentId },
+    include: {
+      course: {
+        include: {
+          enrollments: { where: { studentId: studentId } }
+        }
+      }
+    }
+  });
+
+  if (!assignment) {
+    return res.status(404).json({
       success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'Assignment not found.' }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { assignmentId } = req.params;
-    const { content, fileUrl } = req.body;
+  if (assignment.course.enrollments.length === 0) {
+    return res.status(403).json({
+      success: false,
+      error: { message: 'You are not enrolled in this course.' }
+    });
+  }
 
-    const assignment = await prisma.assignment.findUnique({
-      where: { id: assignmentId },
-      include: {
-        course: {
-          include: {
-            enrollments: { where: { studentId: studentId } }
-          }
-        }
+  const existingSubmission = await prisma.assignmentSubmission.findUnique({
+    where: { assignmentId_studentId: { assignmentId, studentId } }
+  });
+
+  if (existingSubmission) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'You have already submitted this assignment.' }
+    });
+  }
+
+  if (assignment.dueDate && new Date() > assignment.dueDate) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Assignment due date has passed.' }
+    });
+  }
+
+  const submission = await prisma.assignmentSubmission.create({
+    data: {
+      content: content || '',
+      fileUrl: fileUrl || null,
+      assignmentId, studentId,
+      status: 'SUBMITTED'
+    },
+    include: {
+      assignment: {
+        select: { title: true, maxScore: true, dueDate: true }
       }
-    });
-
-    if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        error: { message: 'Assignment not found.' }
-      });
     }
+  });
 
-    if (assignment.course.enrollments.length === 0) {
-      return res.status(403).json({
-        success: false,
-        error: { message: 'You are not enrolled in this course.' }
-      });
+  const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
+    prisma.material.count({ where: { courseId: assignment.courseId } }),
+    prisma.progress.count({ where: { studentId: studentId, courseId: assignment.courseId, isCompleted: true } }),
+    prisma.assignment.count({ where: { courseId: assignment.courseId } }),
+    prisma.assignmentSubmission.count({ where: { studentId, assignment: { courseId: assignment.courseId } } })
+  ]);
+
+  const totalItems = totalMaterials + totalAssignments;
+  const completedItems = completedMaterials + submittedAssignments;
+  const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+  await prisma.enrollment.update({
+    where: { studentId_courseId: { studentId: studentId, courseId: assignment.courseId } },
+    data: {
+      progressPercentage,
+      ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
     }
+  });
 
-    const existingSubmission = await prisma.assignmentSubmission.findUnique({
-      where: { assignmentId_studentId: { assignmentId, studentId } }
-    });
-
-    if (existingSubmission) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'You have already submitted this assignment.' }
-      });
+  res.status(201).json({
+    success: true,
+    data: {
+      submission,
+      progressUpdate: { progressPercentage, totalItems, completedItems }
     }
+  });
+};
 
-    if (assignment.dueDate && new Date() > assignment.dueDate) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Assignment due date has passed.' }
-      });
-    }
+export const GetAssignmentSubmission = async (req: AuthRequest, res: express.Response) => {
+  const studentId = req.user!.id;
+  const { assignmentId } = req.params;
 
-    const submission = await prisma.assignmentSubmission.create({
-      data: {
-        content: content || '',
-        fileUrl: fileUrl || null,
-        assignmentId, studentId,
-        status: 'SUBMITTED'
-      },
-      include: {
-        assignment: {
-          select: { title: true, maxScore: true, dueDate: true }
-        }
+  const submission = await prisma.assignmentSubmission.findUnique({
+    where: { assignmentId_studentId: { assignmentId, studentId } },
+    include: {
+      assignment: {
+        select: { title: true, maxScore: true, dueDate: true }
       }
+    }
+  });
+
+  res.json({
+    success: true,
+    data: { submission }
+  });
+};
+
+export const UploadAssignmentFile = async (req: AuthRequest, res: express.Response) => {
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'No assignment file uploaded' }
     });
+  }
 
-    const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-      prisma.material.count({ where: { courseId: assignment.courseId } }),
-      prisma.progress.count({ where: { studentId: studentId, courseId: assignment.courseId, isCompleted: true } }),
-      prisma.assignment.count({ where: { courseId: assignment.courseId } }),
-      prisma.assignmentSubmission.count({ where: { studentId, assignment: { courseId: assignment.courseId } } })
-    ]);
+  let fileUrl: string | null = null;
 
-    const totalItems = totalMaterials + totalAssignments;
-    const completedItems = completedMaterials + submittedAssignments;
-    const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+  if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
+    console.log('📂 Using local storage for development');
+    fileUrl = await Upload_Files_Local('assignments', req.file);
+  } else {
+    console.log('☁️ Using Bunny CDN storage for assignments');
+    fileUrl = req.file.size > 20 * 1024 * 1024
+      ? await Upload_Files_Stream('assignments', req.file)
+      : await Upload_Files('assignments', req.file);
+  }
 
-    await prisma.enrollment.update({
-      where: { studentId_courseId: { studentId: studentId, courseId: assignment.courseId } },
-      data: {
-        progressPercentage,
-        ...(progressPercentage === 100 && { completedAt: new Date(), status: 'COMPLETED' })
-      }
-    });
-
-    res.status(201).json({
-      success: true,
-      data: {
-        submission,
-        progressUpdate: { progressPercentage, totalItems, completedItems }
-      }
-    });
-  } catch (error) {
-    console.error('Submit assignment error:', error);
+  if (!fileUrl) {
     return res.status(500).json({
       success: false,
-      error: { message: 'Failed to submit assignment.' }
-    });
-  }
-};
-
-export const GetAssignmentSubmission = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
+      error: { message: 'Failed to upload assignment file to storage' }
     });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-    const studentId = decoded.id;
-    const { assignmentId } = req.params;
-
-    const submission = await prisma.assignmentSubmission.findUnique({
-      where: { assignmentId_studentId: { assignmentId, studentId } },
-      include: {
-        assignment: {
-          select: { title: true, maxScore: true, dueDate: true }
-        }
-      }
-    });
-
-    res.json({
-      success: true,
-      data: { submission }
-    });
-  } catch (error) {
-    console.error('Get assignment submission error:', error);
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
-};
-
-export const UploadAssignmentFile = async (req: express.Request, res: express.Response) => {
-  const token = req.cookies.student_token;
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Access denied. No token provided.' }
-    });
-  }
-
-  try {
-    jwt.verify(token, process.env.JWT_SECRET as string);
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'No assignment file uploaded' }
-      });
+  res.json({
+    success: true,
+    data: {
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      fileUrl: fileUrl
     }
-
-    let fileUrl: string | null = null;
-
-    if (process.env.NODE_ENV === 'development' || !process.env.BUNNY_API_KEY) {
-      console.log('📂 Using local storage for development');
-      fileUrl = await Upload_Files_Local('assignments', req.file);
-    } else {
-      console.log('☁️ Using Bunny CDN storage for assignments');
-      fileUrl = req.file.size > 20 * 1024 * 1024
-        ? await Upload_Files_Stream('assignments', req.file)
-        : await Upload_Files('assignments', req.file);
-    }
-
-    if (!fileUrl) {
-      return res.status(500).json({
-        success: false,
-        error: { message: 'Failed to upload assignment file to storage' }
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-        fileUrl: fileUrl
-      }
-    });
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: { message: 'Invalid token.' }
-    });
-  }
+  });
 };
 
 // ===== PLATFORM STATISTICS =====

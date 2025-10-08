@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
 // Import middleware
 const errorHandler_1 = require("../middleware/errorHandler");
+const auth_1 = require("../middleware/auth");
 // Import multer configurations
 const multer_1 = require("../multer/multer");
 // Import all controller functions
@@ -71,18 +72,18 @@ router.post('/auth/reset-password', [
     (0, express_validator_1.body)('otp').trim().isLength({ min: 6, max: 6 }),
     (0, express_validator_1.body)('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
 ], (0, errorHandler_1.asyncHandler)(studentController_1.ResetPassword));
-router.get('/auth/me', (0, errorHandler_1.asyncHandler)(studentController_1.GetCurrentUser));
-router.put('/auth/profile', [
+router.get('/auth/me', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetCurrentUser));
+router.put('/auth/profile', auth_1.authMiddleware, [
     (0, express_validator_1.body)('firstName').optional().trim().isLength({ min: 1 }),
     (0, express_validator_1.body)('lastName').optional().trim().isLength({ min: 1 }),
     (0, express_validator_1.body)('avatar').optional().isString(),
 ], (0, errorHandler_1.asyncHandler)(studentController_1.UpdateProfile));
 // Change Password endpoint
-router.put('/auth/change-password', [
+router.put('/auth/change-password', auth_1.authMiddleware, [
     (0, express_validator_1.body)('currentPassword').notEmpty().withMessage('Current password is required'),
     (0, express_validator_1.body)('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
 ], (0, errorHandler_1.asyncHandler)(studentController_1.ChangePassword));
-router.post('/uploads/avatar', multer_1.upload_avatar, (0, errorHandler_1.asyncHandler)(studentController_1.UploadStudentAvatar));
+router.post('/uploads/avatar', auth_1.authMiddleware, multer_1.upload_avatar, (0, errorHandler_1.asyncHandler)(studentController_1.UploadStudentAvatar));
 // ===== COURSES ROUTES =====
 router.get('/courses', [
     (0, express_validator_1.query)('page').optional().isInt({ min: 1 }),
@@ -94,16 +95,16 @@ router.get('/courses', [
 router.get('/courses/categories/all', (0, errorHandler_1.asyncHandler)(studentController_1.GetAllCategories));
 // ===== ENROLLMENT ROUTES =====
 // Get my enrollments
-router.get('/enrollments/my-enrollments', (0, errorHandler_1.asyncHandler)(studentController_1.GetMyEnrollments));
+router.get('/enrollments/my-enrollments', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetMyEnrollments));
 // Enroll in a course
-router.post('/enrollments/enroll', (0, errorHandler_1.asyncHandler)(studentController_1.EnrollInCourse));
+router.post('/enrollments/enroll', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.EnrollInCourse));
 // Get progress for a specific course
-router.get('/enrollments/progress/:courseId', (0, errorHandler_1.asyncHandler)(studentController_1.GetEnrollmentProgress));
+router.get('/enrollments/progress/:courseId', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetEnrollmentProgress));
 // ===== MATERIALS ENDPOINTS =====
 // Get material by ID
-router.get('/materials/:id', (0, errorHandler_1.asyncHandler)(studentController_1.GetMaterialById));
+router.get('/materials/:id', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetMaterialById));
 // Mark material as complete
-router.post('/materials/:id/complete', (0, errorHandler_1.asyncHandler)(studentController_1.CompleteMaterial));
+router.post('/materials/:id/complete', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.CompleteMaterial));
 // Test endpoint to check file accessibility
 router.get('/test/file/:filename', (0, errorHandler_1.asyncHandler)(studentController_1.TestFileAccess));
 // ===== COURSE ENDPOINTS WITH RATINGS =====
@@ -111,20 +112,20 @@ router.get('/test/file/:filename', (0, errorHandler_1.asyncHandler)(studentContr
 router.get('/courses/:id', (0, errorHandler_1.asyncHandler)(studentController_1.GetCourseById));
 // ===== REVIEW ENDPOINTS =====
 // Submit a course review
-router.post('/reviews', (0, errorHandler_1.asyncHandler)(studentController_1.SubmitReview));
+router.post('/reviews', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.SubmitReview));
 // Get reviews for a course
 router.get('/reviews/course/:courseId', (0, errorHandler_1.asyncHandler)(studentController_1.GetCourseReviews));
 // Get user's review for a specific course
-router.get('/reviews/my-review/:courseId', (0, errorHandler_1.asyncHandler)(studentController_1.GetMyReview));
+router.get('/reviews/my-review/:courseId', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetMyReview));
 // ===== ASSIGNMENT ENDPOINTS =====
 // Get assignments for enrolled courses
-router.get('/assignments/course/:courseId', (0, errorHandler_1.asyncHandler)(studentController_1.GetCourseAssignments));
+router.get('/assignments/course/:courseId', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetCourseAssignments));
 // Submit assignment
-router.post('/assignments/:assignmentId/submit', (0, errorHandler_1.asyncHandler)(studentController_1.SubmitAssignment));
+router.post('/assignments/:assignmentId/submit', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.SubmitAssignment));
 // Get assignment submission
-router.get('/assignments/:assignmentId/submission', (0, errorHandler_1.asyncHandler)(studentController_1.GetAssignmentSubmission));
+router.get('/assignments/:assignmentId/submission', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetAssignmentSubmission));
 // Upload assignment file
-router.post('/assignments/upload', multer_1.upload_assignment, (0, errorHandler_1.asyncHandler)(studentController_1.UploadAssignmentFile));
+router.post('/assignments/upload', auth_1.authMiddleware, multer_1.upload_assignment, (0, errorHandler_1.asyncHandler)(studentController_1.UploadAssignmentFile));
 // ===== PUBLIC PLATFORM STATISTICS =====
 // Get platform-wide statistics (public endpoint)
 router.get('/platform/stats', (0, errorHandler_1.asyncHandler)(studentController_1.GetPlatformStats));

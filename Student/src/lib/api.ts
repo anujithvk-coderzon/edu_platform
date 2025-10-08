@@ -57,12 +57,32 @@ class ApiClient {
           return data;
         }
 
-        // Check for session expired error
-        if (response.status === 401 && data.error?.message?.includes('logged in from another device')) {
-          // Clear local storage and redirect to login
-          studentStorage.clearStudentData();
-          window.location.href = '/login?session_expired=true';
-          throw new Error(data.error.message);
+        // Check for session expired/invalidated errors
+        if (response.status === 401) {
+          const errorMessage = data.error?.message || '';
+          const isSessionError =
+            errorMessage.includes('logged in from another device') ||
+            errorMessage.includes('Session expired') ||
+            errorMessage.includes('Invalid session');
+
+          if (isSessionError) {
+            // Clear local storage
+            studentStorage.clearStudentData();
+
+            // Call logout endpoint to clear cookie on server
+            try {
+              await fetch(`${this.baseURL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include',
+              });
+            } catch (logoutError) {
+              // Ignore logout errors, cookie might already be cleared
+            }
+
+            // Redirect to login
+            window.location.href = '/login?session_expired=true';
+            throw new Error(errorMessage);
+          }
         }
 
         // Enhanced error handling for validation errors

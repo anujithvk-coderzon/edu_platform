@@ -150,32 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // Separate effect for session checking to avoid recreation on user state change
-  useEffect(() => {
-    if (!user) return;
-
-    // Periodically check session validity (every 30 seconds)
-    const sessionCheckInterval = setInterval(async () => {
-      try {
-        const currentUser = await authApi.getCurrentUser();
-        if (!currentUser) {
-          // Session is invalid, log out
-          setUser(null);
-          window.location.href = '/login?session_expired=true';
-        }
-      } catch (error) {
-        // Session check failed, likely logged out from another device
-        const errorMessage = error instanceof Error ? error.message : '';
-        if (errorMessage.includes('logged in from another device') || errorMessage.includes('Session expired')) {
-          setUser(null);
-          studentStorage.clearStudentData();
-          window.location.href = '/login?session_expired=true';
-        }
-      }
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(sessionCheckInterval);
-  }, [user?.id]); // Only recreate if user ID changes (login/logout)
+  // Session validation happens automatically on every API request via middleware
+  // No need for polling intervals
 
   const login = async (email: string, password: string, rememberMe = false): Promise<void> => {
     setLoading(true);

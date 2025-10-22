@@ -130,6 +130,7 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
                       src={getCdnUrl(review.student.avatar) || ''}
                       alt={`${review.student.firstName} ${review.student.lastName}`}
                       className="w-10 h-10 rounded-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">

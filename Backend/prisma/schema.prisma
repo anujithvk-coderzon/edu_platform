@@ -60,9 +60,9 @@ model Admin {
 model Student {
   id          String    @id @default(cuid())
   email       String    @unique
-  password    String
-  firstName   String
-  lastName    String
+  password    String?   // Optional for OAuth users
+  firstName   String?   // Optional - required in frontend validation
+  lastName    String?   // Optional - required in frontend validation
   avatar      String?
   phone       String?
   dateOfBirth DateTime?
@@ -70,11 +70,12 @@ model Student {
   country     String?
   city        String?
   education   String?
-  institution String?
-  occupation  String?
-  company     String?
+  institution String?   // Optional in frontend too
+  occupation  String?   // Optional in frontend too
+  company     String?   // Optional in frontend too
   isVerified  Boolean   @default(false)
   isActive    Boolean   @default(true)
+  blocked     Boolean   @default(false) // Admin can block students from logging in
   activeSessionToken String?  // For single active session control
   lastLoginAt        DateTime?
   lastLoginIP        String?

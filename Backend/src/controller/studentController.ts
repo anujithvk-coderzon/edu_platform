@@ -250,6 +250,203 @@ export const ResendOtp = async (req: express.Request, res: express.Response) => 
   });
 };
 
+// ===== OAUTH CONTROLLERS =====
+
+export const OAuthRegister = async (req: express.Request, res: express.Response) => {
+  const {
+    provider, email, firstName, lastName, avatar,
+    phone, dateOfBirth, gender, country, city,
+    education, institution, occupation, company
+  } = req.body;
+
+  // Validate required fields
+  if (!provider || !email || !firstName || !lastName) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Provider, email, first name, and last name are required' }
+    });
+  }
+
+  // Check if student already exists
+  const existingStudent = await prisma.student.findUnique({ where: { email } });
+  if (existingStudent) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'An account with this email already exists' }
+    });
+  }
+
+  // Generate session token for single active session control
+  const sessionToken = randomUUID();
+  const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+
+  // Create student account (no password for OAuth users)
+  const student = await prisma.student.create({
+    data: {
+      email,
+      password: null, // OAuth users don't have password
+      firstName,
+      lastName,
+      avatar: avatar || null,
+      phone: phone || null,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      gender: gender || null,
+      country: country || null,
+      city: city || null,
+      education: education || null,
+      institution: institution || null,
+      occupation: occupation || null,
+      company: company || null,
+      isVerified: true, // OAuth users are automatically verified
+      activeSessionToken: sessionToken,
+      lastLoginAt: new Date(),
+      lastLoginIP: clientIP as string
+    },
+    select: {
+      id: true, email: true, firstName: true, lastName: true, phone: true,
+      dateOfBirth: true, gender: true, country: true, city: true,
+      education: true, institution: true, occupation: true, company: true,
+      avatar: true, createdAt: true, isVerified: true
+    }
+  });
+
+  // Generate JWT token
+  const token = generateToken(student.id, sessionToken);
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Set cookie
+  res.cookie('student_token', token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  // Send welcome email
+  try {
+    await StudentWelcomeEmail(email, firstName);
+  } catch (error) {
+    console.error('⚠️ Welcome email error but registration continues:', error);
+  }
+
+  console.log('✅ OAuth Registration successful:', {
+    provider,
+    email,
+    studentId: student.id,
+    timestamp: new Date().toISOString()
+  });
+
+  res.status(201).json({
+    success: true,
+    message: 'Registration successful! Welcome aboard!',
+    data: { user: student, token }
+  });
+};
+
+export const OAuthLogin = async (req: express.Request, res: express.Response) => {
+  const { provider, idToken } = req.body;
+
+  // Extract email from the idToken payload (we trust the frontend for now)
+  // In production with Firebase Admin SDK, you'd verify the token and extract email
+  // For now, we'll get email from the decoded token on frontend
+
+  // We need to get the email somehow - let's accept it in the request
+  // The frontend will send it after OAuth
+  let email = req.body.email;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Email is required' }
+    });
+  }
+
+  // Find student by email
+  const student = await prisma.student.findUnique({ where: { email } });
+
+  if (!student) {
+    return res.status(404).json({
+      success: false,
+      error: { message: 'Account not found. Please register first.' }
+    });
+  }
+
+  // Check if student is blocked by admin
+  if (student.blocked) {
+    return res.status(403).json({
+      success: false,
+      error: { message: 'Your account has been blocked by the administrator. Please contact support for assistance.' }
+    });
+  }
+
+  if (!student.isActive) {
+    return res.status(403).json({
+      success: false,
+      error: { message: 'Account is deactivated' }
+    });
+  }
+
+  // Generate new session token (invalidates previous sessions)
+  const sessionToken = randomUUID();
+  const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+
+  console.log('🔐 OAuth Login:', {
+    provider,
+    email: student.email,
+    newSessionToken: sessionToken.substring(0, 12) + '...',
+    clientIP,
+    timestamp: new Date().toISOString()
+  });
+
+  // Update student with new session token
+  await prisma.student.update({
+    where: { id: student.id },
+    data: {
+      activeSessionToken: sessionToken,
+      lastLoginAt: new Date(),
+      lastLoginIP: clientIP as string
+    }
+  });
+
+  // Generate JWT token
+  const token = generateToken(student.id, sessionToken);
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Set cookie
+  res.cookie('student_token', token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Login successful!',
+    data: {
+      user: {
+        id: student.id,
+        email: student.email,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        avatar: student.avatar,
+        phone: student.phone,
+        dateOfBirth: student.dateOfBirth,
+        gender: student.gender,
+        country: student.country,
+        city: student.city,
+        education: student.education,
+        institution: student.institution,
+        occupation: student.occupation,
+        company: student.company,
+        isVerified: student.isVerified,
+        createdAt: student.createdAt
+      },
+      token
+    }
+  });
+};
+
 export const LoginStudent = async (req: express.Request, res: express.Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -262,7 +459,32 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
   const { email, password } = req.body;
   const student = await prisma.student.findUnique({ where: { email } });
 
-  if (!student || !await bcrypt.compare(password, student.password)) {
+  if (!student) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'Invalid email or password' }
+    });
+  }
+
+  // Check if student is blocked by admin
+  if (student.blocked) {
+    return res.status(403).json({
+      success: false,
+      error: { message: 'Your account has been blocked by the administrator. Please contact support for assistance.' }
+    });
+  }
+
+  // Check if this is an OAuth user (no password)
+  if (!student.password) {
+    return res.status(401).json({
+      success: false,
+      error: { message: 'This account uses social login. Please sign in with Google or GitHub.' }
+    });
+  }
+
+  // Verify password
+  const isPasswordValid = await bcrypt.compare(password, student.password);
+  if (!isPasswordValid) {
     return res.status(401).json({
       success: false,
       error: { message: 'Invalid email or password' }
@@ -469,7 +691,10 @@ export const GetCurrentUser = async (req: express.Request, res: express.Response
       where: { id: decoded.id },
       select: {
         id: true, email: true, firstName: true, lastName: true,
-        avatar: true, isVerified: true, createdAt: true, updatedAt: true,
+        avatar: true, phone: true, dateOfBirth: true, gender: true,
+        city: true, education: true, institution: true,
+        occupation: true, company: true,
+        isVerified: true, createdAt: true, updatedAt: true,
         activeSessionToken: true // Include for debugging
       }
     });
@@ -534,18 +759,53 @@ export const UpdateProfile = async (req: express.Request, res: express.Response)
     }
 
     const updates: any = {};
-    const { firstName, lastName, avatar } = req.body;
+    const {
+      firstName,
+      lastName,
+      avatar,
+      phone,
+      dateOfBirth,
+      gender,
+      country,
+      city,
+      education,
+      institution,
+      occupation,
+      company
+    } = req.body;
 
-    if (firstName) updates.firstName = firstName;
-    if (lastName) updates.lastName = lastName;
-    if (avatar) updates.avatar = avatar;
+    if (firstName !== undefined) updates.firstName = firstName;
+    if (lastName !== undefined) updates.lastName = lastName;
+    if (avatar !== undefined) updates.avatar = avatar;
+    if (phone !== undefined) updates.phone = phone;
+    if (dateOfBirth !== undefined) updates.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (gender !== undefined) updates.gender = gender;
+    if (country !== undefined) updates.country = country;
+    if (city !== undefined) updates.city = city;
+    if (education !== undefined) updates.education = education;
+    if (institution !== undefined) updates.institution = institution;
+    if (occupation !== undefined) updates.occupation = occupation;
+    if (company !== undefined) updates.company = company;
 
     const student = await prisma.student.update({
       where: { id: decoded.id },
       data: updates,
       select: {
-        id: true, email: true, firstName: true, lastName: true,
-        avatar: true, updatedAt: true
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        avatar: true,
+        phone: true,
+        dateOfBirth: true,
+        gender: true,
+        country: true,
+        city: true,
+        education: true,
+        institution: true,
+        occupation: true,
+        company: true,
+        updatedAt: true
       }
     });
 

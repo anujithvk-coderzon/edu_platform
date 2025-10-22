@@ -246,12 +246,12 @@ export default function Home() {
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-20 relative z-10">
-          <div className="text-center mb-8 md:mb-12">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 text-white px-2">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-12 lg:py-16 relative z-10">
+          <div className="text-center mb-6 sm:mb-10">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 sm:mb-4 md:mb-5 text-white px-2">
               {user ? `Welcome back, ${user.firstName}!` : 'Advance Your Career with Expert-Led Courses'}
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed px-4">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 mb-4 sm:mb-6 md:mb-7 max-w-3xl mx-auto leading-relaxed px-2 sm:px-4">
               {user
                 ? 'Continue your learning journey with our professional courses designed for career growth'
                 : `Access ${stats.totalCourses > 0 ? `${stats.totalCourses}+` : 'premium'} courses from industry experts and transform your career`
@@ -259,19 +259,19 @@ export default function Home() {
             </p>
 
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-6 md:mb-10 px-4">
+            <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-4 sm:mb-7 md:mb-8 px-2 sm:px-4">
               <div className="relative group">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for courses..."
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 text-slate-900 bg-white rounded-xl focus:outline-none focus:ring-4 focus:ring-white/30 pl-10 sm:pl-14 pr-20 sm:pr-24 text-sm sm:text-base placeholder:text-slate-400 shadow-xl hover:shadow-2xl transition-all duration-300"
+                  className="w-full px-3 sm:px-6 py-2.5 sm:py-3 text-slate-900 bg-white rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-white/30 pl-9 sm:pl-12 pr-16 sm:pr-20 text-xs sm:text-sm md:text-base placeholder:text-slate-400 shadow-lg hover:shadow-xl transition-all duration-300"
                 />
-                <MagnifyingGlassIcon className="absolute left-3 sm:left-5 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <MagnifyingGlassIcon className="absolute left-2.5 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 <button
                   type="submit"
-                  className="absolute right-1.5 sm:right-2 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-lg hover:bg-slate-800 transition-all duration-300 font-medium text-xs sm:text-sm"
+                  className="absolute right-1 sm:right-1.5 top-1/2 transform -translate-y-1/2 bg-slate-900 text-white px-2.5 sm:px-4 md:px-5 py-1.5 sm:py-2 rounded-md sm:rounded-lg hover:bg-slate-800 transition-all duration-300 font-medium text-xs sm:text-sm"
                 >
                   Search
                 </button>
@@ -279,21 +279,21 @@ export default function Home() {
             </form>
 
             {/* CTA Buttons */}
-            <div className="flex gap-3 sm:gap-4 justify-center flex-wrap px-4">
+            <div className="flex gap-2 sm:gap-3 md:gap-4 justify-center flex-wrap px-2 sm:px-4">
               <Link href="/my-courses">
-                <button className="bg-white text-slate-900 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                <button className="bg-white text-slate-900 px-3 sm:px-5 md:px-6 lg:px-7 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl text-xs sm:text-sm md:text-base">
                   My Courses
                 </button>
               </Link>
               {user ? (
                 <Link href="/courses">
-                  <button className="border-2 border-white/80 text-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 text-sm sm:text-base">
+                  <button className="border-2 border-white/80 text-white px-3 sm:px-5 md:px-6 lg:px-7 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 text-xs sm:text-sm md:text-base">
                     Browse All Courses
                   </button>
                 </Link>
               ) : (
                 <Link href="/register">
-                  <button className="bg-slate-900 text-white px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                  <button className="bg-slate-900 text-white px-3 sm:px-5 md:px-6 lg:px-7 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl text-xs sm:text-sm md:text-base">
                     Start Free Trial
                   </button>
                 </Link>
@@ -302,20 +302,20 @@ export default function Home() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 text-center mt-8 md:mt-12 lg:mt-16 px-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/20">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 md:gap-4 text-center mt-6 sm:mt-10 md:mt-12 lg:mt-14 px-2 sm:px-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 md:p-5 border border-white/20">
               <AcademicCapIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-white mb-2 sm:mb-3" />
               <div className="text-2xl sm:text-3xl font-bold text-white">{stats.totalCourses || 0}+</div>
               <div className="text-white/80 text-xs sm:text-sm mt-1">Professional Courses</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 md:p-5 border border-white/20">
               <UsersIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-white mb-2 sm:mb-3" />
               <div className="text-2xl sm:text-3xl font-bold text-white">
                 {stats.activeStudents > 0 ? `${stats.activeStudents.toLocaleString()}+` : '-'}
               </div>
               <div className="text-white/80 text-xs sm:text-sm mt-1">Active Students</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-4 sm:p-6 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4 md:p-5 border border-white/20">
               <StarIcon className="h-6 w-6 sm:h-8 sm:w-8 mx-auto text-white mb-2 sm:mb-3" />
               <div className="text-2xl sm:text-3xl font-bold text-white">
                 {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '-'}
@@ -327,63 +327,63 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 md:py-10">
         {/* Personal Stats for logged in users */}
         {user && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8 mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-5 md:p-6 mb-4 sm:mb-6 md:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5">
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900">
                 Your Learning Progress
               </h2>
-              <div className="flex items-center space-x-2 bg-green-100 px-3 py-1.5 rounded-full self-start sm:self-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center space-x-2 bg-green-100 px-2.5 py-1 rounded-full self-start sm:self-center">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-xs font-medium text-green-800">Active</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <BookOpenIcon className="h-5 w-5 text-blue-600" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              <div className="bg-slate-50 rounded-lg p-2.5 sm:p-3 md:p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BookOpenIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-slate-900">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
-                    <p className="text-xs text-slate-600">Active Courses</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <CheckCircleIcon className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-slate-900">{stats.completedCourses}</div>
-                    <p className="text-xs text-slate-600">Completed</p>
+                  <div className="min-w-0">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
+                    <p className="text-xs text-slate-600 truncate">Active Courses</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <ClockIcon className="h-5 w-5 text-purple-600" />
+              <div className="bg-slate-50 rounded-lg p-2.5 sm:p-3 md:p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-slate-900">{stats.totalHours}</div>
-                    <p className="text-xs text-slate-600">Hours Studied</p>
+                  <div className="min-w-0">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.completedCourses}</div>
+                    <p className="text-xs text-slate-600 truncate">Completed</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <ChartBarIcon className="h-5 w-5 text-amber-600" />
+              <div className="bg-slate-50 rounded-lg p-2.5 sm:p-3 md:p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-slate-900">
+                  <div className="min-w-0">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalHours}</div>
+                    <p className="text-xs text-slate-600 truncate">Hours Studied</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-50 rounded-lg p-2.5 sm:p-3 md:p-4 hover:bg-slate-100 transition-colors">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <ChartBarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">
                       {myEnrollments.length > 0 ? Math.round(myEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / myEnrollments.length) : 0}%
                     </div>
-                    <p className="text-xs text-slate-600">Avg Progress</p>
+                    <p className="text-xs text-slate-600 truncate">Avg Progress</p>
                   </div>
                 </div>
               </div>
@@ -393,30 +393,30 @@ export default function Home() {
 
         {/* Continue Learning Section */}
         {user && myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Continue Learning</h2>
+          <div className="mb-4 sm:mb-6 md:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900">Continue Learning</h2>
               <Link href="/my-courses">
-                <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center">
+                <button className="text-indigo-600 hover:text-indigo-700 text-xs sm:text-sm font-medium flex items-center">
                   View All
-                  <ArrowRightIcon className="h-3 w-3 ml-1" />
+                  <ArrowRightIcon className="h-3 w-3 ml-0.5 sm:ml-1" />
                 </button>
               </Link>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
               {myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).slice(0, 2).map((enrollment) => (
-                <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-slate-900 truncate text-sm">{enrollment.course?.title}</h3>
-                    <span className="text-xs font-medium text-indigo-600">{Math.round(enrollment.progressPercentage)}%</span>
+                <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <h3 className="font-medium text-slate-900 truncate text-xs sm:text-sm">{enrollment.course?.title}</h3>
+                    <span className="text-xs font-medium text-indigo-600 flex-shrink-0 ml-2">{Math.round(enrollment.progressPercentage)}%</span>
                   </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2 mb-3">
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 sm:h-2 mb-2 sm:mb-3">
                     <div
-                      className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-indigo-600 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                       style={{ width: `${enrollment.progressPercentage}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-xs text-slate-600 mb-3">
+                  <div className="flex items-center justify-between text-xs text-slate-600 mb-2 sm:mb-3">
                     <span>{enrollment.completedMaterials || 0} lessons done</span>
                     <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h total</span>
                   </div>
@@ -442,31 +442,31 @@ export default function Home() {
 
         {/* Featured Courses */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Featured Courses</h2>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900">Featured Courses</h2>
             <Link href="/my-courses">
-              <button className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center">
+              <button className="text-indigo-600 hover:text-indigo-700 text-xs sm:text-sm font-medium flex items-center">
                 View My Courses
-                <ArrowRightIcon className="h-3 w-3 ml-1" />
+                <ArrowRightIcon className="h-3 w-3 ml-0.5 sm:ml-1" />
               </button>
             </Link>
           </div>
 
           {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="bg-white rounded-lg shadow-sm animate-pulse">
                   <div className="aspect-video bg-gray-200 rounded-t-lg"></div>
-                  <div className="p-6">
-                    <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
+                  <div className="p-3 sm:p-4">
+                    <div className="h-5 sm:h-6 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded mb-3 sm:mb-4"></div>
+                    <div className="h-8 sm:h-10 bg-gray-200 rounded"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : featuredCourses.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
               {featuredCourses.map((course) => (
                 <div key={course.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-300">
                   <div className="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg flex items-center justify-center relative">
@@ -495,22 +495,22 @@ export default function Home() {
                       );
                     })()}
                   </div>
-                  <div className="p-4 sm:p-5">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="p-3 sm:p-4">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                       <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
                         {course.category?.name || course.level}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-slate-900 mb-2 line-clamp-2 text-sm sm:text-base">{course.title}</h3>
-                    <p className="text-slate-600 text-xs sm:text-sm mb-3 line-clamp-2">{course.description}</p>
+                    <h3 className="font-semibold text-slate-900 mb-1.5 sm:mb-2 line-clamp-2 text-sm">{course.title}</h3>
+                    <p className="text-slate-600 text-xs mb-2 sm:mb-3 line-clamp-2">{course.description}</p>
 
-                    <div className="flex items-center text-xs text-slate-600 mb-3">
+                    <div className="flex items-center text-xs text-slate-600 mb-2 sm:mb-3">
                       <span className="truncate">{course.tutorName || (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}</span>
-                      <span className="mx-2">•</span>
-                      <span>{course.duration ? `${course.duration}h` : 'Variable'}</span>
+                      <span className="mx-1.5">•</span>
+                      <span className="flex-shrink-0">{course.duration ? `${course.duration}h` : 'Variable'}</span>
                     </div>
 
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
                       <div className="flex items-center">
                         <div className="flex text-amber-400">
                           {[...Array(5)].map((_, i) => (

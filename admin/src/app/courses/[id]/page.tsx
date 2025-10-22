@@ -23,6 +23,16 @@ import {
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getCdnUrl } from '../../../utils/cdn';
+import { BUNNY_STREAM_LIBRARY_ID } from '../../../config/env';
+
+/**
+ * Check if the src is a Bunny Stream GUID (format: 8-4-4-4-12 hex characters)
+ */
+const isBunnyStreamGuid = (src: string): boolean => {
+  if (!src) return false;
+  const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return guidPattern.test(src);
+};
 
 interface Material {
   id: string;
@@ -473,17 +483,29 @@ export default function CourseViewPage() {
                                   {material.fileUrl && expandedMaterials.has(material.id) && (
                                     <div className="mt-4">
                                       {material.type === 'VIDEO' && (
-                                        <video
-                                          controls
-                                          className="w-full max-w-md h-full bg-black rounded-lg object-cover"
-                                          src={materialUrl}
-                                          onError={(e) => {
-                                            console.error('Video load error:', material.fileUrl);
-                                            toast.error(`Failed to load video: ${material.title}`);
-                                          }}
-                                        >
-                                          Your browser does not support the video tag.
-                                        </video>
+                                        isBunnyStreamGuid(material.fileUrl) ? (
+                                          /* Bunny Stream iframe embed */
+                                          <iframe
+                                            src={`https://iframe.mediadelivery.net/embed/${BUNNY_STREAM_LIBRARY_ID}/${material.fileUrl}`}
+                                            loading="lazy"
+                                            style={{ border: 0, width: '100%', aspectRatio: '16/9', maxWidth: '28rem' }}
+                                            className="rounded-lg bg-black"
+                                            allowFullScreen
+                                          />
+                                        ) : (
+                                          /* Regular video tag for non-stream videos */
+                                          <video
+                                            controls
+                                            className="w-full max-w-md h-full bg-black rounded-lg object-cover"
+                                            src={materialUrl}
+                                            onError={(e) => {
+                                              console.error('Video load error:', material.fileUrl);
+                                              toast.error(`Failed to load video: ${material.title}`);
+                                            }}
+                                          >
+                                            Your browser does not support the video tag.
+                                          </video>
+                                        )
                                       )}
                                       {material.type === 'PDF' && (
                                         <div className="bg-white border rounded-lg p-4">

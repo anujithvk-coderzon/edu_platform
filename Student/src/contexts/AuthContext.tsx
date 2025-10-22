@@ -11,6 +11,14 @@ interface User {
   firstName: string;
   lastName: string;
   avatar?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  city?: string;
+  education?: string;
+  institution?: string;
+  occupation?: string;
+  company?: string;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +55,14 @@ const authApi = {
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
         avatar: response.data.user.avatar,
+        phone: response.data.user.phone,
+        dateOfBirth: response.data.user.dateOfBirth,
+        gender: response.data.user.gender,
+        city: response.data.user.city,
+        education: response.data.user.education,
+        institution: response.data.user.institution,
+        occupation: response.data.user.occupation,
+        company: response.data.user.company,
         isVerified: response.data.user.isVerified,
         createdAt: response.data.user.createdAt,
         updatedAt: response.data.user.updatedAt
@@ -65,6 +81,14 @@ const authApi = {
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
         avatar: response.data.user.avatar,
+        phone: response.data.user.phone,
+        dateOfBirth: response.data.user.dateOfBirth,
+        gender: response.data.user.gender,
+        city: response.data.user.city,
+        education: response.data.user.education,
+        institution: response.data.user.institution,
+        occupation: response.data.user.occupation,
+        company: response.data.user.company,
         isVerified: response.data.user.isVerified,
         createdAt: response.data.user.createdAt,
         updatedAt: response.data.user.updatedAt
@@ -84,6 +108,14 @@ const authApi = {
           firstName: response.data.user.firstName,
           lastName: response.data.user.lastName,
           avatar: response.data.user.avatar,
+          phone: response.data.user.phone,
+          dateOfBirth: response.data.user.dateOfBirth,
+          gender: response.data.user.gender,
+          city: response.data.user.city,
+          education: response.data.user.education,
+          institution: response.data.user.institution,
+          occupation: response.data.user.occupation,
+          company: response.data.user.company,
           isVerified: response.data.user.isVerified,
           createdAt: response.data.user.createdAt,
           updatedAt: response.data.user.updatedAt
@@ -120,6 +152,14 @@ const authApi = {
         firstName: response.data.user.firstName,
         lastName: response.data.user.lastName,
         avatar: response.data.user.avatar,
+        phone: response.data.user.phone,
+        dateOfBirth: response.data.user.dateOfBirth,
+        gender: response.data.user.gender,
+        city: response.data.user.city,
+        education: response.data.user.education,
+        institution: response.data.user.institution,
+        occupation: response.data.user.occupation,
+        company: response.data.user.company,
         isVerified: response.data.user.isVerified,
         createdAt: response.data.user.createdAt,
         updatedAt: response.data.user.updatedAt

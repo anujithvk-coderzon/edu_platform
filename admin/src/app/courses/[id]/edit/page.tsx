@@ -106,7 +106,6 @@ interface Course {
   categoryId: string;
   level: string;
   price: number;
-  duration: number;
   isPublic: boolean;
   status?: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'ARCHIVED' | 'REJECTED';
   rejectionReason?: string;
@@ -123,7 +122,6 @@ interface CourseUpdateData {
   title: string;
   description: string;
   price: number;
-  duration: number;
   isPublic: boolean;
   level: string;
   requirements: string[];
@@ -257,7 +255,6 @@ export default function CourseEditPage() {
         title: course.title,
         description: course.description,
         price: course.price,
-        duration: course.duration,
         isPublic: course.isPublic,
         level: course.level,
         requirements: course.requirements || [],
@@ -397,6 +394,7 @@ export default function CourseEditPage() {
       let fileUrl = newMaterial.fileUrl;
 
       // Upload file if one was selected (for non-LINK types)
+      let isVideoMaterial = false;
       if (selectedFile && newMaterial.type !== 'LINK') {
         try {
           const uploadResponse = await api.uploads.material(
@@ -407,6 +405,10 @@ export default function CourseEditPage() {
           );
           if (uploadResponse.success) {
             fileUrl = uploadResponse.data.url;
+            // Check if this is a video upload
+            if (uploadResponse.data?.isVideo || newMaterial.type === 'VIDEO') {
+              isVideoMaterial = true;
+            }
           } else {
             toast.error('Failed to upload file');
             return;
@@ -447,7 +449,14 @@ export default function CourseEditPage() {
         setNewMaterial({ title: '', description: '', type: 'VIDEO', fileUrl: '', content: '' });
         setSelectedFile(null);
         setShowMaterialModal(null);
-        toast.success('Material added successfully!');
+
+        if (isVideoMaterial) {
+          toast.success('Video material uploaded successfully! It will take some time to process.', {
+            duration: 5000
+          });
+        } else {
+          toast.success('Material added successfully!');
+        }
       } else {
         toast.error('Failed to add material');
       }
@@ -686,17 +695,18 @@ export default function CourseEditPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="mb-4">
-            <Link href="/my-courses" className="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-sm">
-              <ChevronLeftIcon className="w-4 h-4 mr-2" />
-              Back to My Courses
+        <div className="mb-4 sm:mb-6">
+          <div className="mb-2 sm:mb-3 md:mb-4 hidden sm:block">
+            <Link href="/my-courses" className="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-xs sm:text-sm">
+              <ChevronLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+              <span className="hidden sm:inline">Back to My Courses</span>
+              <span className="sm:hidden">Back</span>
             </Link>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-2">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
               Edit Course
             </h1>
             {loading ? (
@@ -713,28 +723,30 @@ export default function CourseEditPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mb-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-1">
-            <nav className="flex space-x-1">
+        <div className="mb-4 sm:mb-5 md:mb-6">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-0.5 sm:p-1">
+            <nav className="flex space-x-0.5 sm:space-x-1">
               <button
                 onClick={() => setActiveTab('details')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex-1 py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 rounded-md sm:rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                   activeTab === 'details'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                Course Details
+                <span className="hidden sm:inline">Course Details</span>
+                <span className="sm:hidden">Details</span>
               </button>
               <button
                 onClick={() => setActiveTab('content')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex-1 py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 rounded-md sm:rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                   activeTab === 'content'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                Course Content
+                <span className="hidden sm:inline">Course Content</span>
+                <span className="sm:hidden">Content</span>
               </button>
               <button
                 onClick={() => {
@@ -743,13 +755,14 @@ export default function CourseEditPage() {
                     loadAssignments(); // Load assignments if not loaded yet
                   }
                 }}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all duration-200 ${
+                className={`flex-1 py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 rounded-md sm:rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                   activeTab === 'assignments'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm'
                     : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                Assignments
+                <span className="hidden md:inline">Assignments</span>
+                <span className="md:hidden">Tasks</span>
               </button>
             </nav>
           </div>
@@ -771,18 +784,18 @@ export default function CourseEditPage() {
         </Card>
       ) : activeTab === 'details' ? (
         /* Course Details Tab */
-        <Card className="bg-white shadow-sm border border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-slate-900">
+        <Card className="bg-white shadow-sm border border-slate-200 rounded-lg sm:rounded-xl">
+          <CardHeader className="p-3 sm:p-4 md:p-6 bg-gradient-to-r from-slate-50 to-blue-50/30">
+            <CardTitle className="text-base sm:text-lg font-semibold text-slate-900">
               Course Information
             </CardTitle>
-            <CardDescription className="text-slate-600 text-sm mt-1">
+            <CardDescription className="text-slate-600 text-xs sm:text-sm mt-1">
               Update your course details and settings
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700">
                 Course Title
               </label>
               <Input
@@ -792,8 +805,8 @@ export default function CourseEditPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700">
                 Description
               </label>
               <Textarea
@@ -804,36 +817,22 @@ export default function CourseEditPage() {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">
-                  Price (USD)
-                </label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={course?.price || ''}
-                  onChange={(e) => setCourse(prev => prev ? ({ ...prev, price: parseFloat(e.target.value) }) : prev)}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">
-                  Duration (hours)
-                </label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={course?.duration || ''}
-                  onChange={(e) => setCourse(prev => prev ? ({ ...prev, duration: parseInt(e.target.value) }) : prev)}
-                  placeholder="Duration in hours"
-                />
-              </div>
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700">
+                Price (USD)
+              </label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={course?.price || ''}
+                onChange={(e) => setCourse(prev => prev ? ({ ...prev, price: parseFloat(e.target.value) }) : prev)}
+                placeholder="0.00"
+              />
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">
+            <div className="space-y-1.5 sm:space-y-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-700">
                 Tutor/Organization Name
               </label>
               <Input
@@ -841,18 +840,18 @@ export default function CourseEditPage() {
                 onChange={(e) => setCourse(prev => prev ? ({ ...prev, tutorName: e.target.value }) : prev)}
                 placeholder="e.g., Codiin Academy"
               />
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
                 This will be displayed as &quot;Created by&quot; on the course page
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Requirements
               </label>
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {(course?.requirements || []).map((req, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div key={index} className="flex gap-1.5 sm:gap-2">
                     <Input
                       value={req}
                       onChange={(e) => {
@@ -861,6 +860,7 @@ export default function CourseEditPage() {
                         setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
                       }}
                       placeholder="e.g., Basic computer skills"
+                      className="text-xs sm:text-sm"
                     />
                     <Button
                       type="button"
@@ -870,8 +870,9 @@ export default function CourseEditPage() {
                         const newReqs = course?.requirements?.filter((_, i) => i !== index) || [];
                         setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
                       }}
+                      className="flex-shrink-0 p-1.5 sm:p-2"
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 ))}
@@ -883,23 +884,24 @@ export default function CourseEditPage() {
                     const newReqs = [...(course?.requirements || []), ''];
                     setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
                   }}
+                  className="text-xs sm:text-sm"
                 >
-                  <PlusIcon className="h-4 w-4 mr-1" />
+                  <PlusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                   Add Requirement
                 </Button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                 What students need to have or know before taking this course
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 Prerequisites
               </label>
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 {(course?.prerequisites || []).map((prereq, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div key={index} className="flex gap-1.5 sm:gap-2">
                     <Input
                       value={prereq}
                       onChange={(e) => {
@@ -908,6 +910,7 @@ export default function CourseEditPage() {
                         setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
                       }}
                       placeholder="e.g., Introduction to Programming course"
+                      className="text-xs sm:text-sm"
                     />
                     <Button
                       type="button"
@@ -917,8 +920,9 @@ export default function CourseEditPage() {
                         const newPrereqs = course?.prerequisites?.filter((_, i) => i !== index) || [];
                         setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
                       }}
+                      className="flex-shrink-0 p-1.5 sm:p-2"
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 ))}
@@ -930,12 +934,13 @@ export default function CourseEditPage() {
                     const newPrereqs = [...(course?.prerequisites || []), ''];
                     setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
                   }}
+                  className="text-xs sm:text-sm"
                 >
-                  <PlusIcon className="h-4 w-4 mr-1" />
+                  <PlusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                   Add Prerequisite
                 </Button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                 Recommended courses or knowledge before taking this course
               </p>
             </div>
@@ -1032,7 +1037,7 @@ export default function CourseEditPage() {
             {/* Visibility - Admin Only */}
             {user?.role?.toLowerCase() === 'admin' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                   Visibility
                 </label>
                 <Select
@@ -1043,7 +1048,7 @@ export default function CourseEditPage() {
                   value={course?.isPublic ? 'true' : 'false'}
                   onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
                   Course must be both &quot;Published&quot; and &quot;Public&quot; to appear in the student course catalog
                 </p>
               </div>
@@ -1051,19 +1056,19 @@ export default function CourseEditPage() {
 
             {/* Rejection Reason Alert */}
             {course?.status === 'REJECTED' && course?.rejectionReason && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-6">
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6">
                 <div className="flex items-start">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                  <ExclamationTriangleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" />
                   <div>
-                    <h4 className="text-sm font-semibold text-red-800 mb-1">Course Rejected</h4>
-                    <p className="text-sm text-red-700 mb-2"><strong>Reason:</strong> {course.rejectionReason}</p>
-                    <p className="text-xs text-red-600">Please address the feedback above and resubmit your course for review.</p>
+                    <h4 className="text-xs sm:text-sm font-semibold text-red-800 mb-1">Course Rejected</h4>
+                    <p className="text-xs sm:text-sm text-red-700 mb-1.5 sm:mb-2"><strong>Reason:</strong> {course.rejectionReason}</p>
+                    <p className="text-[10px] sm:text-xs text-red-600">Please address the feedback above and resubmit your course for review.</p>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="flex justify-end space-x-3 pt-6 border-t border-indigo-200/50">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-slate-200">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -1071,22 +1076,26 @@ export default function CourseEditPage() {
                   toast.success('Changes cancelled');
                 }}
                 disabled={loading || saving}
-                className="px-6 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="order-2 sm:order-1 px-4 sm:px-6 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSaveCourse}
                 disabled={saving || loading}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 flex items-center space-x-2"
+                className="order-1 sm:order-2 px-4 sm:px-6 py-2 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-50 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
               >
                 {saving ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Saving...</span>
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span className="hidden sm:inline">Saving...</span>
+                    <span className="sm:hidden">Saving</span>
                   </>
                 ) : (
-                  <span>Save Changes</span>
+                  <>
+                    <span className="hidden sm:inline">Save Changes</span>
+                    <span className="sm:hidden">Save</span>
+                  </>
                 )}
               </Button>
               {/* Submit for Review button - only show for DRAFT and REJECTED courses for tutors */}
@@ -1094,17 +1103,19 @@ export default function CourseEditPage() {
                 <Button
                   onClick={handleSubmitForReview}
                   disabled={saving || loading}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 flex items-center space-x-2"
+                  className="order-3 px-4 sm:px-6 py-2 bg-gradient-to-br from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
                 >
                   {saving ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Submitting...</span>
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span className="hidden sm:inline">Submitting...</span>
+                      <span className="sm:hidden">Submitting</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircleIcon className="w-4 h-4" />
-                      <span>Submit for Review</span>
+                      <CheckCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Submit for Review</span>
+                      <span className="sm:hidden">Submit</span>
                     </>
                   )}
                 </Button>

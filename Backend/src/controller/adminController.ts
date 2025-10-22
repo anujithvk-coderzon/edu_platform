@@ -1754,7 +1754,7 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
       thumbnail,
       tutorName,
       tutorId,
-      objectives = [],
+      prerequisites = [],
       requirements = [],
       tags = []
     } = req.body;
@@ -1793,7 +1793,7 @@ export const CreateCourse = async (req: AuthRequest, res: express.Response) => {
           ...(tutorId && { tutorId }), // Save the assigned tutor ID
           status: CourseStatus.DRAFT,
           requirements,
-          prerequisites: objectives
+          prerequisites
         },
         include: {
           creator: {
@@ -1864,7 +1864,9 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
       tutorName,
       tutorId,
       status,
-      isPublic
+      isPublic,
+      requirements,
+      prerequisites
     } = req.body;
 
     if (title) updates.title = title;
@@ -1878,6 +1880,8 @@ export const UpdateCourse = async (req: AuthRequest, res: express.Response) => {
     if (tutorId !== undefined) updates.tutorId = tutorId;
     if (status) updates.status = status;
     if (typeof isPublic === 'boolean') updates.isPublic = isPublic;
+    if (requirements !== undefined) updates.requirements = requirements;
+    if (prerequisites !== undefined) updates.prerequisites = prerequisites;
 
     // If tutorId is provided, verify it's a valid tutor and set tutorName automatically
     if (tutorId) {
@@ -4168,29 +4172,7 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
 
     // Log file details for debugging
     const fileSizeMB = (req.file.size / (1024 * 1024)).toFixed(2);
-    console.log(`📦 Processing upload: ${req.file.originalname} (${fileSizeMB} MB)`);
-
-    // Choose storage method based on environment
-    let fileUrl: string | null = null;
-
-    if (process.env.NODE_ENV === 'development' && process.env.USE_LOCAL_STORAGE === 'true') {
-      // Use local storage for development
-      console.log('📂 Using local storage for development');
-      fileUrl = await Upload_Files_Local('materials', req.file);
-    } else {
-      // Use Bunny CDN for production or when explicitly configured
-      console.log('☁️ Using Bunny CDN storage');
-      fileUrl = req.file.size > 20 * 1024 * 1024
-        ? await Upload_Files_Stream('materials', req.file)
-        : await Upload_Files('materials', req.file);
-    }
-
-    if (!fileUrl) {
-      return res.status(500).json({
-        success: false,
-        error: { message: 'Failed to upload material to CDN' }
-      });
-    }
+    console.log(`📦 Processing upload: ${req.file.originalname} (${fileSizeMB} MB, ${req.file.mimetype})`);
 
     // If courseId is provided, verify user has access
     if (courseId) {
@@ -4217,6 +4199,53 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
       }
     }
 
+    // Check if the file is a video
+    const { isVideoFile, uploadVideoComplete } = require('../utils/BunnyStream');
+    const isVideo = isVideoFile(req.file.mimetype);
+
+    let fileUrl: string | null = null;
+    let isVideoMaterial = false;
+
+    if (isVideo) {
+      // Upload video to Bunny Stream
+      console.log('🎬 Detected video file - uploading to Bunny Stream');
+      const videoTitle = req.file.originalname.replace(/\.[^/.]+$/, ''); // Remove file extension
+      const videoGuid = await uploadVideoComplete(videoTitle, req.file);
+
+      if (!videoGuid) {
+        return res.status(500).json({
+          success: false,
+          error: { message: 'Failed to upload video to Bunny Stream' }
+        });
+      }
+
+      fileUrl = videoGuid; // Store the GUID as the fileUrl
+      isVideoMaterial = true;
+      console.log(`✅ Video uploaded successfully. GUID: ${videoGuid}`);
+    } else {
+      // Upload non-video files to Bunny CDN Storage
+      console.log('📄 Uploading non-video file to Bunny CDN Storage');
+
+      if (process.env.NODE_ENV === 'development' && process.env.USE_LOCAL_STORAGE === 'true') {
+        // Use local storage for development
+        console.log('📂 Using local storage for development');
+        fileUrl = await Upload_Files_Local('materials', req.file);
+      } else {
+        // Use Bunny CDN for production or when explicitly configured
+        console.log('☁️ Using Bunny CDN storage');
+        fileUrl = req.file.size > 20 * 1024 * 1024
+          ? await Upload_Files_Stream('materials', req.file)
+          : await Upload_Files('materials', req.file);
+      }
+
+      if (!fileUrl) {
+        return res.status(500).json({
+          success: false,
+          error: { message: 'Failed to upload material to CDN' }
+        });
+      }
+    }
+
     return res.json({
       success: true,
       data: {
@@ -4225,7 +4254,11 @@ export const UploadMaterial = async (req: AuthRequest, res: express.Response) =>
         mimetype: req.file.mimetype,
         size: req.file.size,
         fileUrl: fileUrl,
-        url: fileUrl
+        url: fileUrl,
+        isVideo: isVideoMaterial,
+        ...(isVideoMaterial && {
+          message: 'Video uploaded successfully. It will take some time to process.'
+        })
       }
     });
   } catch (error) {
@@ -4833,7 +4866,7 @@ export const GetStudentsCount = async (req: AuthRequest, res: express.Response) 
 
 export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Response) => {
   try {
-    // Get all students directly from Student table, sorted by registration date (newest first)
+    // Get all students directly from Student table with complete registration details, sorted by registration date (newest first)
     const students = await prisma.student.findMany({
       select: {
         id: true,
@@ -4841,6 +4874,18 @@ export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Re
         lastName: true,
         email: true,
         avatar: true,
+        phone: true,
+        dateOfBirth: true,
+        gender: true,
+        country: true,
+        city: true,
+        education: true,
+        institution: true,
+        occupation: true,
+        company: true,
+        isVerified: true,
+        isActive: true,
+        blocked: true,
         createdAt: true,
         updatedAt: true
       },
@@ -4849,13 +4894,25 @@ export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Re
       }
     });
 
-    // Map to consistent format
+    // Map to consistent format with all registration details (excluding password)
     const formattedStudents = students.map(student => ({
       id: student.id,
       firstName: student.firstName,
       lastName: student.lastName,
       email: student.email,
       avatar: student.avatar,
+      phone: student.phone,
+      dateOfBirth: student.dateOfBirth ? student.dateOfBirth.toISOString() : null,
+      gender: student.gender,
+      country: student.country,
+      city: student.city,
+      education: student.education,
+      institution: student.institution,
+      occupation: student.occupation,
+      company: student.company,
+      isVerified: student.isVerified,
+      isActive: student.isActive,
+      blocked: student.blocked,
       registeredAt: student.createdAt.toISOString(),
       lastActive: student.updatedAt.toISOString()
     }));
@@ -4969,6 +5026,9 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
           lastName: enrollment.student.lastName,
           email: enrollment.student.email,
           avatar: enrollment.student.avatar,
+          isVerified: enrollment.student.isVerified,
+          isActive: enrollment.student.isActive,
+          blocked: enrollment.student.blocked || false,
           joinedAt: enrollment.student.createdAt.toISOString(),
           lastActive: enrollment.student.updatedAt.toISOString(),
           enrollments: [],
@@ -5381,6 +5441,133 @@ export const CleanupOrphanedCourses = async (req: AuthRequest, res: express.Resp
     return res.status(500).json({
       success: false,
       error: { message: 'Internal server error during cleanup' }
+    });
+  }
+};
+
+// ===== BLOCK/UNBLOCK STUDENT =====
+export const BlockStudent = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const adminId = req.user.id;
+    const userRole = req.user.role;
+    const { studentId } = req.params;
+
+    // Only admins can block students
+    if (userRole !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only administrators can block students' }
+      });
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Student not found' }
+      });
+    }
+
+    if (student.blocked) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Student is already blocked' }
+      });
+    }
+
+    // Block the student and clear their session
+    const updatedStudent = await prisma.student.update({
+      where: { id: studentId },
+      data: {
+        blocked: true,
+        activeSessionToken: null // Force logout
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+    });
+
+    console.log('✅ Student blocked:', {
+      studentId: updatedStudent.id,
+      email: updatedStudent.email,
+      blockedBy: adminId,
+      timestamp: new Date().toISOString()
+    });
+
+    return res.json({
+      success: true,
+      data: { student: updatedStudent },
+      message: `${updatedStudent.firstName} ${updatedStudent.lastName} has been blocked successfully`
+    });
+
+  } catch (error) {
+    console.error('Block student error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to block student' }
+    });
+  }
+};
+
+export const UnblockStudent = async (req: AuthRequest, res: express.Response) => {
+  try {
+    const adminId = req.user.id;
+    const userRole = req.user.role;
+    const { studentId } = req.params;
+
+    // Only admins can unblock students
+    if (userRole !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        error: { message: 'Only administrators can unblock students' }
+      });
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'Student not found' }
+      });
+    }
+
+    if (!student.blocked) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Student is not blocked' }
+      });
+    }
+
+    const updatedStudent = await prisma.student.update({
+      where: { id: studentId },
+      data: { blocked: false },
+      select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+    });
+
+    console.log('✅ Student unblocked:', {
+      studentId: updatedStudent.id,
+      email: updatedStudent.email,
+      unblockedBy: adminId,
+      timestamp: new Date().toISOString()
+    });
+
+    return res.json({
+      success: true,
+      data: { student: updatedStudent },
+      message: `${updatedStudent.firstName} ${updatedStudent.lastName} has been unblocked successfully`
+    });
+
+  } catch (error) {
+    console.error('Unblock student error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Failed to unblock student' }
     });
   }
 };

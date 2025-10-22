@@ -179,6 +179,7 @@ export default function ManageUsersPage() {
                                 className="h-10 w-10 rounded-full object-cover"
                                 src={getCdnUrl(tutor.avatar) || ''}
                                 alt={`${tutor.firstName} ${tutor.lastName}`}
+                                referrerPolicy="no-referrer"
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center">

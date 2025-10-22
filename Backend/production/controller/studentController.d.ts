@@ -5,6 +5,8 @@ export declare const VerifyOtpEmail: (req: express.Request, res: express.Respons
 export declare const RegisterStudent: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const VerifyOtp: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const ResendOtp: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
+export declare const OAuthRegister: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
+export declare const OAuthLogin: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const LoginStudent: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const LogoutStudent: (req: express.Request, res: express.Response) => Promise<void>;
 export declare const ForgotPassword: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
@@ -30,4 +32,5 @@ export declare const GetCourseAssignments: (req: express.Request, res: express.R
 export declare const SubmitAssignment: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const GetAssignmentSubmission: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const UploadAssignmentFile: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
+export declare const DebugSessionInfo: (req: express.Request, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const GetPlatformStats: (req: express.Request, res: express.Response) => Promise<void>;

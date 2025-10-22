@@ -114,9 +114,9 @@ export default function ForgotPasswordPage() {
   };
 
   const renderEmailStep = () => (
-    <form onSubmit={handleSendOtp} className="space-y-6">
+    <form onSubmit={handleSendOtp} className="space-y-3 sm:space-y-4 md:space-y-5">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">
           Email address
         </label>
         <div className="mt-1">
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
             required
             value={state.email}
             onChange={(e) => setState(prev => ({ ...prev, email: e.target.value }))}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Enter your email address"
           />
         </div>
@@ -138,7 +138,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative w-full flex justify-center py-2.5 sm:py-3 px-3 sm:px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Sending...' : 'Send Reset Code'}
         </button>
@@ -147,9 +147,9 @@ export default function ForgotPasswordPage() {
   );
 
   const renderOtpStep = () => (
-    <form onSubmit={handleVerifyOtp} className="space-y-6">
+    <form onSubmit={handleVerifyOtp} className="space-y-3 sm:space-y-4 md:space-y-5">
       <div>
-        <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="otp" className="block text-xs sm:text-sm font-medium text-gray-700">
           Enter the 6-digit code sent to your email
         </label>
         <div className="mt-1">
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
             maxLength={6}
             value={state.otp}
             onChange={(e) => setState(prev => ({ ...prev, otp: e.target.value }))}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-center text-lg tracking-wider"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-center text-base sm:text-lg tracking-wider"
             placeholder="000000"
           />
         </div>
@@ -174,7 +174,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative w-full flex justify-center py-2.5 sm:py-3 px-3 sm:px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Verifying...' : 'Verify Code'}
         </button>
@@ -184,7 +184,7 @@ export default function ForgotPasswordPage() {
         <button
           type="button"
           onClick={() => setState(prev => ({ ...prev, step: 'email', otp: '' }))}
-          className="text-sm text-indigo-600 hover:text-indigo-500"
+          className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-500"
         >
           Back to email
         </button>
@@ -193,9 +193,9 @@ export default function ForgotPasswordPage() {
   );
 
   const renderResetStep = () => (
-    <form onSubmit={handleResetPassword} className="space-y-6">
+    <form onSubmit={handleResetPassword} className="space-y-3 sm:space-y-4 md:space-y-5">
       <div>
-        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="newPassword" className="block text-xs sm:text-sm font-medium text-gray-700">
           New Password
         </label>
         <div className="mt-1">
@@ -206,14 +206,14 @@ export default function ForgotPasswordPage() {
             required
             value={state.newPassword}
             onChange={(e) => setState(prev => ({ ...prev, newPassword: e.target.value }))}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Enter new password"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-medium text-gray-700">
           Confirm New Password
         </label>
         <div className="mt-1">
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
             required
             value={state.confirmPassword}
             onChange={(e) => setState(prev => ({ ...prev, confirmPassword: e.target.value }))}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Confirm new password"
           />
         </div>
@@ -234,7 +234,7 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative w-full flex justify-center py-2.5 sm:py-3 px-3 sm:px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Resetting...' : 'Reset Password'}
         </button>
@@ -269,40 +269,40 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-4 sm:py-6 md:py-8 px-3 sm:px-4 lg:px-6">
+      <div className="max-w-md w-full space-y-4 sm:space-y-5 md:space-y-6">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-3 sm:mt-4 md:mt-6 text-center text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900">
             {getStepTitle()}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-1 sm:mt-2 text-center text-xs sm:text-sm text-gray-600">
             {getStepDescription()}
           </p>
         </div>
 
-        <div className="bg-white p-8 rounded-lg shadow-md">
+        <div className="bg-white p-4 sm:p-5 md:p-6 lg:p-8 rounded-lg shadow-md">
           {/* Progress indicator */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+          <div className="flex items-center justify-center mb-4 sm:mb-5 md:mb-6">
+            <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                 state.step === 'email' ? 'bg-indigo-600 text-white' :
                 ['otp', 'reset'].includes(state.step) ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
               }`}>
                 1
               </div>
-              <div className={`w-8 h-1 ${
+              <div className={`w-6 sm:w-8 h-0.5 sm:h-1 ${
                 ['otp', 'reset'].includes(state.step) ? 'bg-green-500' : 'bg-gray-300'
               }`} />
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                 state.step === 'otp' ? 'bg-indigo-600 text-white' :
                 state.step === 'reset' ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
               }`}>
                 2
               </div>
-              <div className={`w-8 h-1 ${
+              <div className={`w-6 sm:w-8 h-0.5 sm:h-1 ${
                 state.step === 'reset' ? 'bg-green-500' : 'bg-gray-300'
               }`} />
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
                 state.step === 'reset' ? 'bg-indigo-600 text-white' : 'bg-gray-300 text-gray-600'
               }`}>
                 3
@@ -316,7 +316,7 @@ export default function ForgotPasswordPage() {
           {state.step === 'reset' && renderResetStep()}
         </div>
 
-        <div className="text-center">
+        <div className="text-center hidden sm:block">
           <Link href="/login" className="text-sm text-indigo-600 hover:text-indigo-500">
             ← Back to login
           </Link>

@@ -421,24 +421,24 @@ function CoursesContent() {
       </div>
 
       {/* Course Grid */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="bg-white rounded-lg shadow border border-slate-200 animate-pulse">
                 <div className="aspect-video bg-slate-200 rounded-t-lg"></div>
-                <div className="p-6">
-                  <div className="h-5 bg-slate-200 rounded mb-3"></div>
-                  <div className="h-4 bg-slate-200 rounded mb-3"></div>
-                  <div className="h-4 bg-slate-200 rounded mb-6"></div>
-                  <div className="h-10 bg-slate-200 rounded"></div>
+                <div className="p-3 sm:p-4 md:p-5 lg:p-6">
+                  <div className="h-4 sm:h-5 bg-slate-200 rounded mb-2 sm:mb-3"></div>
+                  <div className="h-3 sm:h-4 bg-slate-200 rounded mb-2 sm:mb-3"></div>
+                  <div className="h-3 sm:h-4 bg-slate-200 rounded mb-4 sm:mb-6"></div>
+                  <div className="h-8 sm:h-10 bg-slate-200 rounded"></div>
                 </div>
               </div>
             ))}
           </div>
         ) : courses.length > 0 ? (
           <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mb-6 sm:mb-8">
               {courses.map((course) => (
                 <div key={course.id} className="bg-white rounded-lg shadow border border-slate-200 hover:shadow-lg transition-shadow overflow-hidden">
                   <div className="aspect-video bg-slate-100 flex items-center justify-center relative">
@@ -468,44 +468,50 @@ function CoursesContent() {
                     })()}
                   </div>
 
-                  <div className="p-6">
-                    <h3 className="font-semibold text-slate-900 mb-2 line-clamp-2">{course.title}</h3>
-                    <p className="text-slate-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+                  <div className="p-3 sm:p-4 md:p-5 lg:p-6">
+                    <h3 className="font-semibold text-slate-900 mb-1.5 sm:mb-2 line-clamp-2 text-sm sm:text-base">{course.title}</h3>
+                    <p className="text-slate-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{course.description}</p>
 
-                    <div className="text-sm text-slate-600 mb-4">
+                    <div className="text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4 truncate">
                       by {course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` :
                           course.tutorName ||
                           (course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Instructor')}
                     </div>
 
-                    <div className="flex items-center justify-between text-sm text-slate-600 mb-4">
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
                       <div className="flex items-center gap-1">
-                        <ClockIcon className="h-4 w-4" />
+                        <ClockIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                         <span>{course.duration ? `${course.duration}h` : 'N/A'}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <UsersIcon className="h-4 w-4" />
+                        <UsersIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                         <span>{course._count.enrollments}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
                       <div className="flex items-center">
                         <div className="flex text-yellow-400">
                           {[...Array(5)].map((_, i) => (
                             <StarIcon
                               key={i}
-                              className={`h-4 w-4 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
+                              className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${i < Math.floor(course.averageRating || 0) ? 'fill-current' : ''}`}
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-slate-600 ml-2">
+                        <span className="text-xs sm:text-sm text-slate-600 ml-1.5 sm:ml-2">
                           {course.averageRating?.toFixed(1) || 'N/A'}
                         </span>
                       </div>
-                      <span className="font-semibold text-slate-900">
-                        {course.price === 0 ? 'Free' : `$${course.price}`}
-                      </span>
+                      {course.price === 0 ? (
+                        <span className="font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-green-500 to-green-600 px-3 py-1 rounded-full shadow-sm">
+                          🎉 FREE
+                        </span>
+                      ) : (
+                        <span className="font-semibold text-slate-900 text-sm sm:text-base">
+                          ${course.price}
+                        </span>
+                      )}
                     </div>
 
                     {course.isEnrolled ? (
@@ -513,38 +519,38 @@ function CoursesContent() {
                         const buttonState = getCourseButtonState(course);
                         return (
                           <Link href={buttonState.href}>
-                            <button className={`w-full py-3 rounded-lg transition-colors font-medium flex items-center justify-center space-x-1 ${
+                            <button className={`w-full py-2 sm:py-2.5 md:py-3 rounded-lg transition-colors font-medium flex items-center justify-center space-x-1 text-xs sm:text-sm ${
                               buttonState.text === 'Completed'
                                 ? 'bg-green-600 text-white hover:bg-green-700'
                                 : buttonState.text === 'Rate Course'
                                 ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
                             }`}>
-                              {buttonState.text === 'Rate Course' && <StarIcon className="h-4 w-4" />}
+                              {buttonState.text === 'Rate Course' && <StarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                               <span>{buttonState.text}</span>
                             </button>
                           </Link>
                         );
                       })()
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-2 sm:space-y-2.5 md:space-y-3">
                         <Link href={`/courses/${course.id}`}>
-                          <button className="w-full border border-slate-300 text-slate-700 py-2 rounded-lg hover:bg-slate-50 transition-colors font-medium">
+                          <button className="w-full border border-slate-300 text-slate-700 py-2 sm:py-2.5 rounded-lg hover:bg-slate-50 transition-colors font-medium text-xs sm:text-sm">
                             View Details
                           </button>
                         </Link>
                         <button
                           onClick={() => handleEnroll(course.id)}
                           disabled={enrolling === course.id}
-                          className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                          className="w-full bg-indigo-600 text-white py-2 sm:py-2.5 md:py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs sm:text-sm"
                         >
                           {enrolling === course.id ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               <span>Enrolling...</span>
                             </div>
                           ) : (
-                            `Enroll ${course.price === 0 ? 'Free' : `$${course.price}`}`
+                            course.price === 0 ? 'Enroll Free' : `Enroll - $${course.price}`
                           )}
                         </button>
                       </div>
@@ -557,13 +563,14 @@ function CoursesContent() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center">
-                <nav className="flex gap-2">
+                <nav className="flex gap-1.5 sm:gap-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 text-sm font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg"
+                    className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg"
                   >
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Prev</span>
                   </button>
 
                   {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
@@ -582,7 +589,7 @@ function CoursesContent() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
+                        className={`px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors rounded-lg ${
                           currentPage === page
                             ? 'bg-indigo-600 text-white'
                             : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
@@ -596,7 +603,7 @@ function CoursesContent() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 text-sm font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg"
+                    className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg"
                   >
                     Next
                   </button>
@@ -605,14 +612,14 @@ function CoursesContent() {
             )}
           </>
         ) : (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <MagnifyingGlassIcon className="h-12 w-12 text-slate-400" />
+          <div className="text-center py-8 sm:py-12 md:py-16 px-3 sm:px-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <MagnifyingGlassIcon className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-slate-400" />
             </div>
-            <h3 className="text-2xl font-semibold text-slate-900 mb-4">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-3 sm:mb-4">
               {hasActiveFilters ? 'No courses found' : 'No courses available'}
             </h3>
-            <p className="text-slate-600 mb-8 max-w-md mx-auto">
+            <p className="text-sm sm:text-base text-slate-600 mb-6 sm:mb-8 max-w-md mx-auto">
               {hasActiveFilters
                 ? 'Try adjusting your search criteria or browse all courses to find your perfect learning path.'
                 : 'Check back later for new courses! We\'re constantly adding exciting learning opportunities.'
@@ -621,7 +628,7 @@ function CoursesContent() {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-colors text-sm sm:text-base"
               >
                 Browse All Courses
               </button>

@@ -17,6 +17,8 @@ import {
   RegisterStudent,
   VerifyOtp,
   ResendOtp,
+  OAuthRegister,
+  OAuthLogin,
   LoginStudent,
   LogoutStudent,
   ForgotPassword,
@@ -124,6 +126,37 @@ router.post('/auth/resend-otp',
     body('email').isEmail().normalizeEmail(),
   ],
   asyncHandler(ResendOtp)
+);
+
+// OAuth Registration (Google/GitHub)
+router.post('/auth/oauth-register',
+  [
+    body('provider').isIn(['google', 'github']),
+    body('email').isEmail().normalizeEmail(),
+    body('firstName').trim().isLength({ min: 1 }),
+    body('lastName').trim().isLength({ min: 1 }),
+    body('avatar').optional().isString(),
+    body('phone').optional().trim().isLength({ min: 1 }),
+    body('dateOfBirth').optional().isISO8601(),
+    body('gender').optional().isIn(['Male', 'Female', 'Other', 'Prefer not to say']),
+    body('country').optional().trim().isLength({ min: 1 }),
+    body('city').optional().trim().isLength({ min: 1 }),
+    body('education').optional().trim().isLength({ min: 1 }),
+    body('institution').optional().trim().isLength({ min: 1 }),
+    body('occupation').optional().trim().isLength({ min: 1 }),
+    body('company').optional().trim().isLength({ min: 1 }),
+  ],
+  asyncHandler(OAuthRegister)
+);
+
+// OAuth Login (Google/GitHub)
+router.post('/auth/oauth-login',
+  [
+    body('provider').isIn(['google', 'github']),
+    body('email').isEmail().normalizeEmail(),
+    body('idToken').optional().isString(),
+  ],
+  asyncHandler(OAuthLogin)
 );
 
 router.post('/auth/login',

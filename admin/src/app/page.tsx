@@ -278,37 +278,37 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <div className="flex items-center space-x-3 mb-1">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-semibold text-sm sm:text-base">
+                <div className="flex items-center space-x-2 sm:space-x-3 mb-1">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <span className="text-white font-semibold text-xs sm:text-sm md:text-base">
                       {user?.firstName?.charAt(0) || 'T'}
                     </span>
                   </div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-900">
+                  <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-semibold text-slate-900">
                     Welcome back, {user?.firstName || 'Tutor'}
                   </h1>
                 </div>
-                <p className="text-slate-600 text-sm sm:text-base ml-11 sm:ml-13">
+                <p className="text-slate-600 text-xs sm:text-sm md:text-base ml-10 sm:ml-11 md:ml-13">
                   Manage your courses and track student progress
                 </p>
               </div>
               <div className="text-right sm:text-right">
-                <div className="text-xs sm:text-xs font-medium text-slate-500 uppercase tracking-wide">
+                <div className="text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wide">
                   {new Date().toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'short',
                     day: 'numeric'
                   })}
                 </div>
-                <div className="flex items-center justify-end space-x-1 mt-1">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-slate-600">Online</span>
+                <div className="flex items-center justify-end space-x-1 mt-0.5 sm:mt-1">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] sm:text-xs text-slate-600">Online</span>
                 </div>
               </div>
             </div>
@@ -316,44 +316,44 @@ const Page = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6 lg:mb-8">
           <Link href="/create-course" className="group">
-            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center group-hover:from-blue-200 group-hover:to-blue-300 transition-all shadow-sm">
                   <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">Create Course</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 truncate">Add new course content</p>
+                  <h3 className="font-semibold text-slate-900 text-xs sm:text-sm md:text-base truncate">Create Course</h3>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Add new course content</p>
                 </div>
               </div>
             </div>
           </Link>
 
           <Link href="/my-courses" className="group">
-            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center group-hover:from-green-200 group-hover:to-green-300 transition-all shadow-sm">
                   <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">Manage Courses</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 truncate">Edit and organize content</p>
+                  <h3 className="font-semibold text-slate-900 text-xs sm:text-sm md:text-base truncate">Manage Courses</h3>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Edit and organize content</p>
                 </div>
               </div>
             </div>
           </Link>
 
           <Link href="/students" className="group">
-            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-colors">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center group-hover:from-purple-200 group-hover:to-purple-300 transition-all shadow-sm">
                   <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">View Students</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 truncate">Monitor student progress</p>
+                  <h3 className="font-semibold text-slate-900 text-xs sm:text-sm md:text-base truncate">View Students</h3>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Monitor student progress</p>
                 </div>
               </div>
             </div>
@@ -495,63 +495,63 @@ const Page = () => {
         )}
 
         {/* Statistics */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Overview</h2>
+        <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900">Overview</h2>
               <div className="flex items-center space-x-1 text-sm text-slate-500">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-xs sm:text-sm">Live data</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-[10px] sm:text-xs md:text-sm">Live data</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center shadow-sm">
                     <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalCourses}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Courses</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalCourses}</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Courses</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center shadow-sm">
                     <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalStudents}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Students</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalStudents}</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Students</div>
                   </div>
                 </div>
               </div>
 
               {user?.role?.toLowerCase() !== 'tutor' && (
-                <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center shadow-sm">
                       <CurrencyDollarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xl sm:text-2xl font-bold text-slate-900">${stats.totalEarnings}</div>
-                      <div className="text-xs sm:text-sm text-slate-600 truncate">Total Earnings</div>
+                      <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">${stats.totalEarnings}</div>
+                      <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Earnings</div>
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center shadow-sm">
                     <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalEnrollments}</div>
-                    <div className="text-xs sm:text-sm text-slate-600 truncate">Total Enrollments</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalEnrollments}</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Enrollments</div>
                   </div>
                 </div>
               </div>

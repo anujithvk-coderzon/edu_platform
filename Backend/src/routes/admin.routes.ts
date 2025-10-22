@@ -102,6 +102,8 @@ import {
   GetStudentsCount,
   GetAllRegisteredStudents,
   GetAllStudents,
+  BlockStudent,
+  UnblockStudent,
 
   // Public Tutor Registration Controllers
   CheckTutorEmail,
@@ -291,6 +293,12 @@ router.get('/students', authMiddleware, adminOnly,
 
 // Get student/user by ID
 router.get('/students/:id', authMiddleware, adminOnly, GetUserById);
+
+// Block student
+router.put('/students/:studentId/block', authMiddleware, adminOnly, BlockStudent);
+
+// Unblock student
+router.put('/students/:studentId/unblock', authMiddleware, adminOnly, UnblockStudent);
 
 // Update student/user
 router.put('/students/:id', authMiddleware, adminOnly,
@@ -520,7 +528,8 @@ router.post('/materials', authMiddleware, adminOnly,
     body('type').isIn(['PDF', 'VIDEO', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
+        // Allow URLs, paths, and GUIDs (for Bunny Stream videos)
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }
@@ -545,7 +554,8 @@ router.put('/materials/:id', authMiddleware, adminOnly,
     body('type').optional().isIn(['PDF', 'VIDEO', 'LINK']),
     body('fileUrl').optional().custom((value) => {
       if (value && typeof value === 'string' && value.trim() !== '') {
-        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
+        // Allow URLs, paths, and GUIDs (for Bunny Stream videos)
+        const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
         if (!urlRegex.test(value)) {
           throw new Error('Invalid URL or path format');
         }

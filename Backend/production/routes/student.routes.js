@@ -52,6 +52,29 @@ router.post('/auth/verify-otp', [
 router.post('/auth/resend-otp', [
     (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
 ], (0, errorHandler_1.asyncHandler)(studentController_1.ResendOtp));
+// OAuth Registration (Google/GitHub)
+router.post('/auth/oauth-register', [
+    (0, express_validator_1.body)('provider').isIn(['google', 'github']),
+    (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
+    (0, express_validator_1.body)('firstName').trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('lastName').trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('avatar').optional().isString(),
+    (0, express_validator_1.body)('phone').optional().trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('dateOfBirth').optional().isISO8601(),
+    (0, express_validator_1.body)('gender').optional().isIn(['Male', 'Female', 'Other', 'Prefer not to say']),
+    (0, express_validator_1.body)('country').optional().trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('city').optional().trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('education').optional().trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('institution').optional().trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('occupation').optional().trim().isLength({ min: 1 }),
+    (0, express_validator_1.body)('company').optional().trim().isLength({ min: 1 }),
+], (0, errorHandler_1.asyncHandler)(studentController_1.OAuthRegister));
+// OAuth Login (Google/GitHub)
+router.post('/auth/oauth-login', [
+    (0, express_validator_1.body)('provider').isIn(['google', 'github']),
+    (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
+    (0, express_validator_1.body)('idToken').optional().isString(),
+], (0, errorHandler_1.asyncHandler)(studentController_1.OAuthLogin));
 router.post('/auth/login', [
     (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
     (0, express_validator_1.body)('password').notEmpty(),
@@ -129,6 +152,9 @@ router.post('/assignments/upload', auth_1.authMiddleware, multer_1.upload_assign
 // ===== PUBLIC PLATFORM STATISTICS =====
 // Get platform-wide statistics (public endpoint)
 router.get('/platform/stats', (0, errorHandler_1.asyncHandler)(studentController_1.GetPlatformStats));
+// ===== DEBUG ENDPOINT (DEVELOPMENT ONLY) =====
+// Check session token validity - helps debug multi-device login issues
+router.get('/debug/session', (0, errorHandler_1.asyncHandler)(studentController_1.DebugSessionInfo));
 // ===== PDF PROXY FOR CORS =====
 // Proxy PDF files to avoid CORS issues with react-pdf
 router.get('/proxy/pdf', async (req, res) => {

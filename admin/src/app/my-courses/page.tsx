@@ -247,16 +247,16 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-1">
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-slate-900 mb-1">
                   {user?.role?.toLowerCase() !== 'tutor' ? 'All Courses' : 'My Courses'}
                 </h1>
-                <p className="text-slate-600 text-sm sm:text-base">
+                <p className="text-slate-600 text-xs sm:text-sm md:text-base">
                   {user?.role?.toLowerCase() !== 'tutor'
                     ? 'Manage all courses in your organization'
                     : 'Manage and track your courses'
@@ -264,9 +264,10 @@ const Page = () => {
                 </p>
               </div>
               <Link href="/create-course">
-                <Button className="w-full sm:w-auto">
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Create New Course
+                <Button className="w-full sm:w-auto bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-xs sm:text-sm">
+                  <PlusIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">Create New Course</span>
+                  <span className="sm:hidden">Create Course</span>
                 </Button>
               </Link>
             </div>
@@ -274,26 +275,26 @@ const Page = () => {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+        <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <MagnifyingGlassIcon className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-400" />
                   <Input
                     type="text"
                     placeholder="Search courses..."
                     value={searchQuery}
                     onChange={(e) => setState(prev => ({ ...prev, searchQuery: e.target.value }))}
-                    className="pl-10 pr-4 py-2 w-full"
+                    className="pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 w-full text-xs sm:text-sm"
                   />
                 </div>
               </div>
-              <div className="sm:w-48">
+              <div className="w-full sm:w-40 md:w-48">
                 <select
                   value={statusFilter}
                   onChange={(e) => setState(prev => ({ ...prev, statusFilter: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="ALL">All Status</option>
                   <option value="PUBLISHED">Published</option>
@@ -309,21 +310,21 @@ const Page = () => {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-600 font-medium">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+            <p className="text-xs sm:text-sm text-red-600 font-medium">{error}</p>
           </div>
         )}
 
         {/* Courses Grid */}
         {filteredCourses.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-xl flex items-center justify-center">
-              <AcademicCapIcon className="w-8 h-8 text-slate-600" />
+          <div className="text-center py-8 sm:py-12 bg-slate-50 rounded-lg sm:rounded-xl shadow-sm border border-slate-200 px-3">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 bg-slate-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <AcademicCapIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-1.5 sm:mb-2">
               {courses.length === 0 ? 'No courses yet' : 'No courses match your search'}
             </h3>
-            <p className="text-slate-600 mb-6 max-w-md mx-auto text-sm">
+            <p className="text-slate-600 mb-4 sm:mb-6 max-w-md mx-auto text-xs sm:text-sm">
               {courses.length === 0
                 ? 'Create your course to get started teaching!'
                 : 'Try adjusting your search or filter criteria.'
@@ -331,17 +332,18 @@ const Page = () => {
             </p>
             {courses.length === 0 && (
               <Link href="/create-course">
-                <Button>
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Create Course
+                <Button className="bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-xs sm:text-sm">
+                  <PlusIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">Create Course</span>
+                  <span className="sm:hidden">Create</span>
                 </Button>
               </Link>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
             {filteredCourses.map((course) => (
-              <Card key={course.id} className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 group overflow-hidden">
+              <Card key={course.id} className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 group overflow-hidden rounded-lg sm:rounded-xl">
                 {/* Thumbnail */}
                 <div className="aspect-video bg-slate-100 flex items-center justify-center relative">
                   {course.thumbnail ? (
@@ -351,21 +353,21 @@ const Page = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <AcademicCapIcon className="h-12 w-12 text-slate-600" />
+                    <AcademicCapIcon className="h-10 w-10 sm:h-12 sm:w-12 text-slate-600" />
                   )}
-                  <span className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(course.status)}`}>
+                  <span className={`absolute top-1.5 sm:top-2 right-1.5 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium ${getStatusColor(course.status)}`}>
                     {course.status === 'PENDING_REVIEW' ? 'Pending Review' : course.status.charAt(0) + course.status.slice(1).toLowerCase()}
                   </span>
                 </div>
-                <CardHeader>
+                <CardHeader className="p-3 sm:p-4 md:p-5 bg-slate-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="line-clamp-2 text-slate-900 text-base font-semibold">{course.title}</CardTitle>
-                      <CardDescription className="line-clamp-3 mt-1 text-slate-600 text-sm">
+                      <CardTitle className="line-clamp-2 text-slate-900 text-sm sm:text-base font-semibold">{course.title}</CardTitle>
+                      <CardDescription className="line-clamp-3 mt-1 text-slate-600 text-xs sm:text-sm">
                         {course.description}
                       </CardDescription>
                       {user?.role?.toLowerCase() !== 'tutor' && (
-                        <div className="mt-2 text-xs text-slate-500">
+                        <div className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-slate-500">
                           Assigned to: {course.tutor ?
                             `${course.tutor.firstName} ${course.tutor.lastName}` :
                             course.creator ? `${course.creator.firstName} ${course.creator.lastName}` : 'Unassigned'
@@ -375,204 +377,186 @@ const Page = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="p-3 sm:p-4 md:p-5">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* Stats */}
-                    <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 text-sm">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mr-2">
-                          <UsersIcon className="w-4 h-4 text-blue-600" />
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center mr-1.5 sm:mr-2">
+                          <UsersIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900 text-sm">{course._count?.enrollments || 0}</div>
-                          <div className="text-xs text-slate-600">students</div>
+                          <div className="font-semibold text-slate-900 text-xs sm:text-sm">{course._count?.enrollments || 0}</div>
+                          <div className="text-[10px] sm:text-xs text-slate-600">students</div>
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center mr-2">
-                          <CurrencyDollarIcon className="w-4 h-4 text-green-600" />
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-green-50 to-green-100 rounded-lg flex items-center justify-center mr-1.5 sm:mr-2">
+                          <CurrencyDollarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900 text-sm">${course.price}</div>
-                          <div className="text-xs text-slate-600">price</div>
+                          <div className="font-semibold text-slate-900 text-xs sm:text-sm">${course.price}</div>
+                          <div className="text-[10px] sm:text-xs text-slate-600">price</div>
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center mr-2">
-                          <StarIcon className="w-4 h-4 text-yellow-600" />
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg flex items-center justify-center mr-1.5 sm:mr-2">
+                          <StarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900 text-sm">{course.averageRating ? course.averageRating.toFixed(1) : 'N/A'}</div>
-                          <div className="text-xs text-slate-600">rating</div>
+                          <div className="font-semibold text-slate-900 text-xs sm:text-sm">{course.averageRating ? course.averageRating.toFixed(1) : 'N/A'}</div>
+                          <div className="text-[10px] sm:text-xs text-slate-600">rating</div>
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center mr-2">
-                          <AcademicCapIcon className="w-4 h-4 text-purple-600" />
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg flex items-center justify-center mr-1.5 sm:mr-2">
+                          <AcademicCapIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600" />
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900 text-sm">{course._count?.materials || 0}</div>
-                          <div className="text-xs text-slate-600">materials</div>
+                          <div className="font-semibold text-slate-900 text-xs sm:text-sm">{course._count?.materials || 0}</div>
+                          <div className="text-[10px] sm:text-xs text-slate-600">materials</div>
                         </div>
                       </div>
                     </div>
 
                     {/* Rejection Reason */}
                     {course.status === 'REJECTED' && course.rejectionReason && (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-2 sm:p-3 mb-2 sm:mb-3">
                         <div className="flex items-start">
-                          <XCircleIcon className="w-4 h-4 text-red-600 mt-0.5 mr-2 flex-shrink-0" />
+                          <XCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 mt-0.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                           <div>
-                            <div className="text-xs font-semibold text-red-800 mb-1">Rejection Reason:</div>
-                            <div className="text-xs text-red-700">{course.rejectionReason}</div>
+                            <div className="text-[10px] sm:text-xs font-semibold text-red-800 mb-0.5 sm:mb-1">Rejection Reason:</div>
+                            <div className="text-[10px] sm:text-xs text-red-700">{course.rejectionReason}</div>
                           </div>
                         </div>
                       </div>
                     )}
 
                     {/* Category and Tutor Name */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {course.category && (
-                        <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50">
+                        <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium text-blue-700 bg-blue-50">
                           {course.category.name}
                         </div>
                       )}
                       {course.creator && (
-                        <div className="inline-flex items-center px-2 py-1 rounded text-xs font-medium text-purple-700 bg-purple-50">
+                        <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-medium text-purple-700 bg-purple-50">
                           By: {course.creator.firstName} {course.creator.lastName}
                         </div>
                       )}
                     </div>
 
-                    {/* Actions - Fully Responsive */}
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-3 border-t border-slate-200">
-                      {/* First Row - View, Edit, Assignments */}
-                      <div className="flex flex-row gap-1.5 sm:gap-2 w-full">
-                        <Link href={`/courses/${course.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full text-xs px-2 sm:px-3">
-                            <EyeIcon className="w-3 h-3 sm:mr-1" />
-                            <span className="hidden sm:inline">View</span>
+                    {/* Actions - Perfectly Aligned */}
+                    <div className="flex flex-col gap-1.5 sm:gap-2 pt-2 sm:pt-3 border-t border-slate-200">
+                      {/* First Row - View Contents, Edit */}
+                      <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                        <Link href={`/courses/${course.id}`}>
+                          <Button variant="outline" size="sm" className="w-full text-[10px] sm:text-xs whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2">
+                            <EyeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                            <span className="hidden sm:inline">View Contents</span>
+                            <span className="sm:hidden">View</span>
                           </Button>
                         </Link>
-                        <Link href={`/courses/${course.id}/edit`} className="flex-1">
-                          <Button size="sm" className="w-full text-xs px-2 sm:px-3 bg-blue-600 hover:bg-blue-700 text-white">
-                            <PencilIcon className="w-3 h-3 sm:mr-1" />
-                            <span className="hidden sm:inline">Edit</span>
-                          </Button>
-                        </Link>
-                        <Link href={`/courses/${course.id}/edit?tab=assignments`} className="flex-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-xs px-2 sm:px-3 border-purple-300 text-purple-700 hover:bg-purple-50"
-                          >
-                            <ClipboardDocumentListIcon className="w-3 h-3 sm:mr-1" />
-                            <span className="hidden sm:inline">Assignments</span>
+                        <Link href={`/courses/${course.id}/edit`}>
+                          <Button size="sm" className="w-full text-[10px] sm:text-xs bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2">
+                            <PencilIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                            Edit
                           </Button>
                         </Link>
                       </div>
 
-                      {/* Second Row - Publish/Submit and Delete */}
-                      <div className="flex flex-row gap-1.5 sm:gap-2 w-full">
-                        {course.status === 'DRAFT' || (course.status === 'PENDING_REVIEW' && user?.role?.toLowerCase() === 'admin') ? (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => handlePublishCourse(course.id, course.title)}
-                              disabled={publishingCourseId === course.id}
-                              variant="outline"
-                              className="flex-1 border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50 text-xs px-2 sm:px-3"
-                            >
-                              {publishingCourseId === course.id ? (
-                                <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-green-300 border-t-green-600"></div>
-                              ) : (
-                                <CheckCircleIcon className="w-3 h-3 sm:mr-1" />
-                              )}
-                              <span className="hidden sm:inline">
-                                {publishingCourseId === course.id
-                                  ? (user?.role?.toLowerCase() === 'admin' ? 'Publishing...' : 'Submitting...')
-                                  : (user?.role?.toLowerCase() === 'admin' ? 'Publish' : 'Submit for Review')
-                                }
-                              </span>
-                              <span className="sm:hidden">
-                                {publishingCourseId === course.id ? '...' : (user?.role?.toLowerCase() === 'admin' ? 'Pub' : 'Submit')}
-                              </span>
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteCourse(course.id, course.title)}
-                              disabled={deletingCourseId === course.id}
-                              className="flex-1 border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs px-2 sm:px-3"
-                            >
-                              {deletingCourseId === course.id ? (
-                                <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
-                              ) : (
-                                <TrashIcon className="w-3 h-3 sm:mr-1" />
-                              )}
-                              <span className="hidden sm:inline">
-                                {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
-                              </span>
-                              <span className="sm:hidden">
-                                {deletingCourseId === course.id ? '...' : 'Del'}
-                              </span>
-                            </Button>
-                          </>
-                        ) : course.status === 'REJECTED' ? (
-                          <>
-                            <Link href={`/courses/${course.id}/edit`} className="flex-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full text-xs px-2 sm:px-3 border-orange-300 text-orange-700 hover:bg-orange-50"
-                              >
-                                <PencilIcon className="w-3 h-3 sm:mr-1" />
-                                <span className="hidden sm:inline">Fix & Resubmit</span>
-                                <span className="sm:hidden">Fix</span>
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeleteCourse(course.id, course.title)}
-                              disabled={deletingCourseId === course.id}
-                              className="flex-1 border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs px-2 sm:px-3"
-                            >
-                              {deletingCourseId === course.id ? (
-                                <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
-                              ) : (
-                                <TrashIcon className="w-3 h-3 sm:mr-1" />
-                              )}
-                              <span className="hidden sm:inline">
-                                {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
-                              </span>
-                              <span className="sm:hidden">
-                                {deletingCourseId === course.id ? '...' : 'Del'}
-                              </span>
-                            </Button>
-                          </>
-                        ) : (
+                      {/* Second Row - Assignments */}
+                      <Link href={`/courses/${course.id}/edit?tab=assignments`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-[10px] sm:text-xs border-purple-300 text-purple-700 hover:bg-purple-50 whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2"
+                        >
+                          <ClipboardDocumentListIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                          <span className="hidden sm:inline">Assignments</span>
+                          <span className="sm:hidden">Tasks</span>
+                        </Button>
+                      </Link>
+
+                      {/* Third Row - Publish/Submit and Delete */}
+                      {course.status === 'DRAFT' || (course.status === 'PENDING_REVIEW' && user?.role?.toLowerCase() === 'admin') ? (
+                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handlePublishCourse(course.id, course.title)}
+                            disabled={publishingCourseId === course.id}
+                            variant="outline"
+                            className="w-full border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50 text-[10px] sm:text-xs whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2"
+                          >
+                            {publishingCourseId === course.id ? (
+                              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 animate-spin rounded-full border-2 border-green-300 border-t-green-600"></div>
+                            ) : (
+                              <CheckCircleIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                            )}
+                            {publishingCourseId === course.id
+                              ? (user?.role?.toLowerCase() === 'admin' ? 'Publishing...' : 'Submitting...')
+                              : (user?.role?.toLowerCase() === 'admin' ? 'Publish' : 'Submit')
+                            }
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeleteCourse(course.id, course.title)}
                             disabled={deletingCourseId === course.id}
-                            className="w-full sm:w-auto border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs px-2 sm:px-3"
+                            className="w-full border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-[10px] sm:text-xs whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2"
                           >
                             {deletingCourseId === course.id ? (
-                              <div className="w-3 h-3 sm:mr-1 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
                             ) : (
-                              <TrashIcon className="w-3 h-3 sm:mr-1" />
+                              <TrashIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
                             )}
-                            <span className="hidden sm:inline">
-                              {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
-                            </span>
-                            <span className="sm:hidden">
-                              {deletingCourseId === course.id ? '...' : 'Delete'}
-                            </span>
+                            {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      ) : course.status === 'REJECTED' ? (
+                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                          <Link href={`/courses/${course.id}/edit`}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full text-[10px] sm:text-xs border-orange-300 text-orange-700 hover:bg-orange-50 whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2"
+                            >
+                              <PencilIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                              <span className="hidden sm:inline">Fix & Resubmit</span>
+                              <span className="sm:hidden">Fix</span>
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteCourse(course.id, course.title)}
+                            disabled={deletingCourseId === course.id}
+                            className="w-full border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-[10px] sm:text-xs whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2"
+                          >
+                            {deletingCourseId === course.id ? (
+                              <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                            ) : (
+                              <TrashIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                            )}
+                            {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteCourse(course.id, course.title)}
+                          disabled={deletingCourseId === course.id}
+                          className="w-full border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 text-[10px] sm:text-xs whitespace-nowrap px-2 py-1.5 sm:px-3 sm:py-2"
+                        >
+                          {deletingCourseId === course.id ? (
+                            <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                          ) : (
+                            <TrashIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
+                          )}
+                          {deletingCourseId === course.id ? 'Deleting...' : 'Delete'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>

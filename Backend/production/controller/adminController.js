@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetMaterialById = exports.GetCourseMaterials = exports.ReorderModule = exports.DeleteModule = exports.UpdateModule = exports.CreateModule = exports.GetModuleById = exports.GetCourseModules = exports.DeleteCategory = exports.UpdateCategory = exports.CreateCategory = exports.GetCategoryById = exports.GetAllCategories = exports.DeleteCourse = exports.GetPendingCourses = exports.GetPendingCoursesCount = exports.RejectCourse = exports.PublishCourse = exports.SubmitCourseForReview = exports.UpdateCourse = exports.CreateCourse = exports.GetCourseById = exports.ToggleTutorStatus = exports.GetAllTutors = exports.GetMyCourses = exports.GetAllCourses = exports.RejectTutorRequest = exports.AcceptTutorRequest = exports.GetAllTutorRequests = exports.GetPendingTutorRequestsCount = exports.GetUserStats = exports.DeleteUser = exports.UpdateUser = exports.GetUserById = exports.GetAllUsers = exports.ChangePassword = exports.UpdateProfile = exports.GetCurrentUser = exports.AdminResetPassword = exports.AdminVerifyForgotPasswordOtp = exports.AdminForgotPassword = exports.LogoutUser = exports.LoginUser = exports.RegisterTutorPublic = exports.VerifyTutorOTP = exports.SendTutorVerificationEmail = exports.CheckTutorEmail = exports.RegisterTutor = exports.RegisterUser = exports.BootstrapAdmin = void 0;
-exports.CleanupOrphanedCourses = exports.UploadAdminAvatar = exports.GetAllStudents = exports.GetAllRegisteredStudents = exports.GetStudentsCount = exports.UploadAssignmentFile = exports.GetStudentSubmission = exports.SubmitAssignment = exports.GetStudentCourseAssignments = exports.GetCourseCompletion = exports.GetTutorAnalytics = exports.GetFileInfo = exports.DeleteUploadedFile = exports.UploadMaterial = exports.UploadCourseThumbnail = exports.UploadAvatar = exports.UploadMultipleFiles = exports.UploadSingleFile = exports.DeleteEnrollment = exports.GetEnrollmentProgress = exports.UpdateEnrollmentStatus = exports.GetCourseStudents = exports.GetMyEnrollments = exports.EnrollInCourse = exports.CompleteMaterial = exports.DeleteMaterial = exports.UpdateMaterial = exports.CreateMaterial = void 0;
+exports.UnblockStudent = exports.BlockStudent = exports.CleanupOrphanedCourses = exports.UploadAdminAvatar = exports.GetAllStudents = exports.GetAllRegisteredStudents = exports.GetStudentsCount = exports.UploadAssignmentFile = exports.GetStudentSubmission = exports.SubmitAssignment = exports.GetStudentCourseAssignments = exports.GetCourseCompletion = exports.GetTutorAnalytics = exports.GetFileInfo = exports.DeleteUploadedFile = exports.UploadMaterial = exports.UploadCourseThumbnail = exports.UploadAvatar = exports.UploadMultipleFiles = exports.UploadSingleFile = exports.DeleteEnrollment = exports.GetEnrollmentProgress = exports.UpdateEnrollmentStatus = exports.GetCourseStudents = exports.GetMyEnrollments = exports.EnrollInCourse = exports.CompleteMaterial = exports.DeleteMaterial = exports.UpdateMaterial = exports.CreateMaterial = void 0;
 const express_validator_1 = require("express-validator");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -1598,7 +1598,7 @@ const CreateCourse = async (req, res) => {
                 error: { message: 'Validation failed', details: errors.array() }
             });
         }
-        const { title, description, price = 0, duration, level, categoryId, thumbnail, tutorName, tutorId, objectives = [], requirements = [], tags = [] } = req.body;
+        const { title, description, price = 0, duration, level, categoryId, thumbnail, tutorName, tutorId, prerequisites = [], requirements = [], tags = [] } = req.body;
         // If tutorId is provided, verify it's a valid tutor and get their name
         let assignedTutorName = null;
         if (tutorId) {
@@ -1630,7 +1630,7 @@ const CreateCourse = async (req, res) => {
                     ...(tutorId && { tutorId }), // Save the assigned tutor ID
                     status: client_1.CourseStatus.DRAFT,
                     requirements,
-                    prerequisites: objectives
+                    prerequisites
                 },
                 include: {
                     creator: {
@@ -1687,7 +1687,7 @@ const UpdateCourse = async (req, res) => {
         }
         const { id } = req.params;
         const updates = {};
-        const { title, description, price, duration, level, categoryId, thumbnail, tutorName, tutorId, status, isPublic } = req.body;
+        const { title, description, price, duration, level, categoryId, thumbnail, tutorName, tutorId, status, isPublic, requirements, prerequisites } = req.body;
         if (title)
             updates.title = title;
         if (description)
@@ -1710,6 +1710,10 @@ const UpdateCourse = async (req, res) => {
             updates.status = status;
         if (typeof isPublic === 'boolean')
             updates.isPublic = isPublic;
+        if (requirements !== undefined)
+            updates.requirements = requirements;
+        if (prerequisites !== undefined)
+            updates.prerequisites = prerequisites;
         // If tutorId is provided, verify it's a valid tutor and set tutorName automatically
         if (tutorId) {
             const tutor = await DB_Config_1.default.admin.findUnique({
@@ -3824,27 +3828,7 @@ const UploadMaterial = async (req, res) => {
         const { courseId } = req.body;
         // Log file details for debugging
         const fileSizeMB = (req.file.size / (1024 * 1024)).toFixed(2);
-        console.log(`📦 Processing upload: ${req.file.originalname} (${fileSizeMB} MB)`);
-        // Choose storage method based on environment
-        let fileUrl = null;
-        if (process.env.NODE_ENV === 'development' && process.env.USE_LOCAL_STORAGE === 'true') {
-            // Use local storage for development
-            console.log('📂 Using local storage for development');
-            fileUrl = await (0, localStorage_1.Upload_Files_Local)('materials', req.file);
-        }
-        else {
-            // Use Bunny CDN for production or when explicitly configured
-            console.log('☁️ Using Bunny CDN storage');
-            fileUrl = req.file.size > 20 * 1024 * 1024
-                ? await (0, CDN_streaming_1.Upload_Files_Stream)('materials', req.file)
-                : await (0, CDN_management_1.Upload_Files)('materials', req.file);
-        }
-        if (!fileUrl) {
-            return res.status(500).json({
-                success: false,
-                error: { message: 'Failed to upload material to CDN' }
-            });
-        }
+        console.log(`📦 Processing upload: ${req.file.originalname} (${fileSizeMB} MB, ${req.file.mimetype})`);
         // If courseId is provided, verify user has access
         if (courseId) {
             const course = await DB_Config_1.default.course.findUnique({
@@ -3867,6 +3851,48 @@ const UploadMaterial = async (req, res) => {
                 }
             }
         }
+        // Check if the file is a video
+        const { isVideoFile, uploadVideoComplete } = require('../utils/BunnyStream');
+        const isVideo = isVideoFile(req.file.mimetype);
+        let fileUrl = null;
+        let isVideoMaterial = false;
+        if (isVideo) {
+            // Upload video to Bunny Stream
+            console.log('🎬 Detected video file - uploading to Bunny Stream');
+            const videoTitle = req.file.originalname.replace(/\.[^/.]+$/, ''); // Remove file extension
+            const videoGuid = await uploadVideoComplete(videoTitle, req.file);
+            if (!videoGuid) {
+                return res.status(500).json({
+                    success: false,
+                    error: { message: 'Failed to upload video to Bunny Stream' }
+                });
+            }
+            fileUrl = videoGuid; // Store the GUID as the fileUrl
+            isVideoMaterial = true;
+            console.log(`✅ Video uploaded successfully. GUID: ${videoGuid}`);
+        }
+        else {
+            // Upload non-video files to Bunny CDN Storage
+            console.log('📄 Uploading non-video file to Bunny CDN Storage');
+            if (process.env.NODE_ENV === 'development' && process.env.USE_LOCAL_STORAGE === 'true') {
+                // Use local storage for development
+                console.log('📂 Using local storage for development');
+                fileUrl = await (0, localStorage_1.Upload_Files_Local)('materials', req.file);
+            }
+            else {
+                // Use Bunny CDN for production or when explicitly configured
+                console.log('☁️ Using Bunny CDN storage');
+                fileUrl = req.file.size > 20 * 1024 * 1024
+                    ? await (0, CDN_streaming_1.Upload_Files_Stream)('materials', req.file)
+                    : await (0, CDN_management_1.Upload_Files)('materials', req.file);
+            }
+            if (!fileUrl) {
+                return res.status(500).json({
+                    success: false,
+                    error: { message: 'Failed to upload material to CDN' }
+                });
+            }
+        }
         return res.json({
             success: true,
             data: {
@@ -3875,7 +3901,11 @@ const UploadMaterial = async (req, res) => {
                 mimetype: req.file.mimetype,
                 size: req.file.size,
                 fileUrl: fileUrl,
-                url: fileUrl
+                url: fileUrl,
+                isVideo: isVideoMaterial,
+                ...(isVideoMaterial && {
+                    message: 'Video uploaded successfully. It will take some time to process.'
+                })
             }
         });
     }
@@ -4447,7 +4477,7 @@ const GetStudentsCount = async (req, res) => {
 exports.GetStudentsCount = GetStudentsCount;
 const GetAllRegisteredStudents = async (req, res) => {
     try {
-        // Get all students directly from Student table, sorted by registration date (newest first)
+        // Get all students directly from Student table with complete registration details, sorted by registration date (newest first)
         const students = await DB_Config_1.default.student.findMany({
             select: {
                 id: true,
@@ -4455,6 +4485,18 @@ const GetAllRegisteredStudents = async (req, res) => {
                 lastName: true,
                 email: true,
                 avatar: true,
+                phone: true,
+                dateOfBirth: true,
+                gender: true,
+                country: true,
+                city: true,
+                education: true,
+                institution: true,
+                occupation: true,
+                company: true,
+                isVerified: true,
+                isActive: true,
+                blocked: true,
                 createdAt: true,
                 updatedAt: true
             },
@@ -4462,13 +4504,25 @@ const GetAllRegisteredStudents = async (req, res) => {
                 createdAt: 'desc'
             }
         });
-        // Map to consistent format
+        // Map to consistent format with all registration details (excluding password)
         const formattedStudents = students.map(student => ({
             id: student.id,
             firstName: student.firstName,
             lastName: student.lastName,
             email: student.email,
             avatar: student.avatar,
+            phone: student.phone,
+            dateOfBirth: student.dateOfBirth ? student.dateOfBirth.toISOString() : null,
+            gender: student.gender,
+            country: student.country,
+            city: student.city,
+            education: student.education,
+            institution: student.institution,
+            occupation: student.occupation,
+            company: student.company,
+            isVerified: student.isVerified,
+            isActive: student.isActive,
+            blocked: student.blocked,
             registeredAt: student.createdAt.toISOString(),
             lastActive: student.updatedAt.toISOString()
         }));
@@ -4576,6 +4630,9 @@ const GetAllStudents = async (req, res) => {
                     lastName: enrollment.student.lastName,
                     email: enrollment.student.email,
                     avatar: enrollment.student.avatar,
+                    isVerified: enrollment.student.isVerified,
+                    isActive: enrollment.student.isActive,
+                    blocked: enrollment.student.blocked || false,
                     joinedAt: enrollment.student.createdAt.toISOString(),
                     lastActive: enrollment.student.updatedAt.toISOString(),
                     enrollments: [],
@@ -4950,3 +5007,116 @@ const CleanupOrphanedCourses = async (req, res) => {
     }
 };
 exports.CleanupOrphanedCourses = CleanupOrphanedCourses;
+// ===== BLOCK/UNBLOCK STUDENT =====
+const BlockStudent = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const userRole = req.user.role;
+        const { studentId } = req.params;
+        // Only admins can block students
+        if (userRole !== 'Admin') {
+            return res.status(403).json({
+                success: false,
+                error: { message: 'Only administrators can block students' }
+            });
+        }
+        const student = await DB_Config_1.default.student.findUnique({
+            where: { id: studentId },
+            select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+        });
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Student not found' }
+            });
+        }
+        if (student.blocked) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Student is already blocked' }
+            });
+        }
+        // Block the student and clear their session
+        const updatedStudent = await DB_Config_1.default.student.update({
+            where: { id: studentId },
+            data: {
+                blocked: true,
+                activeSessionToken: null // Force logout
+            },
+            select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+        });
+        console.log('✅ Student blocked:', {
+            studentId: updatedStudent.id,
+            email: updatedStudent.email,
+            blockedBy: adminId,
+            timestamp: new Date().toISOString()
+        });
+        return res.json({
+            success: true,
+            data: { student: updatedStudent },
+            message: `${updatedStudent.firstName} ${updatedStudent.lastName} has been blocked successfully`
+        });
+    }
+    catch (error) {
+        console.error('Block student error:', error);
+        return res.status(500).json({
+            success: false,
+            error: { message: 'Failed to block student' }
+        });
+    }
+};
+exports.BlockStudent = BlockStudent;
+const UnblockStudent = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+        const userRole = req.user.role;
+        const { studentId } = req.params;
+        // Only admins can unblock students
+        if (userRole !== 'Admin') {
+            return res.status(403).json({
+                success: false,
+                error: { message: 'Only administrators can unblock students' }
+            });
+        }
+        const student = await DB_Config_1.default.student.findUnique({
+            where: { id: studentId },
+            select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+        });
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Student not found' }
+            });
+        }
+        if (!student.blocked) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'Student is not blocked' }
+            });
+        }
+        const updatedStudent = await DB_Config_1.default.student.update({
+            where: { id: studentId },
+            data: { blocked: false },
+            select: { id: true, email: true, firstName: true, lastName: true, blocked: true }
+        });
+        console.log('✅ Student unblocked:', {
+            studentId: updatedStudent.id,
+            email: updatedStudent.email,
+            unblockedBy: adminId,
+            timestamp: new Date().toISOString()
+        });
+        return res.json({
+            success: true,
+            data: { student: updatedStudent },
+            message: `${updatedStudent.firstName} ${updatedStudent.lastName} has been unblocked successfully`
+        });
+    }
+    catch (error) {
+        console.error('Unblock student error:', error);
+        return res.status(500).json({
+            success: false,
+            error: { message: 'Failed to unblock student' }
+        });
+    }
+};
+exports.UnblockStudent = UnblockStudent;

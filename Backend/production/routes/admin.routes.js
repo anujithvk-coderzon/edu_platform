@@ -120,6 +120,10 @@ router.get('/students', auth_1.authMiddleware, auth_1.adminOnly, [
 ], adminController_1.GetAllStudents);
 // Get student/user by ID
 router.get('/students/:id', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.GetUserById);
+// Block student
+router.put('/students/:studentId/block', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.BlockStudent);
+// Unblock student
+router.put('/students/:studentId/unblock', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.UnblockStudent);
 // Update student/user
 router.put('/students/:id', auth_1.authMiddleware, auth_1.adminOnly, [
     (0, express_validator_1.body)('firstName').optional().trim().isLength({ min: 1 }),
@@ -275,7 +279,8 @@ router.post('/materials', auth_1.authMiddleware, auth_1.adminOnly, [
     (0, express_validator_1.body)('type').isIn(['PDF', 'VIDEO', 'LINK']),
     (0, express_validator_1.body)('fileUrl').optional().custom((value) => {
         if (value && typeof value === 'string' && value.trim() !== '') {
-            const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
+            // Allow URLs, paths, and GUIDs (for Bunny Stream videos)
+            const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
             if (!urlRegex.test(value)) {
                 throw new Error('Invalid URL or path format');
             }
@@ -296,7 +301,8 @@ router.put('/materials/:id', auth_1.authMiddleware, auth_1.adminOnly, [
     (0, express_validator_1.body)('type').optional().isIn(['PDF', 'VIDEO', 'LINK']),
     (0, express_validator_1.body)('fileUrl').optional().custom((value) => {
         if (value && typeof value === 'string' && value.trim() !== '') {
-            const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+)$/;
+            // Allow URLs, paths, and GUIDs (for Bunny Stream videos)
+            const urlRegex = /^(https?:\/\/[^\s]+|www\.[^\s]+|\/[^\/][^\s]*|images\/.+|avatars\/.+|materials\/.+|uploads\/.+|videos\/.+|audios\/.+|documents\/.+|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
             if (!urlRegex.test(value)) {
                 throw new Error('Invalid URL or path format');
             }

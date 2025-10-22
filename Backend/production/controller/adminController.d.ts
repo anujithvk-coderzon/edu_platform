@@ -90,3 +90,5 @@ export declare const GetAllRegisteredStudents: (req: AuthRequest, res: express.R
 export declare const GetAllStudents: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const UploadAdminAvatar: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const CleanupOrphanedCourses: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
+export declare const BlockStudent: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
+export declare const UnblockStudent: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;

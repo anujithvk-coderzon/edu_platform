@@ -254,59 +254,60 @@ export default function CourseDetailPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Course Hero Section */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4 md:py-5">
           <button
             onClick={() => router.push('/courses')}
-            className="flex items-center text-slate-600 hover:text-slate-900 mb-6 transition-colors"
+            className="hidden sm:flex items-center text-slate-600 hover:text-slate-900 mb-4 md:mb-5 transition-colors text-sm sm:text-base"
           >
-            <ArrowLeftIcon className="h-5 w-5 mr-2" />
+            <ArrowLeftIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
             Back to Courses
           </button>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {/* Course Information */}
             <div className="lg:col-span-2">
-              <div className="flex items-start gap-3 mb-4">
+              <div className="flex items-start gap-2 sm:gap-2.5 mb-3 sm:mb-4">
                 {course.category && (
-                  <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium">
+                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-indigo-100 text-indigo-800 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium">
                     {course.category.name}
                   </span>
                 )}
-                <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium">
+                <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-slate-100 text-slate-700 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium">
                   {course.level}
                 </span>
               </div>
 
-              <h1 className="text-3xl font-bold text-slate-900 mb-4">{course.title}</h1>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">{course.description}</p>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-2 sm:mb-3 md:mb-4">{course.title}</h1>
+              <p className="text-sm sm:text-base md:text-lg text-slate-600 mb-4 sm:mb-5 md:mb-6 leading-relaxed">{course.description}</p>
 
-              <div className="flex flex-wrap items-center gap-6 text-sm text-slate-600 mb-6">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-5 text-xs sm:text-sm text-slate-600 mb-4 sm:mb-5 md:mb-6">
                 <div className="flex items-center">
                   <StarRating rating={course.averageRating || 0} readonly showValue />
                   <span className="ml-2">({course.totalReviews} reviews)</span>
                 </div>
                 <div className="flex items-center">
-                  <UsersIcon className="h-5 w-5 mr-2 text-slate-500" />
+                  <UsersIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" />
                   <span>{course._count.enrollments} students</span>
                 </div>
                 <div className="flex items-center">
-                  <ClockIcon className="h-5 w-5 mr-2 text-slate-500" />
+                  <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" />
                   <span>{course.duration ? `${course.duration} hours` : 'Self-paced'}</span>
                 </div>
                 <div className="flex items-center">
-                  <BookOpenIcon className="h-5 w-5 mr-2 text-slate-500" />
+                  <BookOpenIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-slate-500 flex-shrink-0" />
                   <span>{course._count.materials} materials</span>
                 </div>
               </div>
 
               {/* Instructor Info */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div className="flex items-center">
                   {(course.tutor?.avatar || course.creator.avatar) ? (
                     <img
                       src={getCdnUrl(course.tutor?.avatar || course.creator.avatar) || ''}
                       alt={course.tutor ? `${course.tutor.firstName} ${course.tutor.lastName}` : `${course.creator.firstName} ${course.creator.lastName}`}
                       className="h-12 w-12 rounded-full border-2 border-slate-200"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center border-2 border-slate-200">
@@ -327,16 +328,16 @@ export default function CourseDetailPage() {
               </div>
 
               {/* Course Requirements & Prerequisites */}
-              <div className="space-y-6 mt-8">
+              <div className="space-y-3 sm:space-y-4 md:space-y-5 mt-4 sm:mt-6 md:mt-8">
                 {/* Course Requirements */}
                 {course.requirements && course.requirements.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Course Requirements</h3>
+                  <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 md:p-5">
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Course Requirements</h3>
                     <ul className="space-y-2">
                       {course.requirements.map((requirement, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <CheckCircleIcon className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-slate-700">{requirement}</span>
+                        <li key={index} className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
+                          <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm md:text-base text-slate-700">{requirement}</span>
                         </li>
                       ))}
                     </ul>
@@ -345,13 +346,13 @@ export default function CourseDetailPage() {
 
                 {/* Prerequisites */}
                 {course.prerequisites && course.prerequisites.length > 0 && (
-                  <div className="bg-white border border-slate-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-4">Prerequisites</h3>
+                  <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 md:p-5">
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Prerequisites</h3>
                     <ul className="space-y-2">
                       {course.prerequisites.map((prerequisite, index) => (
-                        <li key={index} className="flex items-start gap-3">
-                          <BookOpenIcon className="h-5 w-5 text-indigo-600 mt-0.5 flex-shrink-0" />
-                          <span className="text-slate-700">{prerequisite}</span>
+                        <li key={index} className="flex items-start gap-2 sm:gap-2.5 md:gap-3">
+                          <BookOpenIcon className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 mt-0.5 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm md:text-base text-slate-700">{prerequisite}</span>
                         </li>
                       ))}
                     </ul>
@@ -362,7 +363,7 @@ export default function CourseDetailPage() {
 
             {/* Enrollment Card */}
             <div className="lg:col-span-1">
-              <div className="bg-white border border-slate-200 rounded-lg p-6 sticky top-6">
+              <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 md:p-5 lg:sticky lg:top-6">
                 <div className="aspect-video bg-slate-100 rounded-lg flex items-center justify-center mb-6 relative overflow-hidden">
                   {course.thumbnail && getImageUrl(course.thumbnail) ? (
                     <img
@@ -388,11 +389,18 @@ export default function CourseDetailPage() {
                 </div>
 
                 <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-slate-900 mb-2">
-                    {course.price === 0 ? 'Free' : `$${course.price}`}
-                  </div>
-                  {course.price > 0 && (
-                    <div className="text-sm text-slate-600">One-time payment</div>
+                  {course.price === 0 ? (
+                    <div className="inline-block bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-full shadow-lg">
+                      <div className="text-2xl font-bold">🎉 FREE</div>
+                      <div className="text-xs mt-1">Open to all students</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-3xl font-bold text-slate-900 mb-2">
+                        ${course.price}
+                      </div>
+                      <div className="text-sm text-slate-600">One-time payment</div>
+                    </>
                   )}
                 </div>
 
@@ -458,13 +466,13 @@ export default function CourseDetailPage() {
 
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4">
-          <nav className="flex space-x-8">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8">
+          <nav className="flex space-x-4 sm:space-x-6 md:space-x-8 overflow-x-auto">
             {['overview', 'curriculum', 'reviews'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as typeof activeTab)}
-                className={`py-4 px-2 border-b-2 font-medium text-sm capitalize transition-colors ${
+                className={`py-3 sm:py-3.5 md:py-4 px-1 sm:px-2 border-b-2 font-medium text-xs sm:text-sm capitalize transition-colors whitespace-nowrap ${
                   activeTab === tab
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -478,13 +486,13 @@ export default function CourseDetailPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 md:py-8">
         <div className="max-w-4xl">
           {activeTab === 'overview' && (
-            <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">About This Course</h2>
+            <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 md:p-5">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-3 sm:mb-4">About This Course</h2>
               <div className="prose max-w-none">
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
                   {course.description}
                 </p>
               </div>
@@ -492,20 +500,20 @@ export default function CourseDetailPage() {
           )}
 
           {activeTab === 'curriculum' && (
-            <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <h2 className="text-2xl font-bold text-slate-900 mb-6">Course Curriculum</h2>
-              <div className="space-y-4">
+            <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 md:p-5">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-4 sm:mb-5 md:mb-6">Course Curriculum</h2>
+              <div className="space-y-3 sm:space-y-4">
                 {course.modules.length > 0 ? (
                   course.modules
                     .sort((a, b) => a.orderIndex - b.orderIndex)
                     .map((module, moduleIndex) => (
                       <div key={module.id} className="border border-slate-200 rounded-lg overflow-hidden">
-                        <div className="p-4 bg-slate-50 border-b border-slate-200">
-                          <h3 className="text-lg font-semibold text-slate-900">
+                        <div className="p-3 sm:p-4 bg-slate-50 border-b border-slate-200">
+                          <h3 className="text-base sm:text-lg font-semibold text-slate-900">
                             Module {moduleIndex + 1}: {module.title}
                           </h3>
                           {module.description && (
-                            <p className="text-slate-600 mt-2">{module.description}</p>
+                            <p className="text-xs sm:text-sm text-slate-600 mt-1.5 sm:mt-2">{module.description}</p>
                           )}
                         </div>
                         <div className="divide-y divide-slate-200">
@@ -517,29 +525,29 @@ export default function CourseDetailPage() {
                               )?.progress?.isCompleted;
 
                               return (
-                                <div key={material.id} className="p-4 flex items-center">
-                                  <div className="flex items-center flex-1">
-                                    <div className={`p-2 rounded-lg mr-4 ${
+                                <div key={material.id} className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                                  <div className="flex items-center flex-1 min-w-0">
+                                    <div className={`p-1.5 sm:p-2 rounded-lg mr-2 sm:mr-3 md:mr-4 flex-shrink-0 ${
                                       isCompleted ? 'bg-emerald-100' : 'bg-slate-100'
                                     }`}>
                                       {isCompleted ? (
-                                        <CheckCircleIcon className="h-5 w-5 text-emerald-600" />
+                                        <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
                                       ) : (
                                         <div className="text-slate-500">
                                           {getMaterialIcon(material.type)}
                                         </div>
                                       )}
                                     </div>
-                                    <div className="flex-1">
-                                      <h4 className="font-medium text-slate-900">
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-medium text-slate-900 text-sm sm:text-base truncate">
                                         {materialIndex + 1}. {material.title}
                                       </h4>
                                       {material.description && (
-                                        <p className="text-sm text-slate-600 mt-1">{material.description}</p>
+                                        <p className="text-xs sm:text-sm text-slate-600 mt-0.5 sm:mt-1 line-clamp-2">{material.description}</p>
                                       )}
                                     </div>
                                   </div>
-                                  <div className="text-sm text-slate-500 capitalize font-medium">
+                                  <div className="text-xs sm:text-sm text-slate-500 capitalize font-medium flex-shrink-0">
                                     {material.type.toLowerCase()}
                                   </div>
                                 </div>
@@ -560,8 +568,8 @@ export default function CourseDetailPage() {
           )}
 
           {activeTab === 'reviews' && (
-            <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <div className="space-y-8">
+            <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 md:p-5">
+              <div className="space-y-4 sm:space-y-6 md:space-y-8">
                 {course.isEnrolled && (
                   <CourseReview
                     courseId={course.id}

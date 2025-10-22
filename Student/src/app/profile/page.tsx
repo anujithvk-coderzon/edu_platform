@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
 import {
   UserIcon,
   CameraIcon,
@@ -25,7 +26,15 @@ export default function ProfilePage() {
     firstName: '',
     lastName: '',
     email: '',
-    avatar: ''
+    avatar: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    city: '',
+    education: '',
+    institution: '',
+    occupation: '',
+    company: ''
   });
 
   // Password form state
@@ -41,7 +50,15 @@ export default function ProfilePage() {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        avatar: user.avatar || ''
+        avatar: user.avatar || '',
+        phone: user.phone || '',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+        gender: user.gender || '',
+        city: user.city || '',
+        education: user.education || '',
+        institution: user.institution || '',
+        occupation: user.occupation || '',
+        company: user.company || ''
       });
     }
   }, [user]);
@@ -79,6 +96,14 @@ export default function ProfilePage() {
       const updateData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
+        phone: profileData.phone || null,
+        dateOfBirth: profileData.dateOfBirth || null,
+        gender: profileData.gender || null,
+        city: profileData.city || null,
+        education: profileData.education || null,
+        institution: profileData.institution || null,
+        occupation: profileData.occupation || null,
+        company: profileData.company || null,
         ...(selectedAvatarFile && avatarUrl ? { avatar: avatarUrl } : {})
       };
 
@@ -95,7 +120,15 @@ export default function ProfilePage() {
             firstName: response.data.user.firstName || '',
             lastName: response.data.user.lastName || '',
             email: response.data.user.email || '',
-            avatar: response.data.user.avatar || ''
+            avatar: response.data.user.avatar || '',
+            phone: response.data.user.phone || '',
+            dateOfBirth: response.data.user.dateOfBirth ? new Date(response.data.user.dateOfBirth).toISOString().split('T')[0] : '',
+            gender: response.data.user.gender || '',
+            city: response.data.user.city || '',
+            education: response.data.user.education || '',
+            institution: response.data.user.institution || '',
+            occupation: response.data.user.occupation || '',
+            company: response.data.user.company || ''
           });
         }
       }
@@ -157,10 +190,10 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center bg-white rounded-xl p-8 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Please log in</h3>
-          <p className="text-slate-600">You need to be logged in to view your profile.</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-3">
+        <div className="text-center bg-white rounded-xl p-4 sm:p-6 md:p-8 shadow-sm border border-slate-200">
+          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">Please log in</h3>
+          <p className="text-sm sm:text-base text-slate-600">You need to be logged in to view your profile.</p>
         </div>
       </div>
     );
@@ -168,36 +201,38 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 md:gap-6">
             <div className="relative flex-shrink-0 self-center sm:self-auto">
-              <div className="h-20 w-20 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg sm:rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden">
                 {avatarPreview ? (
                   <img
                     src={avatarPreview}
                     alt="Avatar Preview"
                     className="h-full w-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 ) : profileData.avatar ? (
                   <img
                     src={getCdnUrl(profileData.avatar) || ''}
                     alt="Avatar"
                     className="h-full w-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <UserIcon className="h-10 w-10 text-slate-400" />
+                  <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400" />
                 )}
               </div>
               <label
                 htmlFor="avatar-upload"
-                className={`absolute bottom-0 right-0 bg-indigo-600 rounded-lg p-2 cursor-pointer transition-colors shadow-sm ${
+                className={`absolute bottom-0 right-0 bg-indigo-600 rounded-md sm:rounded-lg p-1.5 sm:p-2 cursor-pointer transition-colors shadow-sm ${
                   loading ? 'bg-gray-400 cursor-not-allowed' : 'hover:bg-indigo-700'
                 }`}
                 title={loading ? 'Processing...' : 'Change avatar'}
               >
-                <CameraIcon className="h-4 w-4 text-white" />
+                <CameraIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                 <input
                   id="avatar-upload"
                   type="file"
@@ -209,11 +244,11 @@ export default function ProfilePage() {
               </label>
             </div>
             <div className="min-w-0 flex-1 text-center sm:text-left">
-              <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 break-words">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 break-words">
                 {profileData.firstName || user.firstName} {profileData.lastName || user.lastName}
               </h1>
-              <p className="text-slate-600 mt-1 break-all text-sm sm:text-base">{profileData.email || user.email}</p>
-              <p className="text-xs text-slate-500 mt-2">
+              <p className="text-slate-600 mt-1 break-all text-xs sm:text-sm md:text-base">{profileData.email || user.email}</p>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1.5 sm:mt-2">
                 Member since {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </p>
             </div>
@@ -221,9 +256,9 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200">
           <div className="border-b border-slate-200">
-            <nav className="flex space-x-8 px-6">
+            <nav className="flex space-x-4 sm:space-x-6 md:space-x-8 px-3 sm:px-4 md:px-6">
               {[
                 { key: 'profile', label: 'Profile', icon: UserIcon },
                 { key: 'security', label: 'Security', icon: KeyIcon }
@@ -231,54 +266,137 @@ export default function ProfilePage() {
                 <button
                   key={key}
                   onClick={() => setActiveTab(key as typeof activeTab)}
-                  className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`flex items-center gap-1.5 sm:gap-2 py-3 sm:py-3.5 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors ${
                     activeTab === key
                       ? 'border-indigo-500 text-indigo-600'
                       : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {label}
+                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span>{label}</span>
                 </button>
               ))}
             </nav>
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-3 sm:p-4 md:p-6">
             {activeTab === 'profile' && (
-              <div className="max-w-lg">
-                <h3 className="text-lg font-medium text-slate-900 mb-4">
+              <div className="max-w-2xl">
+                <h3 className="text-base sm:text-lg font-medium text-slate-900 mb-3 sm:mb-4">
                   Personal Information
                 </h3>
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form onSubmit={handleProfileUpdate} className="space-y-4 sm:space-y-5 md:space-y-6">
+                  {/* Basic Information */}
+                  <div className="space-y-3 sm:space-y-4">
+                    <h4 className="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Basic Details</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <Input
+                        label="First Name"
+                        value={profileData.firstName}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                        required
+                      />
+                      <Input
+                        label="Last Name"
+                        value={profileData.lastName}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                        required
+                      />
+                    </div>
                     <Input
-                      label="First Name"
-                      value={profileData.firstName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                      required
+                      label="Email Address"
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                      disabled
+                      className="bg-slate-50"
                     />
-                    <Input
-                      label="Last Name"
-                      value={profileData.lastName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                      required
-                    />
+                    <p className="text-[10px] sm:text-xs text-slate-500">Email cannot be changed</p>
                   </div>
-                  <Input
-                    label="Email Address"
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                    disabled
-                    className="bg-slate-50"
-                  />
-                  <p className="text-xs text-slate-500">Email cannot be changed</p>
+
+                  {/* Contact Information */}
+                  <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-slate-200">
+                    <h4 className="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Contact Information</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <Input
+                        label="Phone Number"
+                        type="tel"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                      <Input
+                        label="City"
+                        value={profileData.city}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
+                        placeholder="New York"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Personal Details */}
+                  <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-slate-200">
+                    <h4 className="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Personal Details</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <Input
+                        label="Date of Birth"
+                        type="date"
+                        value={profileData.dateOfBirth}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                      />
+                      <Select
+                        label="Gender"
+                        value={profileData.gender}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, gender: e.target.value }))}
+                        options={[
+                          { value: 'Male', label: 'Male' },
+                          { value: 'Female', label: 'Female' },
+                          { value: 'Other', label: 'Other' },
+                          { value: 'Prefer not to say', label: 'Prefer not to say' }
+                        ]}
+                        placeholder="Select gender"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Education & Career */}
+                  <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-slate-200">
+                    <h4 className="text-xs sm:text-sm font-semibold text-slate-700 uppercase tracking-wide">Education & Career</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <Input
+                        label="Education Level"
+                        value={profileData.education}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, education: e.target.value }))}
+                        placeholder="Bachelor's Degree"
+                      />
+                      <Input
+                        label="Institution"
+                        value={profileData.institution}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, institution: e.target.value }))}
+                        placeholder="University Name"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <Input
+                        label="Occupation"
+                        value={profileData.occupation}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, occupation: e.target.value }))}
+                        placeholder="Software Engineer"
+                      />
+                      <Input
+                        label="Company"
+                        value={profileData.company}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, company: e.target.value }))}
+                        placeholder="Company Name"
+                      />
+                    </div>
+                  </div>
+
                   {selectedAvatarFile && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-amber-700">
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 sm:p-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <p className="text-xs sm:text-sm text-amber-700">
                           You have selected a new avatar. Click "Update Profile" to save it.
                         </p>
                         <button
@@ -288,14 +406,14 @@ export default function ProfilePage() {
                             setAvatarPreview('');
                             toast.success('Avatar selection cleared');
                           }}
-                          className="text-sm text-amber-600 hover:text-amber-800 underline"
+                          className="text-xs sm:text-sm text-amber-600 hover:text-amber-800 underline self-end sm:self-auto flex-shrink-0"
                         >
                           Cancel
                         </button>
                       </div>
                     </div>
                   )}
-                  <div className="pt-4">
+                  <div className="pt-3 sm:pt-4">
                     <Button
                       type="submit"
                       disabled={loading}
@@ -310,10 +428,10 @@ export default function ProfilePage() {
 
             {activeTab === 'security' && (
               <div className="max-w-lg">
-                <h3 className="text-lg font-medium text-slate-900 mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-slate-900 mb-3 sm:mb-4">
                   Change Password
                 </h3>
-                <form onSubmit={handlePasswordChange} className="space-y-4">
+                <form onSubmit={handlePasswordChange} className="space-y-3 sm:space-y-4">
                   <Input
                     label="Current Password"
                     type="password"
@@ -337,7 +455,7 @@ export default function ProfilePage() {
                     minLength={6}
                     required
                   />
-                  <div className="pt-4">
+                  <div className="pt-3 sm:pt-4">
                     <Button
                       type="submit"
                       disabled={loading}

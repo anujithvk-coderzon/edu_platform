@@ -239,12 +239,14 @@ export default function ProfilePage() {
                           src={avatarPreview}
                           alt="Avatar Preview"
                           className="h-full w-full object-cover"
+                          referrerPolicy="no-referrer"
                         />
                       ) : user?.avatar ? (
                         <img
                           src={getCdnUrl(user.avatar) || ''}
                           alt="Profile"
                           className="h-full w-full object-cover"
+                          referrerPolicy="no-referrer"
                         />
                       ) : (
                         <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600" />

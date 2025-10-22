@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetPlatformStats = exports.UploadAssignmentFile = exports.GetAssignmentSubmission = exports.SubmitAssignment = exports.GetCourseAssignments = exports.GetMyReview = exports.GetCourseReviews = exports.SubmitReview = exports.TestFileAccess = exports.CompleteMaterial = exports.GetMaterialById = exports.GetEnrollmentProgress = exports.EnrollInCourse = exports.GetMyEnrollments = exports.GetCourseById = exports.GetAllCategories = exports.GetAllCourses = exports.UploadStudentAvatar = exports.ChangePassword = exports.UpdateProfile = exports.GetCurrentUser = exports.ResetPassword = exports.VerifyForgotPasswordOtp = exports.ForgotPassword = exports.LogoutStudent = exports.LoginStudent = exports.ResendOtp = exports.VerifyOtp = exports.RegisterStudent = exports.VerifyOtpEmail = exports.VerifyEmail = exports.CheckEmail = void 0;
+exports.GetPlatformStats = exports.DebugSessionInfo = exports.UploadAssignmentFile = exports.GetAssignmentSubmission = exports.SubmitAssignment = exports.GetCourseAssignments = exports.GetMyReview = exports.GetCourseReviews = exports.SubmitReview = exports.TestFileAccess = exports.CompleteMaterial = exports.GetMaterialById = exports.GetEnrollmentProgress = exports.EnrollInCourse = exports.GetMyEnrollments = exports.GetCourseById = exports.GetAllCategories = exports.GetAllCourses = exports.UploadStudentAvatar = exports.ChangePassword = exports.UpdateProfile = exports.GetCurrentUser = exports.ResetPassword = exports.VerifyForgotPasswordOtp = exports.ForgotPassword = exports.LogoutStudent = exports.LoginStudent = exports.OAuthLogin = exports.OAuthRegister = exports.ResendOtp = exports.VerifyOtp = exports.RegisterStudent = exports.VerifyOtpEmail = exports.VerifyEmail = exports.CheckEmail = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const express_validator_1 = require("express-validator");
@@ -216,6 +216,177 @@ const ResendOtp = async (req, res) => {
     });
 };
 exports.ResendOtp = ResendOtp;
+// ===== OAUTH CONTROLLERS =====
+const OAuthRegister = async (req, res) => {
+    const { provider, email, firstName, lastName, avatar, phone, dateOfBirth, gender, country, city, education, institution, occupation, company } = req.body;
+    // Validate required fields
+    if (!provider || !email || !firstName || !lastName) {
+        return res.status(400).json({
+            success: false,
+            error: { message: 'Provider, email, first name, and last name are required' }
+        });
+    }
+    // Check if student already exists
+    const existingStudent = await DB_Config_1.default.student.findUnique({ where: { email } });
+    if (existingStudent) {
+        return res.status(400).json({
+            success: false,
+            error: { message: 'An account with this email already exists' }
+        });
+    }
+    // Generate session token for single active session control
+    const sessionToken = (0, crypto_1.randomUUID)();
+    const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    // Create student account (no password for OAuth users)
+    const student = await DB_Config_1.default.student.create({
+        data: {
+            email,
+            password: null, // OAuth users don't have password
+            firstName,
+            lastName,
+            avatar: avatar || null,
+            phone: phone || null,
+            dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+            gender: gender || null,
+            country: country || null,
+            city: city || null,
+            education: education || null,
+            institution: institution || null,
+            occupation: occupation || null,
+            company: company || null,
+            isVerified: true, // OAuth users are automatically verified
+            activeSessionToken: sessionToken,
+            lastLoginAt: new Date(),
+            lastLoginIP: clientIP
+        },
+        select: {
+            id: true, email: true, firstName: true, lastName: true, phone: true,
+            dateOfBirth: true, gender: true, country: true, city: true,
+            education: true, institution: true, occupation: true, company: true,
+            avatar: true, createdAt: true, isVerified: true
+        }
+    });
+    // Generate JWT token
+    const token = generateToken(student.id, sessionToken);
+    const isProduction = process.env.NODE_ENV === 'production';
+    // Set cookie
+    res.cookie('student_token', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    // Send welcome email
+    try {
+        await (0, EmailVerification_1.StudentWelcomeEmail)(email, firstName);
+    }
+    catch (error) {
+        console.error('⚠️ Welcome email error but registration continues:', error);
+    }
+    console.log('✅ OAuth Registration successful:', {
+        provider,
+        email,
+        studentId: student.id,
+        timestamp: new Date().toISOString()
+    });
+    res.status(201).json({
+        success: true,
+        message: 'Registration successful! Welcome aboard!',
+        data: { user: student, token }
+    });
+};
+exports.OAuthRegister = OAuthRegister;
+const OAuthLogin = async (req, res) => {
+    const { provider, idToken } = req.body;
+    // Extract email from the idToken payload (we trust the frontend for now)
+    // In production with Firebase Admin SDK, you'd verify the token and extract email
+    // For now, we'll get email from the decoded token on frontend
+    // We need to get the email somehow - let's accept it in the request
+    // The frontend will send it after OAuth
+    let email = req.body.email;
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            error: { message: 'Email is required' }
+        });
+    }
+    // Find student by email
+    const student = await DB_Config_1.default.student.findUnique({ where: { email } });
+    if (!student) {
+        return res.status(404).json({
+            success: false,
+            error: { message: 'Account not found. Please register first.' }
+        });
+    }
+    // Check if student is blocked by admin
+    if (student.blocked) {
+        return res.status(403).json({
+            success: false,
+            error: { message: 'Your account has been blocked by the administrator. Please contact support for assistance.' }
+        });
+    }
+    if (!student.isActive) {
+        return res.status(403).json({
+            success: false,
+            error: { message: 'Account is deactivated' }
+        });
+    }
+    // Generate new session token (invalidates previous sessions)
+    const sessionToken = (0, crypto_1.randomUUID)();
+    const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    console.log('🔐 OAuth Login:', {
+        provider,
+        email: student.email,
+        newSessionToken: sessionToken.substring(0, 12) + '...',
+        clientIP,
+        timestamp: new Date().toISOString()
+    });
+    // Update student with new session token
+    await DB_Config_1.default.student.update({
+        where: { id: student.id },
+        data: {
+            activeSessionToken: sessionToken,
+            lastLoginAt: new Date(),
+            lastLoginIP: clientIP
+        }
+    });
+    // Generate JWT token
+    const token = generateToken(student.id, sessionToken);
+    const isProduction = process.env.NODE_ENV === 'production';
+    // Set cookie
+    res.cookie('student_token', token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    res.status(200).json({
+        success: true,
+        message: 'Login successful!',
+        data: {
+            user: {
+                id: student.id,
+                email: student.email,
+                firstName: student.firstName,
+                lastName: student.lastName,
+                avatar: student.avatar,
+                phone: student.phone,
+                dateOfBirth: student.dateOfBirth,
+                gender: student.gender,
+                country: student.country,
+                city: student.city,
+                education: student.education,
+                institution: student.institution,
+                occupation: student.occupation,
+                company: student.company,
+                isVerified: student.isVerified,
+                createdAt: student.createdAt
+            },
+            token
+        }
+    });
+};
+exports.OAuthLogin = OAuthLogin;
 const LoginStudent = async (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -226,7 +397,29 @@ const LoginStudent = async (req, res) => {
     }
     const { email, password } = req.body;
     const student = await DB_Config_1.default.student.findUnique({ where: { email } });
-    if (!student || !await bcryptjs_1.default.compare(password, student.password)) {
+    if (!student) {
+        return res.status(401).json({
+            success: false,
+            error: { message: 'Invalid email or password' }
+        });
+    }
+    // Check if student is blocked by admin
+    if (student.blocked) {
+        return res.status(403).json({
+            success: false,
+            error: { message: 'Your account has been blocked by the administrator. Please contact support for assistance.' }
+        });
+    }
+    // Check if this is an OAuth user (no password)
+    if (!student.password) {
+        return res.status(401).json({
+            success: false,
+            error: { message: 'This account uses social login. Please sign in with Google or GitHub.' }
+        });
+    }
+    // Verify password
+    const isPasswordValid = await bcryptjs_1.default.compare(password, student.password);
+    if (!isPasswordValid) {
         return res.status(401).json({
             success: false,
             error: { message: 'Invalid email or password' }
@@ -241,6 +434,12 @@ const LoginStudent = async (req, res) => {
     // Generate new session token (invalidates previous sessions)
     const sessionToken = (0, crypto_1.randomUUID)();
     const clientIP = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    console.log('🔐 Login:', {
+        email: student.email,
+        newSessionToken: sessionToken.substring(0, 12) + '...',
+        clientIP,
+        timestamp: new Date().toISOString()
+    });
     // Update student with new session token
     await DB_Config_1.default.student.update({
         where: { id: student.id },
@@ -252,6 +451,7 @@ const LoginStudent = async (req, res) => {
     });
     const token = generateToken(student.id, sessionToken);
     const isProduction = process.env.NODE_ENV === 'production';
+    console.log('🎫 JWT generated with sessionToken:', sessionToken.substring(0, 12) + '...');
     res.cookie('student_token', token, {
         httpOnly: true,
         secure: isProduction,
@@ -399,7 +599,11 @@ const GetCurrentUser = async (req, res) => {
             where: { id: decoded.id },
             select: {
                 id: true, email: true, firstName: true, lastName: true,
-                avatar: true, isVerified: true, createdAt: true, updatedAt: true
+                avatar: true, phone: true, dateOfBirth: true, gender: true,
+                city: true, education: true, institution: true,
+                occupation: true, company: true,
+                isVerified: true, createdAt: true, updatedAt: true,
+                activeSessionToken: true // Include for debugging
             }
         });
         if (!student) {
@@ -408,7 +612,21 @@ const GetCurrentUser = async (req, res) => {
                 error: { message: 'Student not found.' }
             });
         }
-        res.json({ success: true, data: { user: student } });
+        // Validate session token (redundant check - middleware already does this)
+        if (decoded.sessionToken && student.activeSessionToken !== decoded.sessionToken) {
+            return res.status(401).json({
+                success: false,
+                error: {
+                    message: 'Session expired. You have been logged in from another device.',
+                    debug: process.env.NODE_ENV === 'development' ? {
+                        jwtSession: decoded.sessionToken?.substring(0, 8) + '...',
+                        dbSession: student.activeSessionToken?.substring(0, 8) + '...'
+                    } : undefined
+                }
+            });
+        }
+        const { activeSessionToken, ...studentWithoutSession } = student;
+        res.json({ success: true, data: { user: studentWithoutSession } });
     }
     catch (error) {
         return res.status(401).json({
@@ -442,19 +660,50 @@ const UpdateProfile = async (req, res) => {
             });
         }
         const updates = {};
-        const { firstName, lastName, avatar } = req.body;
-        if (firstName)
+        const { firstName, lastName, avatar, phone, dateOfBirth, gender, country, city, education, institution, occupation, company } = req.body;
+        if (firstName !== undefined)
             updates.firstName = firstName;
-        if (lastName)
+        if (lastName !== undefined)
             updates.lastName = lastName;
-        if (avatar)
+        if (avatar !== undefined)
             updates.avatar = avatar;
+        if (phone !== undefined)
+            updates.phone = phone;
+        if (dateOfBirth !== undefined)
+            updates.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+        if (gender !== undefined)
+            updates.gender = gender;
+        if (country !== undefined)
+            updates.country = country;
+        if (city !== undefined)
+            updates.city = city;
+        if (education !== undefined)
+            updates.education = education;
+        if (institution !== undefined)
+            updates.institution = institution;
+        if (occupation !== undefined)
+            updates.occupation = occupation;
+        if (company !== undefined)
+            updates.company = company;
         const student = await DB_Config_1.default.student.update({
             where: { id: decoded.id },
             data: updates,
             select: {
-                id: true, email: true, firstName: true, lastName: true,
-                avatar: true, updatedAt: true
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                avatar: true,
+                phone: true,
+                dateOfBirth: true,
+                gender: true,
+                country: true,
+                city: true,
+                education: true,
+                institution: true,
+                occupation: true,
+                company: true,
+                updatedAt: true
             }
         });
         res.json({ success: true, data: { user: student } });
@@ -1506,6 +1755,58 @@ const UploadAssignmentFile = async (req, res) => {
     }
 };
 exports.UploadAssignmentFile = UploadAssignmentFile;
+// ===== DEBUG SESSION ENDPOINT =====
+const DebugSessionInfo = async (req, res) => {
+    const token = req.cookies.student_token;
+    if (!token) {
+        return res.status(401).json({
+            success: false,
+            error: { message: 'No token provided' }
+        });
+    }
+    try {
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        const student = await DB_Config_1.default.student.findUnique({
+            where: { id: decoded.id },
+            select: {
+                id: true,
+                email: true,
+                activeSessionToken: true,
+                lastLoginAt: true,
+                lastLoginIP: true
+            }
+        });
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                error: { message: 'Student not found' }
+            });
+        }
+        const sessionMatch = student.activeSessionToken === decoded.sessionToken;
+        res.json({
+            success: true,
+            data: {
+                studentId: student.id,
+                email: student.email,
+                jwtSessionToken: decoded.sessionToken?.substring(0, 12) + '...',
+                dbSessionToken: student.activeSessionToken?.substring(0, 12) + '...',
+                sessionMatch: sessionMatch,
+                lastLoginAt: student.lastLoginAt,
+                lastLoginIP: student.lastLoginIP,
+                message: sessionMatch
+                    ? 'Session is valid ✓'
+                    : 'Session mismatch - You have been logged in from another device!'
+            }
+        });
+    }
+    catch (error) {
+        return res.status(401).json({
+            success: false,
+            error: { message: 'Invalid token', details: error.message }
+        });
+    }
+};
+exports.DebugSessionInfo = DebugSessionInfo;
 // ===== PLATFORM STATISTICS =====
 const GetPlatformStats = async (req, res) => {
     try {

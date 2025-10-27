@@ -594,7 +594,7 @@ export default function StudentsPage() {
         </div>
 
         {/* Filters - Mobile Optimized */}
-        <div className="mb-3 sm:mb-6 bg-white rounded-lg sm:rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div className="mb-3 sm:mb-6 bg-white rounded-lg sm:rounded-xl shadow-lg border border-slate-200">
           <div className="p-2 sm:p-4">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <Select

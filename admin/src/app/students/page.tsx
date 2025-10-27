@@ -322,30 +322,45 @@ export default function StudentsPage() {
           }
         });
 
-        // Get total students count from database (like dashboard does)
-        let totalStudentsCount = allRegisteredStudents.length;
-
-        // Calculate stats based on all registered students
-        const activeStudents = mergedStudents.filter((s: Student) => s.enrollments.some((e: Student['enrollments'][0]) => e.status === 'ACTIVE')).length;
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const newThisMonth = mergedStudents.filter((s: Student) => new Date(s.joinedAt) > oneMonthAgo).length;
-
-        const totalProgress = mergedStudents.reduce((sum: number, s: Student) => {
-          const avgProgress = s.enrollments.length > 0
-            ? s.enrollments.reduce((eSum: number, e: Student['enrollments'][0]) => eSum + e.progressPercentage, 0) / s.enrollments.length
-            : 0;
-          return sum + avgProgress;
-        }, 0);
-        const averageProgress = mergedStudents.length > 0 ? totalProgress / mergedStudents.length : 0;
-
-        const realStats = {
-          totalStudents: totalStudentsCount,
-          activeStudents: activeStudents,
-          newThisMonth: newThisMonth,
-          averageProgress: averageProgress,
+        // Get accurate stats from database
+        let realStats = {
+          totalStudents: 0,
+          activeStudents: 0,
+          newThisMonth: 0,
+          averageProgress: 0,
           totalRevenue: 0
         };
+
+        try {
+          const statsResponse = await api.admin.getStudentStats();
+          if (statsResponse.success && statsResponse.data?.stats) {
+            realStats = statsResponse.data.stats;
+            console.log('✅ Successfully fetched student stats from database:', realStats);
+          }
+        } catch (error) {
+          console.error('❌ Error fetching student stats, using fallback:', error);
+          // Fallback to frontend calculation if backend fails
+          const activeStudents = mergedStudents.filter((s: Student) => s.enrollments.some((e: Student['enrollments'][0]) => e.status === 'ACTIVE')).length;
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+          const newThisMonth = mergedStudents.filter((s: Student) => new Date(s.joinedAt) > oneMonthAgo).length;
+
+          const totalProgress = mergedStudents.reduce((sum: number, s: Student) => {
+            const avgProgress = s.enrollments.length > 0
+              ? s.enrollments.reduce((eSum: number, e: Student['enrollments'][0]) => eSum + e.progressPercentage, 0) / s.enrollments.length
+              : 0;
+            return sum + avgProgress;
+          }, 0);
+          const averageProgress = mergedStudents.length > 0 ? totalProgress / mergedStudents.length : 0;
+
+          realStats = {
+            totalStudents: allRegisteredStudents.length,
+            activeStudents: activeStudents,
+            newThisMonth: newThisMonth,
+            averageProgress: averageProgress,
+            totalRevenue: 0
+          };
+        }
 
         setStudents(mergedStudents);
         setStats(realStats);

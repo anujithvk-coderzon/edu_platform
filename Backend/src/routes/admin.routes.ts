@@ -30,6 +30,7 @@ import {
   UpdateUser,
   DeleteUser,
   GetUserStats,
+  GetStudentStats,
 
   // Tutor Request Management Controllers
   GetPendingTutorRequestsCount,
@@ -315,8 +316,9 @@ router.put('/students/:id', authMiddleware, adminOnly,
 // Delete student/user
 router.delete('/students/:id', authMiddleware, adminOnly, DeleteUser);
 
-// Get user statistics
+// Get user statistics (more specific route first)
 router.get('/students/stats/overview', authMiddleware, adminOnly, GetUserStats);
+router.get('/students/stats/detailed', authMiddleware, adminOnly, GetStudentStats);
 
 // ===== TUTOR REQUEST MANAGEMENT ROUTES =====
 

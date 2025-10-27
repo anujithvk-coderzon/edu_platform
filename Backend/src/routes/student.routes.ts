@@ -308,23 +308,43 @@ router.get('/proxy/pdf', async (req: express.Request, res: express.Response) => 
       return res.status(400).json({ error: 'PDF URL is required' });
     }
 
-    // Fetch PDF from Bunny CDN
+    // Fetch PDF from Bunny CDN with authentication
     const axios = require('axios');
+
+    // Check if URL is from Bunny Storage (requires authentication)
+    const isBunnyStorage = url.includes('storage.bunnycdn.com') || url.includes('.b-cdn.net');
+
+    const headers: any = {
+      'Accept': 'application/pdf',
+    };
+
+    // Add authentication for Bunny Storage
+    if (isBunnyStorage) {
+      const accessKey = process.env.BUNNY_STORAGE_ACCESS_KEY;
+      if (accessKey) {
+        headers['AccessKey'] = accessKey;
+      }
+    }
+
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
-      headers: {
-        'Accept': 'application/pdf',
-      }
+      headers,
+      timeout: 30000 // 30 second timeout
     });
 
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 
     res.send(response.data);
-  } catch (error) {
-    console.error('PDF proxy error:', error);
+  } catch (error: any) {
+    console.error('PDF proxy error:', error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+    }
     res.status(500).json({ error: 'Failed to fetch PDF' });
   }
 });

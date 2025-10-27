@@ -1547,7 +1547,11 @@ export const GetEnrollmentProgress = async (req: express.Request, res: express.R
     }));
 
     const totalMaterials = materials.length;
-    const completedMaterials = progressRecords.filter(p => p.isCompleted).length;
+    // Only count completed materials that still exist (filter out deleted materials)
+    const existingMaterialIds = new Set(materials.map(m => m.id));
+    const completedMaterials = progressRecords.filter(p =>
+      p.isCompleted && existingMaterialIds.has(p.materialId)
+    ).length;
     const totalAssignments = assignments.length;
     const submittedAssignments = assignmentSubmissions.length;
     const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
@@ -2003,9 +2007,23 @@ export const SubmitAssignment = async (req: express.Request, res: express.Respon
       }
     });
 
+    // Get existing material IDs to filter out progress for deleted materials
+    const existingMaterials = await prisma.material.findMany({
+      where: { courseId: assignment.courseId },
+      select: { id: true }
+    });
+    const existingMaterialIds = existingMaterials.map(m => m.id);
+
     const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-      prisma.material.count({ where: { courseId: assignment.courseId } }),
-      prisma.progress.count({ where: { studentId: studentId, courseId: assignment.courseId, isCompleted: true } }),
+      Promise.resolve(existingMaterials.length),
+      prisma.progress.count({
+        where: {
+          studentId: studentId,
+          courseId: assignment.courseId,
+          isCompleted: true,
+          materialId: { in: existingMaterialIds } // Only count progress for existing materials
+        }
+      }),
       prisma.assignment.count({ where: { courseId: assignment.courseId } }),
       prisma.assignmentSubmission.count({ where: { studentId, assignment: { courseId: assignment.courseId } } })
     ]);

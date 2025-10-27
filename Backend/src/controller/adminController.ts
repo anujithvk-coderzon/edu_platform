@@ -1073,7 +1073,7 @@ export const GetUserStats = async (req: AuthRequest, res: express.Response) => {
       prisma.admin.count(),
       prisma.admin.count({ where: { role: "Admin" } }),
       prisma.course.count(),
-      prisma.enrollment.count(),
+      prisma.enrollment.count(), // Count ALL enrollments
       prisma.admin.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
@@ -1102,6 +1102,77 @@ export const GetUserStats = async (req: AuthRequest, res: express.Response) => {
     });
   } catch (error) {
     console.error('GetUserStats error:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Internal server error' }
+    });
+  }
+};
+
+export const GetStudentStats = async (req: AuthRequest, res: express.Response) => {
+  try {
+    // Get current date for time-based calculations
+    const now = new Date();
+    const oneMonthAgo = new Date(now);
+    oneMonthAgo.setMonth(now.getMonth() - 1);
+
+    // Get accurate counts from database
+    const [
+      totalStudents,
+      activeEnrollments,
+      newStudentsThisMonth,
+      allEnrollments
+    ] = await Promise.all([
+      // Total students in database
+      prisma.student.count(),
+
+      // Students with at least one ACTIVE enrollment
+      prisma.student.count({
+        where: {
+          enrollments: {
+            some: {
+              status: 'ACTIVE'
+            }
+          }
+        }
+      }),
+
+      // Students who registered in the last month
+      prisma.student.count({
+        where: {
+          createdAt: {
+            gte: oneMonthAgo
+          }
+        }
+      }),
+
+      // Get all enrollments with progress for average calculation
+      prisma.enrollment.findMany({
+        select: {
+          progressPercentage: true
+        }
+      })
+    ]);
+
+    // Calculate average progress across all enrollments
+    const averageProgress = allEnrollments.length > 0
+      ? allEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / allEnrollments.length
+      : 0;
+
+    return res.json({
+      success: true,
+      data: {
+        stats: {
+          totalStudents,        // Total students from Student table
+          activeStudents: activeEnrollments,  // Students with ACTIVE enrollments
+          newThisMonth: newStudentsThisMonth, // New registrations this month
+          averageProgress,      // Average progress across all enrollments
+          totalRevenue: 0       // No payment system yet
+        }
+      }
+    });
+  } catch (error) {
+    console.error('GetStudentStats error:', error);
     return res.status(500).json({
       success: false,
       error: { message: 'Internal server error' }
@@ -1512,17 +1583,30 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
       })
     ]);
 
-    // Calculate average rating for each course
+    // Calculate average rating and get accurate enrollment counts for each course
     const coursesWithRatings = await Promise.all(
       courses.map(async (course) => {
-        const avgRating = await prisma.review.aggregate({
-          where: { courseId: course.id },
-          _avg: { rating: true }
-        });
+        const [avgRating, totalEnrollments] = await Promise.all([
+          prisma.review.aggregate({
+            where: { courseId: course.id },
+            _avg: { rating: true }
+          }),
+          // Get accurate count of ALL enrollments from database
+          prisma.enrollment.count({
+            where: {
+              courseId: course.id
+            }
+          })
+        ]);
 
         return {
           ...course,
-          averageRating: avgRating._avg.rating || null
+          averageRating: avgRating._avg.rating || null,
+          // Override the _count with accurate database count
+          _count: {
+            ...course._count,
+            enrollments: totalEnrollments  // All enrollments from DB
+          }
         };
       })
     );
@@ -3356,6 +3440,9 @@ export const CreateMaterial = async (req: AuthRequest, res: express.Response) =>
       }
     });
 
+    // Recalculate progress for all enrollments in this course
+    await recalculateCourseEnrollments(courseId);
+
     return res.status(201).json({
       success: true,
       data: { material }
@@ -3490,6 +3577,77 @@ export const UpdateMaterial = async (req: AuthRequest, res: express.Response) =>
   }
 };
 
+// Helper function to recalculate progress for all enrollments in a course
+async function recalculateCourseEnrollments(courseId: string) {
+  try {
+    // Get all enrollments for this course
+    const enrollments = await prisma.enrollment.findMany({
+      where: { courseId },
+      select: { studentId: true }
+    });
+
+    // Get existing materials and assignments for this course
+    const [materials, assignments] = await Promise.all([
+      prisma.material.findMany({ where: { courseId }, select: { id: true } }),
+      prisma.assignment.findMany({ where: { courseId }, select: { id: true } })
+    ]);
+
+    const existingMaterialIds = materials.map(m => m.id);
+    const totalMaterials = materials.length;
+    const totalAssignments = assignments.length;
+    const totalItems = totalMaterials + totalAssignments;
+
+    // Recalculate progress for each enrollment
+    for (const enrollment of enrollments) {
+      const [completedMaterialsCount, submittedAssignmentsCount] = await Promise.all([
+        prisma.progress.count({
+          where: {
+            studentId: enrollment.studentId,
+            courseId,
+            isCompleted: true,
+            materialId: { in: existingMaterialIds } // Only count existing materials
+          }
+        }),
+        prisma.assignmentSubmission.count({
+          where: {
+            studentId: enrollment.studentId,
+            assignment: { courseId }
+          }
+        })
+      ]);
+
+      const completedItems = completedMaterialsCount + submittedAssignmentsCount;
+      const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+      // Update enrollment with new progress
+      // If progress < 100% and was COMPLETED, change back to ACTIVE
+      await prisma.enrollment.update({
+        where: {
+          studentId_courseId: {
+            studentId: enrollment.studentId,
+            courseId
+          }
+        },
+        data: {
+          progressPercentage,
+          ...(progressPercentage < 100 && {
+            status: 'ACTIVE',
+            completedAt: null
+          }),
+          ...(progressPercentage === 100 && {
+            status: 'COMPLETED',
+            completedAt: new Date()
+          })
+        }
+      });
+    }
+
+    console.log(`✅ Recalculated progress for ${enrollments.length} enrollments in course ${courseId}`);
+  } catch (error) {
+    console.error('Error recalculating course enrollments:', error);
+  }
+}
+
 export const DeleteMaterial = async (req: AuthRequest, res: express.Response) => {
   try {
     const { id } = req.params;
@@ -3543,10 +3701,15 @@ export const DeleteMaterial = async (req: AuthRequest, res: express.Response) =>
       }
     }
 
+    const courseId = material.courseId;
+
     // Delete the material from database
     await prisma.material.delete({
       where: { id }
     });
+
+    // Recalculate progress for all enrollments in this course
+    await recalculateCourseEnrollments(courseId);
 
     return res.json({
       success: true,
@@ -4525,19 +4688,39 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
       }
     });
 
+    // Get accurate counts from database
+    const [totalStudentsFromDB, totalEnrollmentsFromDB] = await Promise.all([
+      prisma.student.count(), // Total students in database
+      userRole === 'Admin'
+        ? prisma.enrollment.count() // Admin sees all enrollments
+        : prisma.enrollment.count({
+            where: {
+              course: {
+                OR: [
+                  { creatorId: userId },
+                  { tutorId: userId }
+                ]
+              }
+            }
+          })
+    ]);
+
     // Calculate completion rates based on actual progress data
     let totalMaterials = 0;
     let totalCompletedMaterials = 0;
-    let totalEnrollments = 0;
     let totalEarnings = 0;
     let totalReviews = 0;
     let weightedRating = 0;
     const uniqueStudentIds = new Set<string>();
 
-    const courseAnalytics = courses.map(course => {
+    const courseAnalytics = await Promise.all(courses.map(async (course) => {
       const materialCount = course.materials.length;
-      const studentCount = course._count.enrollments;
       const reviewCount = course._count.reviews;
+
+      // Get accurate enrollment count for this specific course from database
+      const studentCount = await prisma.enrollment.count({
+        where: { courseId: course.id }
+      });
 
       // Track unique students across all courses
       course.enrollments.forEach(enrollment => {
@@ -4546,11 +4729,11 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
 
       // Calculate completion rate for this course based on progressPercentage
       let completionRate = 0;
-      if (studentCount > 0) {
+      if (course.enrollments.length > 0) {
         const totalProgressPercentage = course.enrollments.reduce((sum, enrollment) => {
           return sum + enrollment.progressPercentage;
         }, 0);
-        completionRate = totalProgressPercentage / studentCount;
+        completionRate = totalProgressPercentage / course.enrollments.length;
       }
 
       // Calculate average rating for this course
@@ -4566,7 +4749,6 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         return sum + Math.floor((enrollment.progressPercentage / 100) * materialCount);
       }, 0);
       totalCompletedMaterials += courseCompletedMaterials;
-      totalEnrollments += studentCount;
       // Since there's no payment system implemented yet, revenue should be 0
       // totalEarnings += studentCount * course.price;
       totalReviews += reviewCount;
@@ -4585,17 +4767,14 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
           { date: '2024-03', count: Math.floor(studentCount * 0.5) }
         ]
       };
-    });
+    }));
 
     // Calculate overall completion rate
     const overallCompletionRate = totalMaterials > 0 ? (totalCompletedMaterials / totalMaterials) * 100 : 0;
 
-    // Get unique student count
-    const totalStudents = uniqueStudentIds.size;
-
     // Calculate growth rates (would need historical data for real growth)
-    const thisMonthStudents = Math.floor(totalStudents * 0.2);
-    const lastMonthStudents = Math.floor(totalStudents * 0.18);
+    const thisMonthStudents = Math.floor(totalStudentsFromDB * 0.2);
+    const lastMonthStudents = Math.floor(totalStudentsFromDB * 0.18);
     const thisMonthRevenue = 0; // No payment system implemented yet
     const lastMonthRevenue = 0; // No payment system implemented yet
 
@@ -4607,8 +4786,8 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         growth: 0 // No payment system implemented yet
       },
       students: {
-        total: totalStudents, // Unique student count
-        enrollments: totalEnrollments, // Total enrollments count (can be more than students if they enroll in multiple courses)
+        total: totalStudentsFromDB, // Total students from database
+        enrollments: totalEnrollmentsFromDB, // Total enrollments from database
         thisMonth: thisMonthStudents,
         lastMonth: lastMonthStudents,
         growth: lastMonthStudents > 0 ? ((thisMonthStudents - lastMonthStudents) / lastMonthStudents) * 100 : 0
@@ -4620,7 +4799,7 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
         archived: courses.filter(c => c.status === CourseStatus.ARCHIVED).length
       },
       engagement: {
-        totalEnrollments: totalEnrollments, // Total enrollment count
+        totalEnrollments: totalEnrollmentsFromDB, // Total enrollment count from database
         avgRating: totalReviews > 0 ? weightedRating / totalReviews : 0,
         totalReviews: totalReviews,
         completionRate: Math.round(overallCompletionRate * 100) / 100
@@ -4628,9 +4807,9 @@ export const GetTutorAnalytics = async (req: AuthRequest, res: express.Response)
     };
 
     const revenueData = [
-      { date: '2024-01', revenue: 0, students: Math.floor(totalStudents * 0.2) }, // No payment system implemented yet
-      { date: '2024-02', revenue: 0, students: Math.floor(totalStudents * 0.3) }, // No payment system implemented yet
-      { date: '2024-03', revenue: 0, students: Math.floor(totalStudents * 0.5) } // No payment system implemented yet
+      { date: '2024-01', revenue: 0, students: Math.floor(totalStudentsFromDB * 0.2) }, // No payment system implemented yet
+      { date: '2024-02', revenue: 0, students: Math.floor(totalStudentsFromDB * 0.3) }, // No payment system implemented yet
+      { date: '2024-03', revenue: 0, students: Math.floor(totalStudentsFromDB * 0.5) } // No payment system implemented yet
     ];
 
     return res.json({

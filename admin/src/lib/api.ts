@@ -332,6 +332,8 @@ class ApiClient {
   admin = {
     getStudentsCount: () => this.get<ApiResponse>('/students/count'),
     getAllRegisteredStudents: () => this.get<ApiResponse>('/students/registered'),
+    getStatsOverview: () => this.get<ApiResponse>('/students/stats/overview'),
+    getStudentStats: () => this.get<ApiResponse>('/students/stats/detailed'),
     toggleTutorStatus: (tutorId: string, isActive: boolean) =>
       this.put<ApiResponse>(`/admin/tutors/${tutorId}/status`, { isActive }),
     deleteUser: (userId: string) => this.delete<ApiResponse>(`/students/${userId}`),

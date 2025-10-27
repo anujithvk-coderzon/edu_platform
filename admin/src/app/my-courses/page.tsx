@@ -354,10 +354,6 @@ const Page = () => {
                 <span className="text-xs text-slate-500">
                   <span className="font-semibold text-slate-900">{totalCourses > 0 ? totalCourses : courses.length}</span> courses
                 </span>
-                <span className="text-xs text-slate-400">•</span>
-                <span className="text-xs text-slate-500">
-                  <span className="font-semibold text-slate-900">{courses.reduce((sum, c) => sum + (c._count?.enrollments || 0), 0)}</span> students
-                </span>
               </div>
             </div>
             <Link href="/create-course">
@@ -510,12 +506,7 @@ const Page = () => {
                   </div>
 
                   {/* Stats - Compact */}
-                  <div className="grid grid-cols-4 gap-2 mb-3 pb-3 border-b border-slate-100">
-                    <div className="text-center">
-                      <UsersIcon className="w-3.5 h-3.5 mx-auto mb-0.5 text-blue-600" />
-                      <div className="text-xs font-semibold text-slate-900">{course._count?.enrollments || 0}</div>
-                      <div className="text-[9px] text-slate-500">students</div>
-                    </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-slate-100">
                     <div className="text-center">
                       <CurrencyDollarIcon className="w-3.5 h-3.5 mx-auto mb-0.5 text-green-600" />
                       <div className="text-xs font-semibold text-slate-900">${course.price}</div>

@@ -311,9 +311,6 @@ export default function AnalyticsPage() {
               </div>
             </div>
             <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-slate-600 mb-1">Total Students</p>
-            <p className="text-[9px] sm:text-[10px] text-slate-500">
-              {analytics.students.enrollments?.toLocaleString() || 0} enrollments
-            </p>
           </div>
 
           {/* Courses Card */}

@@ -152,52 +152,74 @@ const Page = () => {
           // Get tutor's courses
           const coursesResponse = await api.courses.getMyCourses();
 
-          // Get proper student count from new endpoint
+          // Get proper counts from database
           let totalStudentsCount = 0;
+          let totalEnrollmentsCount = 0;
+          let totalCoursesCount = 0;
+
+          // Get student count from dedicated endpoint
           try {
             const studentsCountResponse = await api.admin.getStudentsCount();
-            console.log('📊 Students count response:', studentsCountResponse);
-
             if (studentsCountResponse.success && studentsCountResponse.data?.studentsCount !== undefined) {
               totalStudentsCount = studentsCountResponse.data.studentsCount;
               console.log(`✅ Successfully fetched student count: ${totalStudentsCount}`);
-            } else {
-              console.log('⚠️ Students count response missing data, using fallback');
             }
           } catch (error) {
             console.error('❌ Error fetching students count:', error);
-            console.log('🔄 Using enrollment-based fallback count');
+          }
+
+          // Get enrollment and course count from stats overview
+          try {
+            const statsOverviewResponse = await api.admin.getStatsOverview();
+            console.log('📊 Stats overview response:', statsOverviewResponse);
+
+            if (statsOverviewResponse.success && statsOverviewResponse.data?.stats) {
+              totalEnrollmentsCount = statsOverviewResponse.data.stats.totalEnrollments || 0;
+              totalCoursesCount = statsOverviewResponse.data.stats.totalCourses || 0;
+              console.log(`✅ Successfully fetched stats - Enrollments: ${totalEnrollmentsCount}, Courses: ${totalCoursesCount}`);
+            } else {
+              console.log('⚠️ Stats overview response missing data, using fallback');
+            }
+          } catch (error) {
+            console.error('❌ Error fetching stats overview:', error);
+            console.log('🔄 Using fallback counts');
           }
 
           if (coursesResponse.success) {
             const courses = coursesResponse.data.courses || [];
 
-            // Calculate total enrollments for comparison
-            let totalEnrollments = 0;
-            courses.forEach((course: any) => {
-              totalEnrollments += course._count?.enrollments || 0;
-            });
+            // If stats overview didn't work, fallback to calculating from courses
+            if (totalCoursesCount === 0) {
+              totalCoursesCount = coursesResponse.data.pagination?.total || coursesResponse.data.total || coursesResponse.data.coursesCount || courses.length;
+            }
 
-            console.log(`🎯 Final student count: ${totalStudentsCount}, Total enrollments: ${totalEnrollments}`);
+            if (totalEnrollmentsCount === 0) {
+              // Calculate total enrollments from the courses as fallback
+              courses.forEach((course: any) => {
+                totalEnrollmentsCount += course._count?.enrollments || 0;
+              });
+            }
+
+            console.log(`🎯 Final stats - Courses: ${totalCoursesCount}, Students: ${totalStudentsCount}, Enrollments: ${totalEnrollmentsCount}`);
 
             // Since there's no payment system implemented yet, earnings should be 0
             const totalEarnings = 0;
 
             // Calculate progress percentages based on dynamic goals
-            const courseGoal = Math.max(10, courses.length * 2);
-            const studentGoal = Math.max(50, totalStudentsCount * 2); // Goal based on total students
-            const earningsGoal = 1000; // Static goal since no payment system
-            const enrollmentsGoal = Math.max(100, totalEnrollments * 2); // Goal based on total enrollments
+            const courseGoal = Math.max(10, totalCoursesCount * 2);
+            const studentGoal = Math.max(50, totalStudentsCount * 2);
+            const earningsGoal = 1000;
+            const enrollmentsGoal = Math.max(100, totalEnrollmentsCount * 2);
 
             const stats: DashboardStats = {
-              totalCourses: courses.length,
-              totalStudents: totalStudentsCount, // Using total students from database
-              totalEnrollments: totalEnrollments, // Track total enrollments
+              totalCourses: totalCoursesCount, // Using total count from database
+              totalStudents: totalStudentsCount,
+              totalEnrollments: totalEnrollmentsCount, // Using total count from database
               totalEarnings: totalEarnings,
-              coursesProgress: Math.min((courses.length / courseGoal) * 100, 100),
-              studentsProgress: Math.min((totalStudentsCount / studentGoal) * 100, 100), // Using total students
+              coursesProgress: Math.min((totalCoursesCount / courseGoal) * 100, 100),
+              studentsProgress: Math.min((totalStudentsCount / studentGoal) * 100, 100),
               earningsProgress: Math.min((totalEarnings / earningsGoal) * 100, 100),
-              enrollmentsProgress: Math.min((totalEnrollments / enrollmentsGoal) * 100, 100)
+              enrollmentsProgress: Math.min((totalEnrollmentsCount / enrollmentsGoal) * 100, 100)
             };
 
             setData({

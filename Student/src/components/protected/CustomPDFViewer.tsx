@@ -23,7 +23,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   // Proxy PDF URL through backend to avoid CORS issues
   // Memoize with src dependency to only change when PDF source changes
   const proxyUrl = useMemo(() =>
-    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/student/proxy/pdf?url=${encodeURIComponent(src)}&t=${Date.now()}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/student/proxy/pdf?url=${encodeURIComponent(src)}&t=${Date.now()}`,
     [src]
   );
 
@@ -99,6 +99,10 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   }
 
   function onDocumentLoadError(error: Error) {
+    console.error('PDF Load Error:', error);
+    console.error('Proxy URL:', proxyUrl);
+    console.error('Original src:', src);
+    toast.error('Failed to load PDF. Please check your connection.');
     setLoading(false);
   }
 

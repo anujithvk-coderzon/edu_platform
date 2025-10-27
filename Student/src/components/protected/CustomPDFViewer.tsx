@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
@@ -29,15 +29,18 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [pageWidth, setPageWidth] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Proxy PDF URL through backend to avoid CORS issues
-  const proxyUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/student/proxy/pdf?url=${encodeURIComponent(src)}`;
+  const proxyUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/student/proxy/pdf?url=${encodeURIComponent(src)}&t=${Date.now()}`;
 
   // Memoize options to prevent unnecessary reloads
   const pdfOptions = useMemo(() => ({
     cMapUrl: 'https://unpkg.com/pdfjs-dist@4.4.168/cmaps/',
     standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@4.4.168/standard_fonts/',
+    withCredentials: false,
   }), []);
 
   // Calculate responsive width
@@ -95,12 +98,34 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
     setLoading(false);
+    setError(null);
+    setRetryCount(0);
   }
 
   function onDocumentLoadError(error: Error) {
     console.error('Error loading PDF:', error);
-    toast.error('Failed to load PDF');
+    setError(error.message);
     setLoading(false);
+
+    // Auto-retry up to 2 times
+    if (retryCount < 2) {
+      setTimeout(() => {
+        console.log(`Retrying PDF load (attempt ${retryCount + 1})...`);
+        setRetryCount(prev => prev + 1);
+        setLoading(true);
+        setError(null);
+      }, 2000);
+    } else {
+      toast.error('Failed to load PDF after multiple attempts. Please try again.');
+    }
+  }
+
+  function handleRetry() {
+    setError(null);
+    setLoading(true);
+    setRetryCount(0);
+    setPageNumber(1);
+    setNumPages(0);
   }
 
   const goToPrevPage = () => {
@@ -136,79 +161,106 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
       onDragStart={(e) => e.preventDefault()}
       style={{ userSelect: 'none' }}
     >
+      {/* Error Display with Retry */}
+      {error && !loading && (
+        <div className="flex items-center justify-center h-96 bg-red-50 border-2 border-red-200 rounded-lg">
+          <div className="text-center p-6 max-w-md">
+            <div className="text-red-600 text-4xl mb-4">⚠️</div>
+            <h3 className="text-lg font-semibold text-red-800 mb-2">Failed to Load PDF</h3>
+            <p className="text-sm text-red-600 mb-4">{error}</p>
+            <button
+              onClick={handleRetry}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mx-auto"
+            >
+              <ArrowPathIcon className="w-5 h-5" />
+              Retry Loading
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center h-96 bg-gray-100">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading PDF...</p>
+            {retryCount > 0 && (
+              <p className="mt-2 text-sm text-gray-500">Retry attempt {retryCount}/2</p>
+            )}
           </div>
         </div>
       )}
 
-      <Document
-        file={proxyUrl}
-        options={pdfOptions}
-        onLoadSuccess={onDocumentLoadSuccess}
-        onLoadError={onDocumentLoadError}
-        loading=""
-        className="flex flex-col items-center w-full"
-      >
-        <Page
-          pageNumber={pageNumber}
-          width={pageWidth || undefined}
-          renderTextLayer={true}
-          renderAnnotationLayer={true}
-          className="shadow-lg !max-w-full"
-          canvasRef={(ref) => {
-            if (ref) {
-              // Disable right-click on canvas
-              ref.oncontextmenu = (e) => {
-                e.preventDefault();
-                toast.error('⚠️ PDF content is protected');
-                return false;
-              };
-              // Disable dragging
-              ref.ondragstart = (e) => {
-                e.preventDefault();
-                return false;
-              };
-              // Make canvas non-selectable
-              ref.style.userSelect = 'none';
-              ref.style.webkitUserSelect = 'none';
-              ref.style.maxWidth = '100%';
-              ref.style.height = 'auto';
-            }
-          }}
-        />
-      </Document>
-
-      {/* Navigation Controls */}
-      {numPages > 0 && (
-        <div className="flex items-center justify-center gap-2 sm:gap-4 mt-4 bg-white p-3 sm:p-4 rounded-lg shadow flex-wrap">
-          <button
-            onClick={goToPrevPage}
-            disabled={pageNumber <= 1}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition text-sm sm:text-base"
+      {/* PDF Document Viewer */}
+      {!error && (
+        <>
+          <Document
+            file={proxyUrl}
+            options={pdfOptions}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+            loading=""
+            className="flex flex-col items-center w-full"
           >
-            <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Previous</span>
-            <span className="sm:hidden">Prev</span>
-          </button>
+            <Page
+              pageNumber={pageNumber}
+              width={pageWidth || undefined}
+              renderTextLayer={true}
+              renderAnnotationLayer={true}
+              className="shadow-lg !max-w-full"
+              canvasRef={(ref) => {
+                if (ref) {
+                  // Disable right-click on canvas
+                  ref.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    toast.error('⚠️ PDF content is protected');
+                    return false;
+                  };
+                  // Disable dragging
+                  ref.ondragstart = (e) => {
+                    e.preventDefault();
+                    return false;
+                  };
+                  // Make canvas non-selectable
+                  ref.style.userSelect = 'none';
+                  ref.style.webkitUserSelect = 'none';
+                  ref.style.maxWidth = '100%';
+                  ref.style.height = 'auto';
+                }
+              }}
+            />
+          </Document>
 
-          <span className="text-gray-700 font-medium text-sm sm:text-base whitespace-nowrap">
-            Page {pageNumber} of {numPages}
-          </span>
+          {/* Navigation Controls */}
+          {numPages > 0 && (
+            <div className="flex items-center justify-center gap-2 sm:gap-4 mt-4 bg-white p-3 sm:p-4 rounded-lg shadow flex-wrap">
+              <button
+                onClick={goToPrevPage}
+                disabled={pageNumber <= 1}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition text-sm sm:text-base"
+              >
+                <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
+              </button>
 
-          <button
-            onClick={goToNextPage}
-            disabled={pageNumber >= numPages}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition text-sm sm:text-base"
-          >
-            <span className="sm:hidden">Next</span>
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-        </div>
+              <span className="text-gray-700 font-medium text-sm sm:text-base whitespace-nowrap">
+                Page {pageNumber} of {numPages}
+              </span>
+
+              <button
+                onClick={goToNextPage}
+                disabled={pageNumber >= numPages}
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition text-sm sm:text-base"
+              >
+                <span className="sm:hidden">Next</span>
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <style jsx global>{`

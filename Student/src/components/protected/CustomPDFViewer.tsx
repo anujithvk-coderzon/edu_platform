@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
+import { env } from '@/config/env';
 
 interface CustomPDFViewerProps {
   src: string;
@@ -18,12 +19,14 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   const [mounted, setMounted] = useState(false);
   const [pdfComponents, setPdfComponents] = useState<any>(null);
   const [pageWidth, setPageWidth] = useState<number>(0);
+  const [error, setError] = useState<string>('');
+  const [useDirectLoad, setUseDirectLoad] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Proxy PDF URL through backend to avoid CORS issues
   // Memoize with src dependency to only change when PDF source changes
   const proxyUrl = useMemo(() =>
-    `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/student/proxy/pdf?url=${encodeURIComponent(src)}&t=${Date.now()}`,
+    `${env.API_BASE_URL}/student/proxy/pdf?url=${encodeURIComponent(src)}&t=${Date.now()}`,
     [src]
   );
 

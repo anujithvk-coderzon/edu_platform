@@ -299,6 +299,14 @@ router.get('/platform/stats', asyncHandler(GetPlatformStats));
 router.get('/debug/session', asyncHandler(DebugSessionInfo));
 
 // ===== PDF PROXY FOR CORS =====
+// Handle OPTIONS preflight request
+router.options('/proxy/pdf', (req: express.Request, res: express.Response) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Range');
+  res.status(200).send();
+});
+
 // Proxy PDF files to avoid CORS issues with react-pdf
 router.get('/proxy/pdf', async (req: express.Request, res: express.Response) => {
   try {
@@ -341,11 +349,23 @@ router.get('/proxy/pdf', async (req: express.Request, res: express.Response) => 
     res.send(response.data);
   } catch (error: any) {
     console.error('PDF proxy error:', error.message);
+    console.error('Requested URL:', req.query.url);
     if (error.response) {
       console.error('Response status:', error.response.status);
       console.error('Response headers:', error.response.headers);
     }
-    res.status(500).json({ error: 'Failed to fetch PDF' });
+    if (error.code === 'ETIMEDOUT') {
+      return res.status(504).json({ error: 'PDF fetch timeout. Please try again.' });
+    }
+    if (error.code === 'ENOTFOUND') {
+      return res.status(404).json({ error: 'PDF not found at source URL' });
+    }
+    // Set CORS headers even for error responses
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.status(500).json({
+      error: 'Failed to fetch PDF',
+      details: error.message
+    });
   }
 });
 

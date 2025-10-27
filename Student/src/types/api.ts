@@ -9,6 +9,7 @@ export interface User {
   role: UserRole;
   isVerified: boolean;
   isActive: boolean;
+  hasPassword?: boolean;
   createdAt: string;
   updatedAt: string;
 }

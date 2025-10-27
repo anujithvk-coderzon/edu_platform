@@ -58,37 +58,32 @@ export default function ProfilePage() {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      
+
       // Get user data
       const userResponse = await api.auth.getMe();
       if (userResponse.success) {
         setUser(userResponse.data.user);
-        
-        // Get user's courses
+
+        // Get analytics data for accurate counts
+        const analyticsResponse = await api.analytics.getTutorAnalytics();
+        if (analyticsResponse.success && analyticsResponse.data) {
+          const { analytics } = analyticsResponse.data;
+
+          setStats({
+            totalCourses: analytics.courses.total,
+            totalStudents: analytics.students.total,
+            totalEarnings: analytics.revenue.total,
+            averageRating: analytics.engagement.avgRating,
+            totalReviews: analytics.engagement.totalReviews,
+            joinDate: userResponse.data.user.createdAt || new Date().toISOString()
+          });
+        }
+
+        // Get user's courses for display
         const coursesResponse = await api.courses.getMyCourses();
         if (coursesResponse.success) {
           const userCourses = coursesResponse.data.courses || [];
           setCourses(userCourses);
-          
-          // Calculate stats
-          const totalStudents = userCourses.reduce((sum: number, course: any) => 
-            sum + (course._count?.enrollments || 0), 0);
-          // Since there's no payment system implemented yet, earnings should be 0
-          const totalEarnings = 0;
-          const totalReviews = userCourses.reduce((sum: number, course: any) => 
-            sum + (course._count?.reviews || 0), 0);
-          const weightedRating = userCourses.reduce((sum: number, course: any) => 
-            sum + ((course.averageRating || 0) * (course._count?.reviews || 0)), 0);
-          const averageRating = totalReviews > 0 ? weightedRating / totalReviews : 0;
-          
-          setStats({
-            totalCourses: userCourses.length,
-            totalStudents,
-            totalEarnings,
-            averageRating,
-            totalReviews,
-            joinDate: userResponse.data.user.createdAt || new Date().toISOString()
-          });
         }
       }
     } catch (error: any) {
@@ -193,16 +188,10 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded-lg w-1/4 mb-2"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/2 mb-6"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="h-80 bg-white rounded-xl shadow-sm border border-slate-200"></div>
-              <div className="lg:col-span-2 h-80 bg-white rounded-xl shadow-sm border border-slate-200"></div>
-            </div>
-          </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-slate-600 font-medium">Loading profile...</p>
         </div>
       </div>
     );
@@ -210,30 +199,33 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-1">
-                  Profile
-                </h1>
-                <p className="text-slate-600 text-sm sm:text-base">Manage your teaching profile and achievements</p>
-              </div>
+      {/* Hero Header with Gradient */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 pt-8 pb-44 sm:pb-52">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-2 ring-white/30">
+              <UserIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold" style={{ color: 'white' }}>Profile</h1>
+              <p className="text-sm sm:text-base mt-1" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>Manage your teaching profile and achievements</p>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-36 sm:-mt-44 pb-12">
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Profile Info */}
           <div className="lg:col-span-1 space-y-6">
             {/* Profile Card */}
-            <Card className="bg-white shadow-sm border border-slate-200">
-              <CardContent className="p-4 sm:p-6">
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-200">
                 <div className="text-center">
-                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-4">
-                    <div className="h-full w-full rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+                  <div className="relative h-24 w-24 mx-auto mb-4">
+                    <div className="h-full w-full rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-lg">
                       {avatarPreview ? (
                         <img
                           src={avatarPreview}
@@ -249,15 +241,15 @@ export default function ProfilePage() {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600" />
+                        <UserIcon className="h-12 w-12 text-slate-400" />
                       )}
                     </div>
                     <button
                       onClick={handleAvatarClick}
-                      className="absolute -bottom-1 -right-1 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-1.5 shadow-lg transition-colors duration-200"
+                      className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2.5 border-2 border-white shadow-lg transition-colors"
                       type="button"
                     >
-                      <CameraIcon className="h-3 w-3" />
+                      <CameraIcon className="h-4 w-4" />
                     </button>
                     <input
                       ref={fileInputRef}
@@ -270,163 +262,153 @@ export default function ProfilePage() {
 
                   {/* Avatar Upload Actions */}
                   {selectedAvatarFile && (
-                    <div className="mb-4 space-y-2">
-                      <p className="text-sm text-slate-600">Selected: {selectedAvatarFile.name}</p>
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
+                      <p className="text-xs text-slate-700 font-semibold truncate">Selected: {selectedAvatarFile.name}</p>
                       <div className="flex justify-center gap-2">
                         <Button
                           onClick={handleAvatarUpload}
                           disabled={avatarUploading}
-                          className="text-xs px-3 py-1"
+                          className="text-xs px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md"
                         >
-                          {avatarUploading ? 'Uploading...' : 'Upload'}
+                          {avatarUploading ? (
+                            <div className="flex items-center gap-1.5">
+                              <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Uploading...</span>
+                            </div>
+                          ) : 'Upload'}
                         </Button>
                         <Button
                           onClick={handleAvatarCancel}
-                          variant="outline"
-                          className="text-xs px-3 py-1"
+                          className="text-xs px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg"
                         >
                           Cancel
                         </Button>
                       </div>
                     </div>
                   )}
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1 break-words px-2">{user?.firstName} {user?.lastName}</h2>
-                  <p className="text-slate-600 text-sm px-2 py-1 bg-slate-100 rounded-full inline-block">{user?.role}</p>
-                  
+                  <h2 className="text-xl font-bold text-slate-900 mb-2">{user?.firstName} {user?.lastName}</h2>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-600 shadow-md" style={{ color: 'white' }}>
+                    {user?.role}
+                  </span>
+
                   {stats.averageRating > 0 && (
-                    <div className="flex items-center justify-center mt-3">
-                      <div className="flex items-center">
-                        {renderStars(stats.averageRating)}
-                        <span className="ml-2 text-xs sm:text-sm text-slate-600">
-                          {stats.averageRating.toFixed(1)} ({stats.totalReviews} reviews)
+                    <div className="flex items-center justify-center mt-4">
+                      <div className="flex items-center gap-1 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                        {renderStars(stats.averageRating, 'w-4 h-4')}
+                        <span className="ml-1.5 text-sm font-bold text-slate-900">
+                          {stats.averageRating.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-slate-600">
+                          ({stats.totalReviews})
                         </span>
                       </div>
                     </div>
                   )}
 
                   {user?.bio && (
-                    <p className="text-slate-600 text-sm mt-4 leading-relaxed bg-slate-50 p-3 rounded-lg">{user.bio}</p>
+                    <p className="text-slate-700 text-sm mt-4 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-200">{user.bio}</p>
                   )}
                 </div>
+              </div>
 
-                <div className="mt-6 space-y-3 border-t border-slate-200 pt-4">
-                  <div className="flex items-start text-sm text-slate-600 space-x-3 min-w-0">
-                    <EnvelopeIcon className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                    <span className="break-all min-w-0 flex-1">{user?.email}</span>
+              <div className="p-6 space-y-3">
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200">
+                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                    <EnvelopeIcon className="w-5 h-5 text-white" />
                   </div>
-                  <div className="flex items-center text-sm text-slate-600 space-x-3">
-                    <CalendarIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <span>Joined {new Date(stats.joinDate).toLocaleDateString('en-US', {
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-500 mb-0.5">Email</p>
+                    <p className="text-sm font-medium text-slate-900 break-all">{user?.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200">
+                  <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                    <CalendarIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-slate-500 mb-0.5">Joined</p>
+                    <p className="text-sm font-medium text-slate-900">{new Date(stats.joinDate).toLocaleDateString('en-US', {
                       year: 'numeric',
-                      month: 'long'
-                    })}</span>
+                      month: 'long',
+                      day: 'numeric'
+                    })}</p>
                   </div>
-                  {user?.timezone && (
-                    <div className="flex items-center text-sm text-slate-600 space-x-3">
-                      <GlobeAltIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                      <span>{user.timezone}</span>
-                    </div>
-                  )}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Stats Overview */}
-            <Card className="bg-white shadow-sm border border-slate-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center text-slate-900 text-base">
-                  <ChartBarIcon className="w-5 h-5 mr-2 text-slate-600" />
-                  Teaching Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <BookOpenIcon className="w-4 h-4 text-blue-600" />
+                {user?.timezone && (
+                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200">
+                    <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                      <GlobeAltIcon className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-sm text-slate-600">Total Courses</span>
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-slate-500 mb-0.5">Timezone</p>
+                      <p className="text-sm font-medium text-slate-900">{user.timezone}</p>
+                    </div>
                   </div>
-                  <span className="text-lg font-semibold text-slate-900">{stats.totalCourses}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                      <UserGroupIcon className="w-4 h-4 text-green-600" />
-                    </div>
-                    <span className="text-sm text-slate-600">Total Students</span>
-                  </div>
-                  <span className="text-lg font-semibold text-slate-900">{stats.totalStudents.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <CurrencyDollarIcon className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <span className="text-sm text-slate-600">Total Earnings</span>
-                  </div>
-                  <span className="text-lg font-semibold text-slate-900">${stats.totalEarnings.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <StarIcon className="w-4 h-4 text-yellow-600" />
-                    </div>
-                    <span className="text-sm text-slate-600">Avg. Rating</span>
-                  </div>
-                  <span className="text-lg font-semibold text-slate-900">
-                    {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Right Column - Courses and Activity */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Right Column - Courses */}
+          <div className="lg:col-span-2">
             {/* Courses */}
-            <Card className="bg-white shadow-sm border border-slate-200">
-              <CardHeader className="pb-3">
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <CardTitle className="flex items-center text-slate-900 text-base">
-                    <AcademicCapIcon className="w-5 h-5 mr-2 text-slate-600" />
-                    My Courses ({stats.totalCourses})
-                  </CardTitle>
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                      <AcademicCapIcon className="w-5 h-5 text-slate-600" />
+                      My Courses ({stats.totalCourses})
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1">Courses you've created and are teaching</p>
+                  </div>
                   <Link href="/my-courses">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">View All</Button>
+                    <Button className="w-full sm:w-auto text-xs px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md font-semibold">
+                      View More Courses
+                    </Button>
                   </Link>
                 </div>
-                <CardDescription className="text-slate-600 text-sm mt-1">Courses you've created and are teaching</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
+              </div>
+              <div className="p-6">
                 {courses.length > 0 ? (
                   <div className="space-y-3">
-                    {courses.slice(0, 4).map((course) => (
-                      <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border">
-                        <div className="flex items-center space-x-3 flex-1 min-w-0">
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <BookOpenIcon className="w-4 h-4 text-blue-600" />
+                    {courses.slice(0, 5).map((course) => (
+                      <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                            <BookOpenIcon className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-slate-900 text-sm truncate mb-1">
+                            <h4 className="font-bold text-slate-900 text-sm mb-1.5 line-clamp-1">
                               {course.title}
-                            </h3>
-                            <div className="flex flex-wrap gap-2 text-xs text-slate-600">
-                              <span>{course._count?.enrollments || 0} students</span>
-                              <span>•</span>
-                              <span>${course.price}</span>
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <div className="flex items-center gap-1.5">
+                                <UserGroupIcon className="w-3.5 h-3.5 text-slate-500" />
+                                <span className="font-medium text-slate-700">{course._count?.enrollments || 0}</span>
+                              </div>
+                              <span className="text-slate-400">•</span>
+                              <span className="font-semibold text-green-600">${course.price}</span>
                               {course.averageRating && (
                                 <>
-                                  <span>•</span>
-                                  <span>{course.averageRating.toFixed(1)} ★</span>
+                                  <span className="text-slate-400">•</span>
+                                  <div className="flex items-center gap-1">
+                                    <StarIcon className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                    <span className="font-medium text-slate-700">{course.averageRating.toFixed(1)}</span>
+                                  </div>
                                 </>
                               )}
-                              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            </div>
+                            <div className="mt-2">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${
                                 course.status === 'PUBLISHED'
-                                  ? 'bg-green-100 text-green-700'
+                                  ? 'bg-green-50 text-green-700 border-green-200'
                                   : course.status === 'DRAFT'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-slate-100 text-slate-700'
+                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                  : 'bg-slate-50 text-slate-700 border-slate-200'
                               }`}>
                                 {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
                               </span>
@@ -434,104 +416,39 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <Link href={`/courses/${course.id}/edit`} className="self-end sm:self-center">
-                          <Button variant="ghost" size="sm" className="w-full sm:w-auto text-xs">
+                          <Button className="w-full sm:w-auto text-xs px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg flex items-center gap-1.5 shadow-sm font-semibold">
+                            <PencilIcon className="w-3.5 h-3.5" />
                             Edit
                           </Button>
                         </Link>
                       </div>
                     ))}
-                    {courses.length > 4 && (
-                      <div className="text-center pt-4">
+                    {courses.length > 5 && (
+                      <div className="text-center pt-4 border-t border-slate-200 mt-2">
                         <Link href="/my-courses">
-                          <Button variant="outline" className="w-full sm:w-auto">
-                            View {courses.length - 4} More Course{courses.length - 4 !== 1 ? 's' : ''}
+                          <Button className="w-full sm:w-auto text-xs px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md">
+                            View More Courses
                           </Button>
                         </Link>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="h-16 w-16 sm:h-20 sm:w-20 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                      <BookOpenIcon className="h-8 w-8 sm:h-10 sm:w-10 text-slate-600" />
+                  <div className="text-center py-16">
+                    <div className="w-20 h-20 bg-slate-100 border-2 border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-sm">
+                      <BookOpenIcon className="w-10 h-10 text-slate-400" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2 sm:mb-3">No courses yet</h3>
-                    <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">Start creating courses to build your teaching profile!</p>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">No courses yet</h3>
+                    <p className="text-slate-600 mb-6 text-sm max-w-md mx-auto">Start creating courses to build your teaching profile and reach students worldwide!</p>
                     <Link href="/create-course">
-                      <Button className="w-full sm:w-auto">
-                        Create Course
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg">
+                        Create Your First Course
                       </Button>
                     </Link>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card className="bg-white shadow-sm border border-slate-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center text-slate-900 text-base">
-                  <ChartBarIcon className="w-5 h-5 mr-2 text-slate-600" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription className="text-slate-600 text-sm mt-1">Your latest teaching activities and achievements</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  {stats.totalCourses > 0 ? (
-                    <>
-                      <div className="flex items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border">
-                        <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <BookOpenIcon className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="ml-3 flex-1">
-                          <p className="text-sm font-medium text-slate-900">
-                            You have {stats.totalCourses} active course{stats.totalCourses !== 1 ? 's' : ''}
-                          </p>
-                          <p className="text-xs text-slate-600">Keep creating great content!</p>
-                        </div>
-                      </div>
-
-                      {stats.totalStudents > 0 && (
-                        <div className="flex items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border">
-                          <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <UserGroupIcon className="h-4 w-4 text-green-600" />
-                          </div>
-                          <div className="ml-3 flex-1">
-                            <p className="text-sm font-medium text-slate-900">
-                              {stats.totalStudents} student{stats.totalStudents !== 1 ? 's have' : ' has'} enrolled in your courses
-                            </p>
-                            <p className="text-xs text-slate-600">Great work reaching students!</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {stats.totalEarnings > 0 && (
-                        <div className="flex items-center p-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors border">
-                          <div className="h-8 w-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <CurrencyDollarIcon className="h-4 w-4 text-purple-600" />
-                          </div>
-                          <div className="ml-3 flex-1">
-                            <p className="text-sm font-medium text-slate-900">
-                              Total earnings: ${stats.totalEarnings.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-slate-600">Revenue from all courses</p>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="h-12 w-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <ChartBarIcon className="h-6 w-6 text-slate-600" />
-                      </div>
-                      <p className="text-sm font-medium text-slate-900 mb-1">No recent activity</p>
-                      <p className="text-xs text-slate-600">Start teaching to see your activity here!</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>

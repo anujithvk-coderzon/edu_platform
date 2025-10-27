@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Codiin - Learn & Grow",
+  title: "CODiiN - Learn & Grow",
   description: "Discover amazing courses and accelerate your learning journey",
 };
 

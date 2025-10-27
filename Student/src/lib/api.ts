@@ -173,7 +173,7 @@ class ApiClient {
   // Enrollment endpoints
   enrollments = {
     enroll: (courseId: string) => this.post<ApiResponse>('/enrollments/enroll', { courseId }),
-    getMy: () => this.get<ApiResponse>('/enrollments/my-enrollments'),
+    getMy: (params?: any) => this.get<ApiResponse>(`/enrollments/my-enrollments?${new URLSearchParams(params || {})}`),
     getProgress: (courseId: string) => this.get<ApiResponse>(`/enrollments/progress/${courseId}`),
     updateStatus: (enrollmentId: string, status: string) =>
       this.put<ApiResponse>(`/enrollments/${enrollmentId}/status`, { status }),
@@ -236,6 +236,12 @@ class ApiClient {
       formData.append('file', file);
       return this.uploadFile('/assignments/upload', formData);
     },
+  };
+
+  // Platform statistics endpoints
+  platform = {
+    getStats: () =>
+      this.get<ApiResponse>('/platform/stats'),
   };
 
 }

@@ -353,7 +353,16 @@ router.get('/courses', authMiddleware,
 );
 
 // Get my courses
-router.get('/courses/my-courses', authMiddleware, GetMyCourses);
+router.get('/courses/my-courses',
+  authMiddleware,
+  [
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 100 }),
+    query('search').optional().isString(),
+    query('status').optional().isString()
+  ],
+  GetMyCourses
+);
 
 // Get pending courses count (Admin only) - Must be before /courses/:id
 router.get('/courses/pending/count', authMiddleware, adminOnly, GetPendingCoursesCount);

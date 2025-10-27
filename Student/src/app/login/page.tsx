@@ -10,7 +10,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
   EyeIcon,
   EyeSlashIcon,
-  ShieldCheckIcon,
   LockClosedIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -100,15 +99,15 @@ export default function LoginPage() {
   // Don't render login form if already authenticated
   if (isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="text-center">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <ShieldCheckIcon className="h-8 w-8 text-blue-400 animate-pulse" />
+              <LockClosedIcon className="h-8 w-8 text-blue-600 animate-pulse" />
             </div>
           </div>
-          <p className="text-blue-200 mt-4 text-lg font-medium">Authenticating...</p>
+          <p className="text-gray-900 mt-4 text-lg font-medium">Authenticating...</p>
         </div>
       </div>
     );
@@ -276,260 +275,350 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234b5563' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px'
-        }}></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl opacity-10 animate-float"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl opacity-10 animate-float" style={{ animationDelay: '3s' }}></div>
-      </div>
+    <div className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-4.5rem)] md:h-[calc(100vh-5rem)] lg:h-[calc(100vh-6rem)] flex items-center justify-center relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 overflow-hidden">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
 
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-8 xl:p-12">
-        <div className="max-w-lg text-center lg:text-left space-y-6 lg:space-y-8 animate-slide-in-left">
-          <div className="flex items-center justify-center lg:justify-start space-x-3">
-            <div className="h-14 w-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-2xl animate-glow">
-              <BookOpenIcon className="h-8 w-8 text-white" />
+      {/* Floating Gradient Orbs */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl animate-float-slow"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl animate-float-slower"></div>
+
+      {/* Main Container */}
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 h-full flex items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full">
+
+          {/* Left Side - Branding */}
+          <div className="hidden lg:block space-y-8 animate-fade-in-left">
+            {/* Logo & Brand */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl blur-lg opacity-50"></div>
+                  <div className="relative h-16 w-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+                    <BookOpenIcon className="h-9 w-9 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900">CODiiN</h1>
+                  <p className="text-sm text-gray-600 font-medium">Learning Platform</p>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
+                  Welcome back to
+                  <span className="block mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    your learning journey
+                  </span>
+                </h2>
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  Access your courses, track your progress, and continue building your skills in programming and technology.
+                </p>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-white">Codiin</h1>
           </div>
 
-          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight">
-            Learn. Code.
-            <span className="block text-blue-400">Excel Together.</span>
-          </h2>
+          {/* Right Side - Login Form */}
+          <div className="w-full flex items-center justify-center animate-fade-in-right">
+            <div className="w-full max-w-md">
 
-          <p className="text-lg xl:text-xl text-blue-200">
-            Join thousands of learners on their journey to master programming and technology skills.
-          </p>
-
-        </div>
-      </div>
-
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8 relative z-10">
-        <div className="max-w-md w-full space-y-3 sm:space-y-4 md:space-y-6 animate-slide-in-right">
-          {/* Mobile Logo */}
-          <div className="lg:hidden text-center mb-2 sm:mb-3 md:mb-4">
-            <div className="flex items-center justify-center space-x-2 mb-1.5 sm:mb-2">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-xl">
-                <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              {/* Mobile Logo */}
+              <div className="lg:hidden text-center mb-3 sm:mb-4">
+                <div className="flex items-center justify-center space-x-2 sm:space-x-3 mb-1 sm:mb-2">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg sm:rounded-xl blur-md sm:blur-lg opacity-40"></div>
+                    <div className="relative h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                      <BookOpenIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                    </div>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">CODiiN</h1>
+                </div>
               </div>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Codiin</h1>
-            </div>
-            <p className="text-blue-200 text-xs sm:text-sm">Codiin Learning Platform</p>
-          </div>
 
-          {/* Login Form */}
-          <Card className="bg-white/95 backdrop-blur-xl shadow-2xl border-0 rounded-xl sm:rounded-2xl overflow-hidden hover-lift">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 p-2.5 sm:p-3 md:p-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 sm:w-40 h-32 sm:h-40 bg-blue-500 rounded-full filter blur-3xl opacity-20"></div>
-              <div className="relative z-10">
-                <CardTitle className="text-base sm:text-lg md:text-xl lg:text-2xl text-white font-bold">Welcome Back</CardTitle>
-                <CardDescription className="text-blue-100 mt-1 text-xs sm:text-sm">
-                  Sign in to continue your learning journey
-                </CardDescription>
-              </div>
-            </CardHeader>
+              {/* Login Card */}
+              <Card className="relative bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/40 backdrop-blur-2xl shadow-[0_20px_70px_rgba(59,130,246,0.3),0_0_0_1px_rgba(255,255,255,0.8)] border-0 rounded-2xl sm:rounded-[2rem] overflow-hidden">
+                {/* Animated gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-indigo-400/5 to-purple-400/5 animate-pulse-subtle"></div>
 
-            <CardContent className="p-2.5 sm:p-3 md:p-5">
-              <form className="space-y-2.5 sm:space-y-3 md:space-y-4" onSubmit={handleSubmit}>
-                {/* Error or Block Message */}
-                {(errors.general || isBlocked) && (
-                  <div className={`${isBlocked ? 'bg-orange-50 border-orange-200' : 'bg-red-50 border-red-200'} border rounded-lg p-2 sm:p-2.5 md:p-3 flex items-start space-x-2`}>
-                    <ExclamationTriangleIcon className={`h-4 w-4 ${isBlocked ? 'text-orange-600' : 'text-red-600'} flex-shrink-0 mt-0.5`} />
-                    <div className="flex-1">
-                      <p className={`text-xs sm:text-sm font-medium ${isBlocked ? 'text-orange-800' : 'text-red-800'}`}>
-                        {isBlocked ? `Account temporarily locked. Please wait ${blockTimer} seconds.` : errors.general}
-                      </p>
-                      {loginAttempts > 0 && !isBlocked && (
-                        <p className="text-xs text-red-600 mt-0.5 sm:mt-1">
-                          {3 - loginAttempts} attempt{3 - loginAttempts !== 1 ? 's' : ''} remaining
+                {/* Top accent with animated gradient */}
+                <div className="absolute top-0 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+
+                {/* Decorative corner elements - hidden on mobile */}
+                <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-[5rem] blur-2xl"></div>
+                <div className="hidden sm:block absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-indigo-500/10 to-transparent rounded-tr-[5rem] blur-2xl"></div>
+
+                <CardHeader className="px-3 sm:px-5 md:px-6 pt-3 sm:pt-4 pb-2 sm:pb-3 space-y-0.5 relative">
+                  <CardTitle className="text-lg sm:text-xl md:text-2xl font-semibold bg-gradient-to-r from-gray-800 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight">
+                    Welcome back! 👋
+                  </CardTitle>
+                  <CardDescription className="text-[11px] sm:text-xs md:text-sm text-gray-600 font-normal leading-snug sm:leading-relaxed">
+                    Sign in to access your <span className="text-blue-600 font-medium">personalized</span> learning dashboard
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="px-3 sm:px-5 md:px-6 pb-3 sm:pb-4 md:pb-5 relative">
+                  <form className="space-y-2.5 sm:space-y-3 md:space-y-3.5" onSubmit={handleSubmit}>
+
+                    {/* Error or Block Message */}
+                    {(errors.general || isBlocked) && (
+                      <div className={`relative ${
+                        isBlocked ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-l-3 sm:border-l-4 border-amber-500' : 'bg-gradient-to-r from-red-50 to-rose-50 border-l-3 sm:border-l-4 border-red-500'
+                      } rounded-lg p-1.5 sm:p-2 md:p-2.5 flex items-start space-x-1.5 sm:space-x-2 animate-shake shadow-sm`}>
+                        <div className={`${isBlocked ? 'bg-amber-500' : 'bg-red-500'} rounded-full p-0.5 sm:p-1 mt-0.5`}>
+                          <ExclamationTriangleIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white flex-shrink-0" />
+                        </div>
+                        <div className="flex-1">
+                          <p className={`text-[10px] sm:text-xs font-semibold ${
+                            isBlocked ? 'text-amber-900' : 'text-red-900'
+                          }`}>
+                            {isBlocked ? `Account temporarily locked. Please wait ${blockTimer} seconds.` : errors.general}
+                          </p>
+                          {loginAttempts > 0 && !isBlocked && (
+                            <p className="text-[10px] sm:text-xs text-red-700 mt-0.5 font-medium">
+                              {3 - loginAttempts} attempt{3 - loginAttempts !== 1 ? 's' : ''} remaining
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Email Field */}
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <label htmlFor="email" className="text-xs sm:text-sm font-medium text-gray-700">
+                        Email address
+                      </label>
+                      <div className="relative group">
+                        {/* Glow effect on focus - hidden on mobile for performance */}
+                        <div className="hidden sm:block absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl opacity-0 group-focus-within:opacity-20 blur transition duration-300"></div>
+
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-2 sm:pl-2.5 md:pl-4 flex items-center pointer-events-none">
+                            <div className="relative">
+                              <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                              </svg>
+                            </div>
+                          </div>
+                          <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            autoComplete="email"
+                            placeholder="you@example.com"
+                            value={email}
+                            onChange={(e) =>
+                              setLoginData((prev) => ({ ...prev, email: e.target.value }))
+                            }
+                            disabled={isBlocked}
+                            error={errors.email}
+                            className={`w-full h-9 sm:h-10 md:h-11 bg-white border-2 ${
+                              errors.email ? 'border-red-400 focus:border-red-500 focus:ring-2 sm:focus:ring-4 focus:ring-red-100 shadow-red-100' :
+                              email && !errors.email ? 'border-green-400 focus:border-green-500 focus:ring-2 sm:focus:ring-4 focus:ring-green-100 shadow-green-100 bg-green-50/20' :
+                              'border-gray-200 focus:border-blue-500 focus:ring-2 sm:focus:ring-4 focus:ring-blue-100 shadow-blue-50'
+                            } rounded-lg sm:rounded-xl pl-8 sm:pl-9 md:pl-12 pr-8 sm:pr-9 md:pr-12 text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 font-medium shadow-sm sm:shadow-md hover:shadow-md sm:hover:shadow-lg ${
+                              isBlocked ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'hover:border-blue-300'
+                            }`}
+                          />
+                          {email && !errors.email && (
+                            <div className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                              <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-0.5 sm:p-1 shadow-md sm:shadow-lg shadow-green-200 animate-in fade-in zoom-in duration-300">
+                                <CheckCircleIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {errors.email && (
+                        <p className="text-[10px] sm:text-xs text-red-600 flex items-center space-x-1 sm:space-x-1.5 font-semibold animate-in slide-in-from-left duration-200">
+                          <ExclamationTriangleIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <span>{errors.email}</span>
                         </p>
                       )}
                     </div>
-                  </div>
-                )}
 
-                <div>
-                  <label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-gray-800 mb-1 sm:mb-1.5">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="student@example.com"
-                      value={email}
-                      onChange={(e) =>
-                        setLoginData((prev) => ({ ...prev, email: e.target.value }))
-                      }
-                      disabled={isBlocked}
-                      error={errors.email}
-                      className={`w-full bg-gray-50 border-gray-300 rounded-lg px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 ${isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    />
-                    {email && !errors.email && (
-                      <CheckCircleIcon className="absolute right-2.5 top-2 sm:top-2.5 h-4 w-4 text-green-500" />
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1 sm:mb-1.5">
-                    <label htmlFor="password" className="block text-xs sm:text-sm font-semibold text-gray-800">
-                      Password
-                    </label>
-                    {capsLockActive && (
-                      <div className="flex items-center space-x-1 text-amber-600">
-                        <ExclamationTriangleIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span className="text-xs font-medium">Caps Lock</span>
+                    {/* Password Field */}
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="password" className="text-xs sm:text-sm font-medium text-gray-700">
+                          Password
+                        </label>
+                        {capsLockActive && (
+                          <div className="flex items-center space-x-0.5 sm:space-x-1 text-amber-800 bg-gradient-to-r from-amber-100 to-orange-100 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-amber-300 sm:border-2 shadow-sm sm:shadow-md animate-pulse">
+                            <ExclamationTriangleIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <span className="text-[8px] sm:text-[10px] font-bold uppercase">Caps</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) =>
-                        setLoginData((prev) => ({ ...prev, password: e.target.value }))
-                      }
-                      disabled={isBlocked}
-                      error={errors.password}
-                      className={`w-full bg-gray-50 border-gray-300 rounded-lg px-2.5 sm:px-3 md:px-4 py-2 sm:py-2.5 md:py-3 pr-9 sm:pr-10 text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 ${isBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeSlashIcon className="h-4 w-4" />
-                      ) : (
-                        <EyeIcon className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      <div className="relative group">
+                        {/* Glow effect on focus - hidden on mobile for performance */}
+                        <div className="hidden sm:block absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl opacity-0 group-focus-within:opacity-20 blur transition duration-300"></div>
 
-                <div className="space-y-2 sm:space-y-2.5 md:space-y-3">
-                  <div className="flex items-center justify-end">
-                    <div className="text-xs sm:text-sm">
-                      <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-                        Forgot password?
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-2 sm:pl-2.5 md:pl-4 flex items-center pointer-events-none">
+                            <div className="relative">
+                              <LockClosedIcon className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors duration-300" />
+                              <div className="hidden sm:block absolute -inset-1 bg-blue-500/20 rounded-full opacity-0 group-focus-within:opacity-100 blur-sm transition duration-300"></div>
+                            </div>
+                          </div>
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete="current-password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) =>
+                              setLoginData((prev) => ({ ...prev, password: e.target.value }))
+                            }
+                            disabled={isBlocked}
+                            error={errors.password}
+                            className={`w-full h-9 sm:h-10 md:h-11 bg-white border-2 ${
+                              errors.password ? 'border-red-400 focus:border-red-500 focus:ring-2 sm:focus:ring-4 focus:ring-red-100' :
+                              'border-gray-200 focus:border-blue-500 focus:ring-2 sm:focus:ring-4 focus:ring-blue-100'
+                            } rounded-lg sm:rounded-xl pl-8 sm:pl-9 md:pl-12 pr-9 sm:pr-10 md:pr-14 text-xs sm:text-sm text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 font-medium shadow-sm sm:shadow-md hover:shadow-md sm:hover:shadow-lg ${
+                              isBlocked ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'hover:border-blue-300'
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-all duration-300 focus:outline-none p-1 sm:p-1.5 rounded-lg hover:bg-blue-50 active:scale-95"
+                            onClick={() => setShowPassword(!showPassword)}
+                            tabIndex={-1}
+                          >
+                            {showPassword ? (
+                              <EyeSlashIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                            ) : (
+                              <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      {errors.password && (
+                        <p className="text-[10px] sm:text-xs text-red-600 flex items-center space-x-1 sm:space-x-1.5 font-semibold animate-in slide-in-from-left duration-200">
+                          <ExclamationTriangleIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                          <span>{errors.password}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Forgot Password Link */}
+                    <div className="flex items-center justify-end -mt-0.5">
+                      <Link
+                        href="/forgot-password"
+                        className="text-[11px] sm:text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 transition-all duration-200 relative group"
+                      >
+                        <span>Forgot password?</span>
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-200"></span>
                       </Link>
                     </div>
-                  </div>
 
-                  <Button
-                    type="submit"
-                    className={`w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2.5 sm:py-3 md:py-3.5 px-3 sm:px-4 md:px-6 text-sm rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center space-x-2 ${
-                      loading || isBlocked ? 'opacity-75 cursor-not-allowed' : ''
-                    }`}
-                    disabled={loading || isBlocked}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        <span className="text-sm">Authenticating...</span>
-                      </>
-                    ) : isBlocked ? (
-                      <>
-                        <LockClosedIcon className="h-4 w-4" />
-                        <span className="text-sm">Account Locked ({blockTimer}s)</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-sm">Sign In</span>
-                        <LockClosedIcon className="h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
+                    {/* Sign In Button */}
+                    <Button
+                      type="submit"
+                      className={`relative w-full h-9 sm:h-10 md:h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold rounded-lg sm:rounded-xl shadow-[0_4px_16px_rgba(59,130,246,0.3),0_0_0_1px_rgba(255,255,255,0.1)_inset] sm:shadow-[0_6px_20px_rgba(59,130,246,0.4),0_0_0_1px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_8px_24px_rgba(99,102,241,0.4),0_0_0_1px_rgba(255,255,255,0.2)_inset] sm:hover:shadow-[0_10px_28px_rgba(99,102,241,0.5),0_0_0_1px_rgba(255,255,255,0.2)_inset] transition-all duration-300 flex items-center justify-center space-x-1.5 sm:space-x-2 text-[11px] sm:text-xs md:text-sm overflow-hidden group ${
+                        loading || isBlocked ? 'opacity-75 cursor-not-allowed' : 'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.97] sm:hover:-translate-y-0.5'
+                      }`}
+                      disabled={loading || isBlocked}
+                    >
+                      {/* Shimmer effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
-                {/* OAuth Divider */}
-                <div className="relative my-3 sm:my-4 md:my-5">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs sm:text-sm">
-                    <span className="px-3 sm:px-4 bg-white text-gray-500">Or continue with</span>
-                  </div>
-                </div>
+                      {/* Glow effect - hidden on mobile */}
+                      <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-30 blur-xl transition-opacity duration-300"></div>
 
-                {/* OAuth Buttons */}
-                <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3">
-                  {/* Google Sign In */}
-                  <button
-                    type="button"
-                    onClick={onGoogleLoginClick}
-                    disabled={isBlocked || loading}
-                    className={`flex items-center justify-center px-2 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition-all duration-200 ${
-                      isBlocked || loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
-                    }`}
-                  >
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 24 24">
-                      <path
-                        fill="#4285F4"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm font-medium text-gray-700">Google</span>
-                  </button>
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent relative"></div>
+                          <span className="relative font-medium">Signing in...</span>
+                        </>
+                      ) : isBlocked ? (
+                        <>
+                          <LockClosedIcon className="h-4 w-4 sm:h-5 sm:w-5 relative" />
+                          <span className="relative font-medium">Locked ({blockTimer}s)</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="relative font-medium tracking-wide">Sign in to your account</span>
+                          <svg className="h-4 w-4 sm:h-5 sm:w-5 relative group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </>
+                      )}
+                    </Button>
 
-                  {/* GitHub Sign In */}
-                  <button
-                    type="button"
-                    onClick={onGithubLoginClick}
-                    disabled={isBlocked || loading}
-                    className={`flex items-center justify-center px-2 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition-all duration-200 ${
-                      isBlocked || loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'
-                    }`}
-                  >
-                    <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path
-                        fillRule="evenodd"
-                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm font-medium text-gray-700">GitHub</span>
-                  </button>
-                </div>
+                    {/* OAuth Divider */}
+                    <div className="relative my-2 sm:my-3 md:my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-100 sm:border-t-2"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 sm:px-3 bg-white text-gray-400 font-semibold text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider">Or continue with</span>
+                      </div>
+                    </div>
 
-                {/* Sign Up Link */}
-                <div className="pt-3 sm:pt-4 md:pt-5 border-t border-gray-100 mt-3 sm:mt-4 md:mt-5">
-                  <p className="text-center text-xs sm:text-sm text-gray-600">
-                    Don&apos;t have an account?{' '}
-                    <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
-                      Sign up for free
-                    </Link>
-                  </p>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                    {/* OAuth Buttons */}
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2 md:gap-3">
+                      {/* Google */}
+                      <button
+                        type="button"
+                        onClick={onGoogleLoginClick}
+                        disabled={isBlocked || loading}
+                        className={`group relative flex items-center justify-center h-8 sm:h-9 md:h-11 px-2 sm:px-3 md:px-4 border border-gray-200 sm:border-2 rounded-lg sm:rounded-xl bg-white hover:border-blue-400 transition-all duration-300 overflow-hidden shadow-sm sm:shadow-md hover:shadow-lg sm:hover:shadow-xl ${
+                          isBlocked || loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.97]'
+                        }`}
+                      >
+                        {/* Animated gradient background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+
+                        <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 relative group-hover:scale-110 transition-transform duration-300" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span className="ml-1 sm:ml-1.5 md:ml-2.5 text-[10px] sm:text-[11px] md:text-sm font-medium text-gray-700 relative">Google</span>
+                      </button>
+
+                      {/* GitHub */}
+                      <button
+                        type="button"
+                        onClick={onGithubLoginClick}
+                        disabled={isBlocked || loading}
+                        className={`group relative flex items-center justify-center h-8 sm:h-9 md:h-11 px-2 sm:px-3 md:px-4 border border-gray-200 sm:border-2 rounded-lg sm:rounded-xl bg-white hover:border-gray-400 transition-all duration-300 overflow-hidden shadow-sm sm:shadow-md hover:shadow-lg sm:hover:shadow-xl ${
+                          isBlocked || loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.97]'
+                        }`}
+                      >
+                        {/* Animated gradient background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+
+                        <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 text-gray-900 relative group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                          <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"/>
+                        </svg>
+                        <span className="ml-1 sm:ml-1.5 md:ml-2.5 text-[10px] sm:text-[11px] md:text-sm font-medium text-gray-700 relative">GitHub</span>
+                      </button>
+                    </div>
+
+                    {/* Sign Up Link */}
+                    <div className="pt-2 sm:pt-3 md:pt-4 mt-1 border-t border-gray-100">
+                      <p className="text-center text-[11px] sm:text-xs md:text-sm text-gray-600 font-normal">
+                        Don&apos;t have an account?{' '}
+                        <Link href="/register" className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 relative group inline-block">
+                          <span>Create account</span>
+                          <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                        </Link>
+                      </p>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
         </div>
       </div>

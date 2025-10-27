@@ -16,6 +16,7 @@ interface User {
   gender?: string;
   city?: string;
   education?: string;
+  hasPassword?: boolean; // False for OAuth users (Google/GitHub)
   institution?: string;
   occupation?: string;
   company?: string;
@@ -60,6 +61,7 @@ const authApi = {
         gender: response.data.user.gender,
         city: response.data.user.city,
         education: response.data.user.education,
+        hasPassword: response.data.user.hasPassword,
         institution: response.data.user.institution,
         occupation: response.data.user.occupation,
         company: response.data.user.company,
@@ -86,6 +88,7 @@ const authApi = {
         gender: response.data.user.gender,
         city: response.data.user.city,
         education: response.data.user.education,
+        hasPassword: response.data.user.hasPassword,
         institution: response.data.user.institution,
         occupation: response.data.user.occupation,
         company: response.data.user.company,
@@ -113,6 +116,7 @@ const authApi = {
           gender: response.data.user.gender,
           city: response.data.user.city,
           education: response.data.user.education,
+          hasPassword: response.data.user.hasPassword,
           institution: response.data.user.institution,
           occupation: response.data.user.occupation,
           company: response.data.user.company,
@@ -157,6 +161,7 @@ const authApi = {
         gender: response.data.user.gender,
         city: response.data.user.city,
         education: response.data.user.education,
+        hasPassword: response.data.user.hasPassword,
         institution: response.data.user.institution,
         occupation: response.data.user.occupation,
         company: response.data.user.company,

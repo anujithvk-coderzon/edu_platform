@@ -87,7 +87,7 @@ export default function CourseCard({ course }: CourseCardProps) {
         return { text: 'Rate Course', color: 'bg-orange-500' };
       }
     } else {
-      return { text: `${Math.min(100, Math.round(course.progressPercentage || 0))}%`, color: 'bg-blue-500' };
+      return { text: `${Math.min(100, Math.round(course.progressPercentage || 0))}%`, color: 'bg-indigo-600' };
     }
   };
 
@@ -127,12 +127,12 @@ export default function CourseCard({ course }: CourseCardProps) {
           <BookOpenIcon className="h-20 w-20 text-white opacity-90 group-hover:scale-110 transition-transform duration-300" />
         </div>
         {statusBadge && (
-          <div className={`absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 ${statusBadge.color} text-white px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-bold shadow-md sm:shadow-lg backdrop-blur-sm border border-white/20`}>
+          <div className={`absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4 ${statusBadge.color} px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-bold shadow-md sm:shadow-lg backdrop-blur-sm border border-white/20`} style={{ color: 'white' }}>
             {statusBadge.text}
           </div>
         )}
         {course.category && (
-          <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 left-2 sm:left-3 md:left-4 bg-black/80 backdrop-blur-sm text-white px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-medium border border-white/20">
+          <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 left-2 sm:left-3 md:left-4 bg-black/80 backdrop-blur-sm px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-medium border border-white/20" style={{ color: 'white' }}>
             🏷️ {course.category.name}
           </div>
         )}

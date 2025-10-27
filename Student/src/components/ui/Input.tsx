@@ -22,18 +22,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
   const inputId = id || `input-${generatedId}`;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1 sm:space-y-2">
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+          className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5"
         >
           {label}
         </label>
       )}
       <div className="relative group">
         {leftIcon && (
-          <div className="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 md:pl-4 flex items-center pointer-events-none z-10">
+          <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 md:pl-4 flex items-center pointer-events-none z-10">
             <div className="text-slate-500 group-focus-within:text-indigo-600 w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-200">{leftIcon}</div>
           </div>
         )}
@@ -41,9 +41,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
           id={inputId}
           type={type}
           className={cn(
-            'block w-full rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50',
-            leftIcon && 'pl-9 sm:pl-10 md:pl-12',
-            rightIcon && 'pr-9 sm:pr-10 md:pr-12',
+            'block w-full rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50',
+            leftIcon && 'pl-8 sm:pl-10 md:pl-12',
+            rightIcon && 'pr-8 sm:pr-10 md:pr-12',
             error && 'border-red-400 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50',
             className
           )}
@@ -51,7 +51,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
           {...props}
         />
         {rightIcon && (
-          <div className="absolute inset-y-0 right-0 pr-2.5 sm:pr-3 md:pr-4 flex items-center pointer-events-none z-10">
+          <div className="absolute inset-y-0 right-0 pr-2 sm:pr-3 md:pr-4 flex items-center pointer-events-none z-10">
             <div className="text-slate-500 group-focus-within:text-indigo-600 w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-200">{rightIcon}</div>
           </div>
         )}

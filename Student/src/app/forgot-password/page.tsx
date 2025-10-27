@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
             required
             value={state.email}
             onChange={(e) => setState(prev => ({ ...prev, email: e.target.value }))}
-            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Enter your email address"
           />
         </div>
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
             maxLength={6}
             value={state.otp}
             onChange={(e) => setState(prev => ({ ...prev, otp: e.target.value }))}
-            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-center text-base sm:text-lg tracking-wider"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-center text-base sm:text-lg tracking-wider"
             placeholder="000000"
           />
         </div>
@@ -206,7 +206,7 @@ export default function ForgotPasswordPage() {
             required
             value={state.newPassword}
             onChange={(e) => setState(prev => ({ ...prev, newPassword: e.target.value }))}
-            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Enter new password"
           />
         </div>
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
             required
             value={state.confirmPassword}
             onChange={(e) => setState(prev => ({ ...prev, confirmPassword: e.target.value }))}
-            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            className="appearance-none block w-full px-2.5 sm:px-3 py-2 sm:py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             placeholder="Confirm new password"
           />
         </div>

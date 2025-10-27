@@ -277,3 +277,62 @@ export const getVideoPlayerUrl = (guid: string): string => {
   const libraryId = process.env.BUNNY_STREAM_LIBRARY_ID;
   return `https://iframe.mediadelivery.net/play/${libraryId}/${guid}`;
 };
+
+/**
+ * Delete video from Bunny Stream
+ *
+ * @param guid - The video GUID to delete
+ * @returns True if deletion successful, false otherwise
+ */
+export const deleteVideoFromBunnyStream = async (guid: string): Promise<boolean> => {
+  const streamApiKey = process.env.BUNNY_STREAM_API;
+  const libraryId = process.env.BUNNY_STREAM_LIBRARY_ID;
+
+  try {
+    if (!streamApiKey || !libraryId) {
+      throw new Error("Bunny Stream environment variables not set");
+    }
+
+    if (!guid) {
+      console.error("❌ Cannot delete video: GUID is required");
+      return false;
+    }
+
+    console.log(`🗑️  Deleting video from Bunny Stream: ${guid}`);
+
+    const url = `https://video.bunnycdn.com/library/${libraryId}/videos/${guid}`;
+
+    const response = await axios.delete(url, {
+      headers: {
+        AccessKey: streamApiKey,
+      },
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      console.log(`✅ Successfully deleted video from Bunny Stream: ${guid}`);
+      return true;
+    } else {
+      console.error(`❌ Failed to delete video. Status: ${response.status}`);
+      return false;
+    }
+  } catch (error: any) {
+    console.error("❌ Error deleting video from Bunny Stream:");
+
+    if (error.response) {
+      console.error("Response status:", error.response.status);
+      console.error("Response data:", error.response.data);
+
+      // Video not found is still considered successful deletion
+      if (error.response.status === 404) {
+        console.log(`⚠️  Video ${guid} not found in Bunny Stream (may have been already deleted)`);
+        return true;
+      }
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+    } else {
+      console.error("Error message:", error.message);
+    }
+
+    return false;
+  }
+};

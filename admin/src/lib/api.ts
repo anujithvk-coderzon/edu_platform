@@ -188,7 +188,7 @@ class ApiClient {
   courses = {
     getAll: (params?: any) => this.get<PaginatedResponse>(`/courses?${new URLSearchParams(params || {})}`),
     getById: (id: string) => this.get<ApiResponse>(`/courses/${id}`),
-    getMyCourses: () => this.get<ApiResponse>('/courses/my-courses'),
+    getMyCourses: (params?: any) => this.get<ApiResponse>(`/courses/my-courses${params ? '?' + new URLSearchParams(params) : ''}`),
     create: (data: any) => this.post<ApiResponse>('/courses', data),
     update: (id: string, data: any) => this.put<ApiResponse>(`/courses/${id}`, data),
     delete: (id: string) => this.delete<ApiResponse>(`/courses/${id}`),

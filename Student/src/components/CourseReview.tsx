@@ -112,7 +112,7 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
           <textarea
             id="comment"
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-black"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
             placeholder="Share your experience with this course..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}

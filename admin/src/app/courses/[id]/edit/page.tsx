@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '../../../../components/ui/Button';
 import toast from 'react-hot-toast';
 import { api } from '../../../../lib/api';
@@ -28,6 +28,7 @@ import {
   XMarkIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../../../../contexts/AuthContext';
@@ -140,6 +141,7 @@ const materialTypes: SelectOption[] = [
 export default function CourseEditPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const courseId = params.id as string;
   const { user } = useAuth();
 
@@ -285,6 +287,10 @@ export default function CourseEditPage() {
           thumbnailFile: undefined
         }) : prev);
         toast.success('Course updated successfully!');
+        // Redirect to my-courses page after successful save
+        setTimeout(() => {
+          router.push('/my-courses');
+        }, 1000);
       } else {
         const errorMessage = response.error?.message || 'Failed to update course';
         if (response.error?.details) {
@@ -784,512 +790,641 @@ export default function CourseEditPage() {
         </Card>
       ) : activeTab === 'details' ? (
         /* Course Details Tab */
-        <Card className="bg-white shadow-sm border border-slate-200 rounded-lg sm:rounded-xl">
-          <CardHeader className="p-3 sm:p-4 md:p-6 bg-gradient-to-r from-slate-50 to-blue-50/30">
-            <CardTitle className="text-base sm:text-lg font-semibold text-slate-900">
-              Course Information
-            </CardTitle>
-            <CardDescription className="text-slate-600 text-xs sm:text-sm mt-1">
-              Update your course details and settings
-            </CardDescription>
+        <Card className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
+          <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-gradient-to-br from-indigo-50 via-blue-50 to-slate-50 border-b border-slate-100">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <BookOpenIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                  Course Information
+                </CardTitle>
+                <CardDescription className="text-slate-600 text-sm sm:text-base">
+                  Update your course details and settings
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
-            <div className="space-y-1.5 sm:space-y-2">
-              <label className="block text-xs sm:text-sm font-medium text-slate-700">
-                Course Title
-              </label>
-              <Input
-                value={course?.title || ''}
-                onChange={(e) => setCourse(prev => prev ? ({ ...prev, title: e.target.value }) : prev)}
-                placeholder="Enter course title"
-              />
-            </div>
+          <CardContent className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="space-y-6 sm:space-y-8">
+              {/* Basic Information Section */}
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                  Basic Information
+                </h3>
 
-            <div className="space-y-1.5 sm:space-y-2">
-              <label className="block text-xs sm:text-sm font-medium text-slate-700">
-                Description
-              </label>
-              <Textarea
-                value={course?.description || ''}
-                onChange={(e) => setCourse(prev => prev ? ({ ...prev, description: e.target.value }) : prev)}
-                rows={4}
-                placeholder="Describe what students will learn"
-              />
-            </div>
-            
-            <div className="space-y-1.5 sm:space-y-2">
-              <label className="block text-xs sm:text-sm font-medium text-slate-700">
-                Price (USD)
-              </label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={course?.price || ''}
-                onChange={(e) => setCourse(prev => prev ? ({ ...prev, price: parseFloat(e.target.value) }) : prev)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-1.5 sm:space-y-2">
-              <label className="block text-xs sm:text-sm font-medium text-slate-700">
-                Tutor/Organization Name
-              </label>
-              <Input
-                value={course?.tutorName || ''}
-                onChange={(e) => setCourse(prev => prev ? ({ ...prev, tutorName: e.target.value }) : prev)}
-                placeholder="e.g., Codiin Academy"
-              />
-              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
-                This will be displayed as &quot;Created by&quot; on the course page
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                Requirements
-              </label>
-              <div className="space-y-1.5 sm:space-y-2">
-                {(course?.requirements || []).map((req, index) => (
-                  <div key={index} className="flex gap-1.5 sm:gap-2">
-                    <Input
-                      value={req}
-                      onChange={(e) => {
-                        const newReqs = [...(course?.requirements || [])];
-                        newReqs[index] = e.target.value;
-                        setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
-                      }}
-                      placeholder="e.g., Basic computer skills"
-                      className="text-xs sm:text-sm"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newReqs = course?.requirements?.filter((_, i) => i !== index) || [];
-                        setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
-                      }}
-                      className="flex-shrink-0 p-1.5 sm:p-2"
-                    >
-                      <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newReqs = [...(course?.requirements || []), ''];
-                    setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
-                  }}
-                  className="text-xs sm:text-sm"
-                >
-                  <PlusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-                  Add Requirement
-                </Button>
-              </div>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                What students need to have or know before taking this course
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                Prerequisites
-              </label>
-              <div className="space-y-1.5 sm:space-y-2">
-                {(course?.prerequisites || []).map((prereq, index) => (
-                  <div key={index} className="flex gap-1.5 sm:gap-2">
-                    <Input
-                      value={prereq}
-                      onChange={(e) => {
-                        const newPrereqs = [...(course?.prerequisites || [])];
-                        newPrereqs[index] = e.target.value;
-                        setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
-                      }}
-                      placeholder="e.g., Introduction to Programming course"
-                      className="text-xs sm:text-sm"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newPrereqs = course?.prerequisites?.filter((_, i) => i !== index) || [];
-                        setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
-                      }}
-                      className="flex-shrink-0 p-1.5 sm:p-2"
-                    >
-                      <TrashIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newPrereqs = [...(course?.prerequisites || []), ''];
-                    setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
-                  }}
-                  className="text-xs sm:text-sm"
-                >
-                  <PlusIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-                  Add Prerequisite
-                </Button>
-              </div>
-              <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                Recommended courses or knowledge before taking this course
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Course Thumbnail
-              </label>
-              <div className="space-y-4">
-                {course?.thumbnail ? (
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <img
-                        src={course.thumbnail?.startsWith('blob:')
-                          ? course.thumbnail
-                          : getImageUrl(course.thumbnail || '') || course.thumbnail || ''
-                        }
-                        alt="Course thumbnail"
-                        className="w-32 h-20 object-cover rounded-lg border"
-                        onError={(e) => {
-                          console.error('Failed to load thumbnail:', course.thumbnail);
-                          console.error('Generated URL:', getImageUrl(course.thumbnail || ''));
-                          console.error('Full URL being used:', course.thumbnail?.startsWith('blob:') ? course.thumbnail : getImageUrl(course.thumbnail || '') || course.thumbnail);
-                          const target = e.currentTarget;
-                          target.style.display = 'none';
-                          const fallback = target.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
-                      <div
-                        className="w-32 h-20 bg-gray-100 rounded-lg border flex items-center justify-center text-xs text-gray-500 text-center"
-                        style={{ display: 'none' }}
-                      >
-                        Failed to load<br/>thumbnail
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Current thumbnail</p>
-                      <p className="text-xs text-blue-600 mb-3">
-                        Remove this thumbnail to upload a new one
-                      </p>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (course?.thumbnail) {
-                            try {
-                              // If it's an uploaded file (starts with /uploads/), delete from server
-                              if (course.thumbnail?.startsWith('/uploads/')) {
-                                const filename = course.thumbnail.split('/').pop();
-                                if (filename) {
-                                  await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/uploads/file/${filename}`, {
-                                    method: 'DELETE',
-                                    credentials: 'include'
-                                  });
-                                }
-                              }
-                              setCourse(prev => prev ? ({ ...prev, thumbnail: undefined, thumbnailFile: undefined }) : prev);
-                              toast.success('Thumbnail removed successfully!');
-                            } catch (error) {
-                              console.error('Error removing thumbnail:', error);
-                              setCourse(prev => prev ? ({ ...prev, thumbnail: undefined, thumbnailFile: undefined }) : prev);
-                              toast.success('Thumbnail removed!');
-                            }
-                          }
-                        }}
-                        className="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                      >
-                        🗑️ Remove thumbnail
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-sm text-gray-500 mb-4">
-                      No thumbnail uploaded
-                    </div>
-                    <FileUpload
-                      accept="image/*"
-                      onFileSelect={(files) => {
-                        if (files.length === 0) return;
-                        const file = files[0];
-                        const fileUrl = URL.createObjectURL(file);
-                        setCourse(prev => prev ? ({ ...prev, thumbnail: fileUrl, thumbnailFile: file }) : prev);
-                      }}
-                    />
-                    <p className="text-sm text-gray-500">
-                      Upload an image to represent your course. Recommended size: 400x225px (16:9 ratio)
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Visibility - Admin Only */}
-            {user?.role?.toLowerCase() === 'admin' && (
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                  Visibility
-                </label>
-                <Select
-                  options={[
-                    { value: 'false', label: 'Private (Hidden from students)' },
-                    { value: 'true', label: 'Public (Visible to students)' }
-                  ]}
-                  value={course?.isPublic ? 'true' : 'false'}
-                  onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
-                />
-                <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                  Course must be both &quot;Published&quot; and &quot;Public&quot; to appear in the student course catalog
-                </p>
-              </div>
-            )}
-
-            {/* Rejection Reason Alert */}
-            {course?.status === 'REJECTED' && course?.rejectionReason && (
-              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg p-3 sm:p-4 mt-4 sm:mt-6">
-                <div className="flex items-start">
-                  <ExclamationTriangleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" />
+                <div className="space-y-4">
                   <div>
-                    <h4 className="text-xs sm:text-sm font-semibold text-red-800 mb-1">Course Rejected</h4>
-                    <p className="text-xs sm:text-sm text-red-700 mb-1.5 sm:mb-2"><strong>Reason:</strong> {course.rejectionReason}</p>
-                    <p className="text-[10px] sm:text-xs text-red-600">Please address the feedback above and resubmit your course for review.</p>
+                    <label className="block text-sm font-medium text-slate-900 mb-2">
+                      Course Title <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      value={course?.title || ''}
+                      onChange={(e) => setCourse(prev => prev ? ({ ...prev, title: e.target.value }) : prev)}
+                      placeholder="e.g., Complete Web Development Bootcamp"
+                      className="text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-900 mb-2">
+                      Description <span className="text-red-500">*</span>
+                    </label>
+                    <Textarea
+                      value={course?.description || ''}
+                      onChange={(e) => setCourse(prev => prev ? ({ ...prev, description: e.target.value }) : prev)}
+                      rows={5}
+                      placeholder="Describe what students will learn, key topics covered, and expected outcomes..."
+                      className="text-base leading-relaxed"
+                    />
+                    <p className="text-xs text-slate-500 mt-2">
+                      Provide a clear and engaging description to attract students
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-900 mb-2">
+                        Price (USD) <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={course?.price || ''}
+                          onChange={(e) => setCourse(prev => prev ? ({ ...prev, price: parseFloat(e.target.value) }) : prev)}
+                          placeholder="0.00"
+                          className="pl-8 text-base"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">
+                        Set to $0 for a free course
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-900 mb-2">
+                        Tutor/Organization Name
+                      </label>
+                      <Input
+                        value={course?.tutorName || ''}
+                        onChange={(e) => setCourse(prev => prev ? ({ ...prev, tutorName: e.target.value }) : prev)}
+                        placeholder="e.g., CODiiN Academy"
+                        className="text-base"
+                      />
+                      <p className="text-xs text-slate-500 mt-2">
+                        Displayed as &quot;Created by&quot; on course page
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
 
-            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-slate-200">
+              {/* Requirements & Prerequisites Section */}
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                  Requirements & Prerequisites
+                </h3>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-900 mb-1">
+                        Requirements
+                      </label>
+                      <p className="text-xs text-slate-500 mb-3">
+                        What students need before taking this course
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {(course?.requirements || []).map((req, index) => (
+                        <div key={index} className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              value={req}
+                              onChange={(e) => {
+                                const newReqs = [...(course?.requirements || [])];
+                                newReqs[index] = e.target.value;
+                                setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
+                              }}
+                              placeholder="e.g., Basic computer skills"
+                              className="text-sm"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newReqs = course?.requirements?.filter((_, i) => i !== index) || [];
+                              setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
+                            }}
+                            className="flex-shrink-0 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const newReqs = [...(course?.requirements || []), ''];
+                          setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
+                        }}
+                        className="w-full sm:w-auto text-sm border-dashed hover:border-solid"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        Add Requirement
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-900 mb-1">
+                        Prerequisites
+                      </label>
+                      <p className="text-xs text-slate-500 mb-3">
+                        Recommended prior courses or knowledge
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {(course?.prerequisites || []).map((prereq, index) => (
+                        <div key={index} className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              value={prereq}
+                              onChange={(e) => {
+                                const newPrereqs = [...(course?.prerequisites || [])];
+                                newPrereqs[index] = e.target.value;
+                                setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
+                              }}
+                              placeholder="e.g., Introduction to Programming"
+                              className="text-sm"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newPrereqs = course?.prerequisites?.filter((_, i) => i !== index) || [];
+                              setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
+                            }}
+                            className="flex-shrink-0 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const newPrereqs = [...(course?.prerequisites || []), ''];
+                          setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
+                        }}
+                        className="w-full sm:w-auto text-sm border-dashed hover:border-solid"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-2" />
+                        Add Prerequisite
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Thumbnail Section */}
+              <div className="space-y-5">
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                  <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                  Course Thumbnail
+                </h3>
+
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-6">
+                  {course?.thumbnail ? (
+                    <div className="space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                        <div className="relative flex-shrink-0">
+                          <img
+                            src={course.thumbnail?.startsWith('blob:')
+                              ? course.thumbnail
+                              : getImageUrl(course.thumbnail || '') || course.thumbnail || ''
+                            }
+                            alt="Course thumbnail"
+                            className="w-full sm:w-48 h-auto aspect-video object-cover rounded-lg border-2 border-slate-200 shadow-sm"
+                            onError={(e) => {
+                              console.error('Failed to load thumbnail:', course.thumbnail);
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              const fallback = target.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          <div
+                            className="w-full sm:w-48 aspect-video bg-slate-100 rounded-lg border-2 border-slate-200 flex flex-col items-center justify-center text-xs text-slate-500 text-center gap-2"
+                            style={{ display: 'none' }}
+                          >
+                            <PhotoIcon className="w-8 h-8 text-slate-400" />
+                            <span>Failed to load thumbnail</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2 mb-3">
+                            <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-slate-900">Thumbnail uploaded</p>
+                              <p className="text-xs text-slate-500 mt-1">
+                                Remove this thumbnail to upload a new one
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (course?.thumbnail) {
+                                try {
+                                  if (course.thumbnail?.startsWith('/uploads/')) {
+                                    const filename = course.thumbnail.split('/').pop();
+                                    if (filename) {
+                                      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/uploads/file/${filename}`, {
+                                        method: 'DELETE',
+                                        credentials: 'include'
+                                      });
+                                    }
+                                  }
+                                  setCourse(prev => prev ? ({ ...prev, thumbnail: undefined, thumbnailFile: undefined }) : prev);
+                                  toast.success('Thumbnail removed successfully!');
+                                } catch (error) {
+                                  console.error('Error removing thumbnail:', error);
+                                  setCourse(prev => prev ? ({ ...prev, thumbnail: undefined, thumbnailFile: undefined }) : prev);
+                                  toast.success('Thumbnail removed!');
+                                }
+                              }
+                            }}
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 transition-colors shadow-sm"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                            Remove Thumbnail
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-2 text-sm text-slate-600 mb-4">
+                        <PhotoIcon className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-slate-900 mb-1">No thumbnail uploaded</p>
+                          <p className="text-xs text-slate-500">
+                            Recommended size: 1280x720px (16:9 ratio) • Max file size: 5MB
+                          </p>
+                        </div>
+                      </div>
+                      <FileUpload
+                        accept="image/*"
+                        onFileSelect={(files) => {
+                          if (files.length === 0) return;
+                          const file = files[0];
+                          const fileUrl = URL.createObjectURL(file);
+                          setCourse(prev => prev ? ({ ...prev, thumbnail: fileUrl, thumbnailFile: file }) : prev);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Visibility - Admin Only */}
+              {user?.role?.toLowerCase() === 'admin' && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                    Visibility Settings
+                  </h3>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <label className="block text-sm font-medium text-slate-900 mb-3">
+                      Course Visibility
+                    </label>
+                    <Select
+                      options={[
+                        { value: 'false', label: 'Private (Hidden from students)' },
+                        { value: 'true', label: 'Public (Visible to students)' }
+                      ]}
+                      value={course?.isPublic ? 'true' : 'false'}
+                      onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
+                    />
+                    <p className="text-xs text-amber-700 mt-2 flex items-start gap-2">
+                      <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>Course must be both &quot;Published&quot; and &quot;Public&quot; to appear in the student course catalog</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Rejection Reason Alert */}
+              {course?.status === 'REJECTED' && course?.rejectionReason && (
+                <div className="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-4 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm sm:text-base font-bold text-red-900 mb-2">Course Rejected</h4>
+                      <div className="bg-white/50 rounded-lg p-3 mb-3">
+                        <p className="text-sm font-medium text-red-800 mb-1">Rejection Reason:</p>
+                        <p className="text-sm text-red-700 leading-relaxed">{course.rejectionReason}</p>
+                      </div>
+                      <p className="text-xs text-red-600 flex items-start gap-2">
+                        <span className="flex-shrink-0">•</span>
+                        <span>Please address the feedback above and resubmit your course for review</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t-2 border-slate-200">
               <Button
                 variant="outline"
                 onClick={() => {
-                  loadCourseData();
-                  toast.success('Changes cancelled');
+                  router.push('/my-courses');
                 }}
                 disabled={loading || saving}
-                className="order-2 sm:order-1 px-4 sm:px-6 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 text-xs sm:text-sm"
+                className="px-6 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 font-medium"
               >
+                <XMarkIcon className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
-              <Button
-                onClick={handleSaveCourse}
-                disabled={saving || loading}
-                className="order-1 sm:order-2 px-4 sm:px-6 py-2 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-50 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span className="hidden sm:inline">Saving...</span>
-                    <span className="sm:hidden">Saving</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="hidden sm:inline">Save Changes</span>
-                    <span className="sm:hidden">Save</span>
-                  </>
-                )}
-              </Button>
-              {/* Submit for Review button - only show for DRAFT and REJECTED courses for tutors */}
-              {user?.role?.toLowerCase() === 'tutor' && (course?.status === 'DRAFT' || course?.status === 'REJECTED') && (
+
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
-                  onClick={handleSubmitForReview}
+                  onClick={handleSaveCourse}
                   disabled={saving || loading}
-                  className="order-3 px-4 sm:px-6 py-2 bg-gradient-to-br from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white disabled:opacity-50 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   {saving ? (
                     <>
-                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span className="hidden sm:inline">Submitting...</span>
-                      <span className="sm:hidden">Submitting</span>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Saving Changes...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Submit for Review</span>
-                      <span className="sm:hidden">Submit</span>
+                      <CheckCircleIcon className="w-5 h-5" />
+                      <span>Save Changes</span>
                     </>
                   )}
                 </Button>
-              )}
+
+                {/* Submit for Review button - only show for DRAFT and REJECTED courses for tutors */}
+                {user?.role?.toLowerCase() === 'tutor' && (course?.status === 'DRAFT' || course?.status === 'REJECTED') && (
+                  <Button
+                    onClick={handleSubmitForReview}
+                    disabled={saving || loading}
+                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircleIcon className="w-5 h-5" />
+                        <span>Submit for Review</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
       ) : activeTab === 'content' ? (
         /* Course Content Tab */
         <div className="space-y-6">
-          <Card className="bg-white shadow-sm border border-slate-200">
-            <CardHeader>
+          <Card className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
+            <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-gradient-to-br from-purple-50 via-blue-50 to-slate-50 border-b border-slate-100">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-lg font-semibold text-slate-900">
-                    Course Content
-                  </CardTitle>
-                  <CardDescription className="text-slate-600 text-sm">
-                    Organize your course into modules and add materials
-                  </CardDescription>
+                <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <FolderIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                      Course Content
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 text-sm sm:text-base">
+                      Organize your course into chapters and add learning materials
+                    </CardDescription>
+                  </div>
                 </div>
                 <Button
                   onClick={() => setShowModuleModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium w-full sm:w-auto flex-shrink-0"
+                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-5 py-2.5 text-sm font-semibold flex-shrink-0 shadow-lg hover:shadow-xl transition-all"
                 >
-                  <PlusIcon className="w-4 h-4 mr-2" />
+                  <PlusIcon className="w-5 h-5 mr-2" />
                   Add Chapter
                 </Button>
               </div>
             </CardHeader>
 
-            <CardContent className="pt-0">
+            <CardContent className="px-4 sm:px-6 lg:px-8 py-6">
               {course?.modules && course.modules.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {course.modules.map((module, moduleIndex) => (
-                    <Card key={module.id} className="bg-white border border-slate-200 shadow-sm">
-                      <CardHeader className="pb-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mr-3">
-                              <FolderIcon className="w-4 h-4 text-slate-600" />
+                    <Card key={module.id} className="bg-gradient-to-br from-white to-slate-50/30 border-2 border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl overflow-hidden">
+                      <CardHeader className="px-4 sm:px-5 py-4 bg-white/80 border-b border-slate-100">
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center">
+                              <FolderIcon className="w-5 h-5 text-purple-600" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="text-base font-semibold text-slate-900 truncate">{module.title}</CardTitle>
+                              <CardTitle className="text-base sm:text-lg font-bold text-slate-900 mb-1">
+                                {module.title}
+                              </CardTitle>
                               {module.description && (
-                                <CardDescription className="text-slate-600 text-sm mt-1 line-clamp-2">{module.description}</CardDescription>
+                                <CardDescription className="text-slate-600 text-sm leading-relaxed line-clamp-2">
+                                  {module.description}
+                                </CardDescription>
                               )}
+                              <p className="text-xs text-slate-500 mt-2">
+                                {module.materials.length} material{module.materials.length !== 1 ? 's' : ''}
+                              </p>
                             </div>
                           </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => moveModule(module.id, 'up')}
-                            disabled={moduleIndex === 0}
-                            className="rounded-none border-0 px-2 h-8"
-                          >
-                            <ArrowUpIcon className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => moveModule(module.id, 'down')}
-                            disabled={moduleIndex === (course?.modules.length || 0) - 1}
-                            className="rounded-none border-0 border-l border-slate-200 px-2 h-8"
-                          >
-                            <ArrowDownIcon className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowMaterialModal({ moduleId: module.id })}
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs sm:text-sm"
-                        >
-                          <PlusIcon className="w-3 h-3 mr-1" />
-                          <span className="hidden sm:inline">Add Material</span>
-                          <span className="sm:hidden">Add</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteModule(module.id)}
-                          disabled={deletingModuleId === module.id}
-                          className="text-red-600 hover:text-red-700 disabled:opacity-50"
-                        >
-                          {deletingModuleId === module.id ? (
-                            <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
-                          ) : (
-                            <TrashIcon className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {module.materials.length > 0 ? (
-                      <div className="space-y-2">
-                        {module.materials.map((material, materialIndex) => {
-                          const MaterialIcon = getMaterialIcon(material.type);
-                          return (
-                            <div key={material.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 gap-3 sm:gap-0">
-                              <div className="flex items-center min-w-0 flex-1">
-                                <MaterialIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" />
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-medium text-slate-900 truncate">{material.title}</p>
-                                  <p className="text-sm text-slate-600 truncate">
-                                    {material.type} {material.description && `• ${material.description}`}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0 justify-end sm:justify-start">
-                                <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => moveMaterial(module.id, material.id, 'up')}
-                                    disabled={materialIndex === 0}
-                                    className="rounded-none border-0 px-2 h-7"
-                                  >
-                                    <ArrowUpIcon className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => moveMaterial(module.id, material.id, 'down')}
-                                    disabled={materialIndex === module.materials.length - 1}
-                                    className="rounded-none border-0 border-l border-slate-200 px-2 h-7"
-                                  >
-                                    <ArrowDownIcon className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteMaterial(module.id, material.id)}
-                                  disabled={deletingMaterialId === material.id}
-                                  className="text-red-600 hover:text-red-700 disabled:opacity-50"
-                                >
-                                  {deletingMaterialId === material.id ? (
-                                    <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
-                                  ) : (
-                                    <TrashIcon className="w-4 h-4" />
-                                  )}
-                                </Button>
-                              </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => moveModule(module.id, 'up')}
+                                disabled={moduleIndex === 0}
+                                className="rounded-none border-0 px-3 py-2 text-xs font-medium hover:bg-slate-50 disabled:opacity-40"
+                                title="Move up"
+                              >
+                                <ArrowUpIcon className="w-4 h-4" />
+                              </Button>
+                              <div className="w-px h-6 bg-slate-200"></div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => moveModule(module.id, 'down')}
+                                disabled={moduleIndex === (course?.modules.length || 0) - 1}
+                                className="rounded-none border-0 px-3 py-2 text-xs font-medium hover:bg-slate-50 disabled:opacity-40"
+                                title="Move down"
+                              >
+                                <ArrowDownIcon className="w-4 h-4" />
+                              </Button>
                             </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-gray-600 text-center py-8">
-                        No materials yet. Add your first material to get started.
-                      </p>
-                    )}
-                  </CardContent>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowMaterialModal({ moduleId: module.id })}
+                              className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 text-xs font-semibold px-4 py-2 rounded-lg"
+                            >
+                              <PlusIcon className="w-4 h-4 mr-1.5" />
+                              Add Material
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteModule(module.id)}
+                              disabled={deletingModuleId === module.id}
+                              className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 disabled:opacity-50 text-xs font-semibold px-4 py-2 rounded-lg ml-auto"
+                            >
+                              {deletingModuleId === module.id ? (
+                                <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                              ) : (
+                                <>
+                                  <TrashIcon className="w-4 h-4 mr-1.5" />
+                                  Delete
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="px-4 sm:px-5 py-4">
+                        {module.materials.length > 0 ? (
+                          <div className="space-y-3">
+                            {module.materials.map((material, materialIndex) => {
+                              const MaterialIcon = getMaterialIcon(material.type);
+                              const iconColors = {
+                                PDF: 'text-red-600 bg-red-50',
+                                VIDEO: 'text-purple-600 bg-purple-50',
+                                LINK: 'text-blue-600 bg-blue-50'
+                              };
+                              const typeColor = iconColors[material.type as keyof typeof iconColors] || 'text-slate-600 bg-slate-50';
+
+                              return (
+                                <div key={material.id} className="group flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-all">
+                                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                    <div className={`flex-shrink-0 w-9 h-9 ${typeColor.split(' ')[1]} rounded-lg flex items-center justify-center`}>
+                                      <MaterialIcon className={`w-5 h-5 ${typeColor.split(' ')[0]}`} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-semibold text-slate-900 text-sm sm:text-base mb-1 truncate">
+                                        {material.title}
+                                      </p>
+                                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-medium ${typeColor}`}>
+                                          {material.type}
+                                        </span>
+                                        {material.description && (
+                                          <span className="truncate">{material.description}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2 flex-shrink-0 justify-end">
+                                    <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => moveMaterial(module.id, material.id, 'up')}
+                                        disabled={materialIndex === 0}
+                                        className="rounded-none border-0 px-2.5 py-1.5 hover:bg-slate-50 disabled:opacity-40"
+                                        title="Move up"
+                                      >
+                                        <ArrowUpIcon className="w-3.5 h-3.5" />
+                                      </Button>
+                                      <div className="w-px h-5 bg-slate-200"></div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => moveMaterial(module.id, material.id, 'down')}
+                                        disabled={materialIndex === module.materials.length - 1}
+                                        className="rounded-none border-0 px-2.5 py-1.5 hover:bg-slate-50 disabled:opacity-40"
+                                        title="Move down"
+                                      >
+                                        <ArrowDownIcon className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </div>
+
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleDeleteMaterial(module.id, material.id)}
+                                      disabled={deletingMaterialId === material.id}
+                                      className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700 disabled:opacity-50 px-3 py-1.5 rounded-lg"
+                                    >
+                                      {deletingMaterialId === material.id ? (
+                                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                                      ) : (
+                                        <TrashIcon className="w-4 h-4" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                              <DocumentIcon className="w-8 h-8 text-slate-400" />
+                            </div>
+                            <p className="text-slate-600 font-medium mb-1">No materials yet</p>
+                            <p className="text-sm text-slate-500">Add your first learning material to get started</p>
+                          </div>
+                        )}
+                      </CardContent>
                 </Card>
               ))}
             </div>
-            ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <FolderIcon className="w-8 h-8 text-slate-600" />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="relative mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center">
+                      <FolderPlusIcon className="w-10 h-10 text-purple-600" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                      <PlusIcon className="w-4 h-4 text-white" />
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No modules yet</h3>
-                  <p className="text-slate-600 mb-6 text-sm max-w-md mx-auto">
-                    Organize your course content by creating modules and adding materials.
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No chapters yet</h3>
+                  <p className="text-slate-600 mb-6 text-sm sm:text-base max-w-md leading-relaxed">
+                    Start organizing your course content by creating chapters and adding learning materials.
                   </p>
                   <Button
                     onClick={() => setShowModuleModal(true)}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <PlusIcon className="w-4 h-4 mr-2" />
+                    <PlusIcon className="w-5 h-5 mr-2" />
                     Create Your First Chapter
                   </Button>
                 </div>
@@ -1300,31 +1435,37 @@ export default function CourseEditPage() {
       ) : activeTab === 'assignments' ? (
         /* Assignments Tab */
         <div className="space-y-6">
-          <Card className="bg-white shadow-sm border border-slate-200">
-            <CardHeader>
+          <Card className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
+            <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-gradient-to-br from-green-50 via-emerald-50 to-slate-50 border-b border-slate-100">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-lg font-semibold text-slate-900">
-                    Assignments
-                  </CardTitle>
-                  <CardDescription className="text-slate-600 text-sm">
-                    Create and manage assignments for your students
-                  </CardDescription>
+                <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <ClipboardDocumentListIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                      Assignments
+                    </CardTitle>
+                    <CardDescription className="text-slate-600 text-sm sm:text-base">
+                      Create and manage assignments for your students
+                    </CardDescription>
+                  </div>
                 </div>
                 <Button
                   onClick={() => setShowAssignmentModal(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium w-full sm:w-auto flex-shrink-0"
+                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-5 py-2.5 text-sm font-semibold flex-shrink-0 shadow-lg hover:shadow-xl transition-all"
                 >
-                  <PlusIcon className="w-4 h-4 mr-2" />
+                  <PlusIcon className="w-5 h-5 mr-2" />
                   Create Assignment
                 </Button>
               </div>
             </CardHeader>
 
-            <CardContent className="pt-0">
+            <CardContent className="px-4 sm:px-6 lg:px-8 py-6">
               {loadingAssignments ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-green-600 mb-4"></div>
+                  <p className="text-sm text-slate-600">Loading assignments...</p>
                 </div>
               ) : assignments.length > 0 ? (
                 <div className="space-y-4">
@@ -1334,107 +1475,120 @@ export default function CourseEditPage() {
                     const ungradedCount = assignment.ungradedSubmissions || 0;
 
                     return (
-                      <Card key={assignment.id} className={`border transition-all duration-200 hover:shadow-lg ${
+                      <Card key={assignment.id} className={`border-2 transition-all duration-200 hover:shadow-lg rounded-xl overflow-hidden ${
                         isOverdue
-                          ? 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200'
-                          : 'bg-white border-slate-200 hover:border-blue-200'
+                          ? 'bg-gradient-to-br from-red-50 via-pink-50 to-red-50/50 border-red-200 hover:border-red-300'
+                          : 'bg-gradient-to-br from-white to-slate-50/30 border-slate-200 hover:border-green-300'
                       }`}>
-                        <CardContent className="p-6">
-                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center space-x-3 mb-3">
-                                <div className={`p-2 rounded-lg ${isOverdue ? 'bg-red-100' : 'bg-blue-100'}`}>
-                                  <ClipboardDocumentListIcon className={`h-5 w-5 ${isOverdue ? 'text-red-600' : 'text-blue-600'}`} />
+                        <CardContent className="p-5 sm:p-6">
+                          <div className="flex flex-col gap-5">
+                            {/* Header */}
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                              <div className="flex items-start gap-3 min-w-0 flex-1">
+                                <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${
+                                  isOverdue
+                                    ? 'bg-gradient-to-br from-red-500 to-pink-600'
+                                    : 'bg-gradient-to-br from-green-500 to-emerald-600'
+                                }`}>
+                                  <ClipboardDocumentListIcon className="h-6 w-6 text-white" />
                                 </div>
-                                <h3 className="font-bold text-lg text-slate-900">{assignment.title}</h3>
-                                {isOverdue && (
-                                  <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium border border-red-200">
-                                    ⏰ Overdue
-                                  </span>
-                                )}
-                              </div>
-
-                              <p className="text-slate-600 text-sm mb-4 line-clamp-3 leading-relaxed whitespace-pre-line">
-                                {assignment.description}
-                              </p>
-
-                              <div className="flex flex-wrap items-center gap-3">
-                                {assignment.dueDate && (
-                                  <div className={`flex items-center px-3 py-1 rounded-lg text-xs font-medium ${
-                                    isOverdue
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-slate-100 text-slate-600'
-                                  }`}>
-                                    <CalendarIcon className="h-3 w-3 mr-1" />
-                                    <span>
-                                      {isOverdue ? 'Was due' : 'Due'}: {new Date(assignment.dueDate).toLocaleDateString()}
-                                    </span>
-                                  </div>
-                                )}
-
-                                <div className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium">
-                                  <span>🎯 Max: {assignment.maxScore} pts</span>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                  <div className={`flex items-center px-3 py-1 rounded-lg text-xs font-medium ${
-                                    submissionCount > 0
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'bg-gray-100 text-gray-600'
-                                  }`}>
-                                    <span>
-                                      📄 {submissionCount} total
-                                    </span>
-                                  </div>
-                                  {ungradedCount > 0 && (
-                                    <div className="flex items-center px-3 py-1 rounded-lg text-xs font-medium bg-orange-100 text-orange-700 border border-orange-300">
-                                      <span>
-                                        ⚠️ {ungradedCount} ungraded
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-start gap-2 flex-wrap mb-2">
+                                    <h3 className="font-bold text-base sm:text-lg text-slate-900">{assignment.title}</h3>
+                                    {isOverdue && (
+                                      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full font-semibold border border-red-200 shadow-sm">
+                                        <CalendarIcon className="w-3.5 h-3.5" />
+                                        Overdue
                                       </span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex items-center px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs">
-                                  <span>Created: {new Date(assignment.createdAt).toLocaleDateString()}</span>
+                                    )}
+                                  </div>
+                                  <p className="text-slate-600 text-sm leading-relaxed line-clamp-2">
+                                    {assignment.description}
+                                  </p>
                                 </div>
                               </div>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
+                            {/* Description (full on mobile) */}
+                            <p className="text-slate-600 text-sm leading-relaxed sm:hidden">
+                              {assignment.description}
+                            </p>
+
+                            {/* Stats */}
+                            <div className="flex flex-wrap items-center gap-2">
+                              {assignment.dueDate && (
+                                <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm ${
+                                  isOverdue
+                                    ? 'bg-red-100 text-red-700 border border-red-200'
+                                    : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                }`}>
+                                  <CalendarIcon className="h-4 w-4" />
+                                  <span>{isOverdue ? 'Was due' : 'Due'}: {new Date(assignment.dueDate).toLocaleDateString()}</span>
+                                </div>
+                              )}
+
+                              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold shadow-sm border border-indigo-100">
+                                <span>🎯</span>
+                                <span>Max: {assignment.maxScore} pts</span>
+                              </div>
+
+                              <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm border ${
+                                submissionCount > 0
+                                  ? 'bg-green-50 text-green-700 border-green-100'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                                <span>📄</span>
+                                <span>{submissionCount} submission{submissionCount !== 1 ? 's' : ''}</span>
+                              </div>
+
+                              {ungradedCount > 0 && (
+                                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm animate-pulse">
+                                  <span>⚠️</span>
+                                  <span>{ungradedCount} ungraded</span>
+                                </div>
+                              )}
+
+                              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium border border-slate-200">
+                                <span className="hidden sm:inline">Created:</span>
+                                <span>{new Date(assignment.createdAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col sm:flex-row items-stretch gap-2 pt-2 border-t border-slate-200">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleViewSubmissions(assignment.id)}
-                                className={ungradedCount > 0
-                                  ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-300 font-medium"
-                                  : "text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200 font-medium"}
+                                className={`flex-1 justify-center py-2.5 font-semibold ${
+                                  ungradedCount > 0
+                                    ? 'bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100 hover:border-orange-400'
+                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
+                                }`}
                               >
-                                <DocumentIcon className={`h-4 w-4 mr-2 ${ungradedCount > 0 ? 'text-orange-600' : ''}`} />
-                                Review Submissions
+                                <DocumentIcon className="h-4 w-4 mr-2" />
+                                <span>Review Submissions</span>
                                 {ungradedCount > 0 ? (
-                                  <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                                  <span className="ml-2 px-2 py-0.5 bg-orange-200 text-orange-800 rounded-full text-xs font-bold">
                                     {ungradedCount} new
                                   </span>
                                 ) : submissionCount > 0 ? (
-                                  <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
-                                    ✓ All graded
-                                  </span>
+                                  <CheckCircleIcon className="ml-2 h-4 w-4" />
                                 ) : null}
                               </Button>
 
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={() => {
                                   if (confirm(`Are you sure you want to delete "${assignment.title}"? This will also delete all ${submissionCount} submissions and their files. This action cannot be undone.`)) {
                                     handleDeleteAssignment(assignment.id);
                                   }
                                 }}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 font-medium"
+                                className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300 font-semibold py-2.5"
                               >
                                 <TrashIcon className="w-4 h-4 mr-2" />
-                                Delete
+                                Delete Assignment
                               </Button>
                             </div>
                           </div>
@@ -1444,18 +1598,25 @@ export default function CourseEditPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <DocumentIcon className="w-8 h-8 text-slate-400" />
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="relative mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center">
+                      <ClipboardDocumentListIcon className="w-10 h-10 text-green-600" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                      <PlusIcon className="w-4 h-4 text-white" />
+                    </div>
                   </div>
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">No assignments yet</h3>
-                  <p className="text-slate-600 mb-6">Create your first assignment to get started.</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No assignments yet</h3>
+                  <p className="text-slate-600 mb-6 text-sm sm:text-base max-w-md leading-relaxed">
+                    Create assignments to test your students' knowledge and track their progress.
+                  </p>
                   <Button
                     onClick={() => setShowAssignmentModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
-                    <PlusIcon className="w-4 h-4 mr-2" />
-                    Create First Assignment
+                    <PlusIcon className="w-5 h-5 mr-2" />
+                    Create Your First Assignment
                   </Button>
                 </div>
               )}

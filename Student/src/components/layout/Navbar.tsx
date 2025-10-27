@@ -79,10 +79,10 @@ export default function Navbar() {
           <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
-              <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 relative">
+              <div className="h-16 w-16 sm:h-18 sm:w-18 md:h-16 md:w-16 lg:h-20 lg:w-20 relative">
                 <Image
                   src="/logo.png"
-                  alt="Codiin Logo"
+                  alt="CODiiN Logo"
                   fill
                   className="object-contain"
                   priority
@@ -141,7 +141,7 @@ export default function Navbar() {
                     </div>
                     <div className="ml-2 md:ml-3 text-left hidden lg:block">
                       <p className="text-sm font-medium text-slate-900 leading-tight">{user.firstName} {user.lastName}</p>
-                      <p className="text-xs text-slate-500 font-medium">Student</p>
+                      <p className="text-xs text-slate-500 font-medium">{user.email}</p>
                     </div>
                     <ChevronDownIcon className={cn(
                       "ml-1.5 md:ml-2 h-4 w-4 text-slate-500 transition-transform duration-200",
@@ -155,7 +155,6 @@ export default function Navbar() {
                     <div className="px-3 py-2.5 border-b border-slate-200">
                       <p className="text-sm font-semibold text-slate-900 truncate">{user.firstName} {user.lastName}</p>
                       <p className="text-xs text-slate-500 truncate mt-0.5">{user.email}</p>
-                      <p className="text-xs text-blue-600 font-semibold mt-1">Student</p>
                     </div>
                     <Link
                       href="/profile"
@@ -208,15 +207,28 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button
-              className="inline-flex items-center justify-center p-1.5 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-slate-50 transition-all duration-200"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
             >
               <span className="sr-only">Open main menu</span>
-              {mobileMenuOpen ? (
-                <XMarkIcon className="block h-5 w-5" />
-              ) : (
-                <Bars3Icon className="block h-5 w-5" />
-              )}
+              <div className="w-5 h-4 relative flex flex-col justify-between">
+                <span
+                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                    mobileMenuOpen ? 'rotate-45 translate-y-[7px]' : ''
+                  }`}
+                />
+                <span
+                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                    mobileMenuOpen ? 'opacity-0' : ''
+                  }`}
+                />
+                <span
+                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                    mobileMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''
+                  }`}
+                />
+              </div>
             </button>
           </div>
         </div>
@@ -224,107 +236,137 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 shadow-lg">
-          <div className="pt-1.5 pb-2 space-y-0.5 px-2">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <item.icon className={cn(
-                    "w-4 h-4 mr-2.5 flex-shrink-0",
-                    isActive ? "text-white" : "text-slate-500"
-                  )} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
-          {user && (
-            <div className="pt-2.5 pb-2 border-t border-slate-200 bg-slate-50/50">
-              <div className="flex items-center px-3 py-2">
-                <div className="flex-shrink-0">
-                  <div className="h-9 w-9 rounded-lg bg-slate-200 flex items-center justify-center ring-2 ring-white">
-                    {user.avatar ? (
-                      <img
-                        className="h-9 w-9 rounded-lg object-cover"
-                        src={getCdnUrl(user.avatar) || ''}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <UserIcon className="h-4 w-4 text-slate-600" />
-                    )}
+        <div className="md:hidden bg-slate-50 border-t border-slate-200 shadow-lg">
+          <div className="max-h-[calc(100vh-5rem)] overflow-y-auto">
+            {/* User Profile Card - Only for logged in users */}
+            {user && (
+              <div className="p-4 bg-white">
+                <div className="flex items-center p-3 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                  <div className="flex-shrink-0">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center ring-2 ring-white shadow-md">
+                      {user.avatar ? (
+                        <img
+                          className="h-12 w-12 rounded-xl object-cover"
+                          src={getCdnUrl(user.avatar) || ''}
+                          alt={`${user.firstName} ${user.lastName}`}
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <UserIcon className="h-6 w-6 text-white" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="ml-3 min-w-0 flex-1">
+                    <div className="text-sm font-bold text-slate-900 truncate">{user.firstName} {user.lastName}</div>
+                    <div className="text-xs text-slate-600 truncate mt-0.5">{user.email}</div>
                   </div>
                 </div>
-                <div className="ml-2.5 min-w-0 flex-1">
-                  <div className="text-sm font-semibold text-slate-900 truncate">{user.firstName} {user.lastName}</div>
-                  <div className="text-xs text-slate-500 truncate">{user.email}</div>
-                  <div className="text-xs text-blue-600 font-semibold mt-0.5">Student</div>
+              </div>
+            )}
+
+            {/* Navigation Section */}
+            <div className="px-4 pt-4 pb-2">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Navigation
+              </h3>
+              <div className="space-y-1">
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        'flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all',
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                          : 'text-slate-700 bg-white hover:bg-slate-50 active:scale-[0.98]'
+                      )}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <item.icon className={cn(
+                        "w-5 h-5 mr-3 flex-shrink-0",
+                        isActive ? "text-white" : "text-slate-400"
+                      )} />
+                      <span>{item.name}</span>
+                      {isActive && (
+                        <svg className="ml-auto w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Account Section - Only for logged in users */}
+            {user && (
+              <div className="px-4 pt-3 pb-4">
+                <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Account
+                </h3>
+                <div className="space-y-1">
+                  <Link
+                    href="/profile"
+                    className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <UserIcon className="h-5 w-5 mr-3 text-slate-400 flex-shrink-0" />
+                    <span>Your Profile</span>
+                    <svg className="ml-auto w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-red-600 bg-white hover:bg-red-50 transition-all active:scale-[0.98]"
+                  >
+                    <svg className="h-5 w-5 mr-3 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Sign Out</span>
+                    <svg className="ml-auto w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
               </div>
-              <div className="mt-2 space-y-0.5 px-2">
-                <Link
-                  href="/profile"
-                  className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-white rounded-lg transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <UserIcon className="h-4 w-4 mr-2.5 text-slate-400 flex-shrink-0" />
-                  Your Profile
-                </Link>
-                <Link
-                  href="/my-courses"
-                  className="flex items-center px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-white rounded-lg transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <AcademicCapIcon className="h-4 w-4 mr-2.5 text-slate-400 flex-shrink-0" />
-                  My Learning
-                </Link>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="flex items-center w-full text-left px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <svg className="h-4 w-4 mr-2.5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Sign out
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
-          {!user && (
-            <div className="pt-2.5 pb-2 border-t border-slate-200">
-              <div className="space-y-1 px-2">
-                <Link
-                  href="/login"
-                  className="block px-3 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors text-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className="block px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 rounded-lg text-center shadow-md hover:shadow-lg transition-all"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+            {/* Get Started Section - Only for guests */}
+            {!user && (
+              <div className="px-4 pt-3 pb-4">
+                <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Get Started
-                </Link>
+                </h3>
+                <div className="space-y-2">
+                  <Link
+                    href="/login"
+                    className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-slate-700 bg-white border-2 border-slate-200 rounded-xl transition-all hover:border-indigo-600 hover:text-indigo-600 active:scale-[0.98]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+
+                  <Link
+                    href="/register"
+                    className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:shadow-xl hover:shadow-indigo-600/40 active:scale-[0.98]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Get Started
+                    <svg className="ml-2 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </nav>

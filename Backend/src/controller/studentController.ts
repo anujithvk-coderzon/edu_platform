@@ -111,13 +111,18 @@ export const VerifyOtpEmail = async (req: express.Request, res: express.Response
 };
 
 export const RegisterStudent = async (req: express.Request, res: express.Response) => {
+  console.log('📥 RegisterStudent - Received request body:', JSON.stringify(req.body, null, 2));
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('❌ Validation errors:', JSON.stringify(errors.array(), null, 2));
     return res.status(400).json({
       success: false,
       error: { message: 'Validation failed', details: errors.array() }
     });
   }
+
+  console.log('✅ Validation passed, proceeding with registration...');
 
   const {
     email, password, firstName, lastName, phone, dateOfBirth,
@@ -440,7 +445,8 @@ export const OAuthLogin = async (req: express.Request, res: express.Response) =>
         occupation: student.occupation,
         company: student.company,
         isVerified: student.isVerified,
-        createdAt: student.createdAt
+        createdAt: student.createdAt,
+        hasPassword: !!student.password
       },
       token
     }
@@ -531,10 +537,16 @@ export const LoginStudent = async (req: express.Request, res: express.Response) 
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  const { password: _, ...studentWithoutPassword } = student;
+  const { password: studentPassword, ...studentWithoutPassword } = student;
   res.json({
     success: true,
-    data: { user: studentWithoutPassword, token }
+    data: {
+      user: {
+        ...studentWithoutPassword,
+        hasPassword: !!studentPassword
+      },
+      token
+    }
   });
 };
 
@@ -695,7 +707,8 @@ export const GetCurrentUser = async (req: express.Request, res: express.Response
         city: true, education: true, institution: true,
         occupation: true, company: true,
         isVerified: true, createdAt: true, updatedAt: true,
-        activeSessionToken: true // Include for debugging
+        activeSessionToken: true, // Include for debugging
+        password: true // Need to check if password exists (for OAuth users)
       }
     });
 
@@ -720,8 +733,16 @@ export const GetCurrentUser = async (req: express.Request, res: express.Response
       });
     }
 
-    const { activeSessionToken, ...studentWithoutSession } = student;
-    res.json({ success: true, data: { user: studentWithoutSession } });
+    const { activeSessionToken, password, ...studentWithoutSession } = student;
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...studentWithoutSession,
+          hasPassword: !!password // OAuth users have null password
+        }
+      }
+    });
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -805,11 +826,21 @@ export const UpdateProfile = async (req: express.Request, res: express.Response)
         institution: true,
         occupation: true,
         company: true,
-        updatedAt: true
+        updatedAt: true,
+        password: true
       }
     });
 
-    res.json({ success: true, data: { user: student } });
+    const { password, ...studentWithoutPassword } = student;
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...studentWithoutPassword,
+          hasPassword: !!password
+        }
+      }
+    });
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -974,6 +1005,8 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
   const category = req.query.category as string;
   const level = req.query.level as string;
   const search = req.query.search as string;
+  const priceRange = req.query.price as string;
+  const sortBy = req.query.sort as string || 'newest';
   const skip = (page - 1) * limit;
 
   const where: any = { status: 'PUBLISHED', isPublic: true };
@@ -990,7 +1023,57 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
       { description: { contains: search, mode: 'insensitive' } },
     ];
   }
+  if (priceRange) {
+    switch (priceRange) {
+      case 'free':
+        where.price = 0;
+        break;
+      case '0-50':
+        where.price = { gt: 0, lte: 50 };
+        break;
+      case '50-100':
+        where.price = { gt: 50, lte: 100 };
+        break;
+      case '100+':
+        where.price = { gt: 100 };
+        break;
+    }
+  }
 
+  // Determine sort order
+  let orderBy: any = { createdAt: 'desc' }; // default: newest
+  switch (sortBy) {
+    case 'price-asc':
+      orderBy = { price: 'asc' };
+      break;
+    case 'price-desc':
+      orderBy = { price: 'desc' };
+      break;
+    case 'rating':
+      // For rating sort, we'll handle this after fetching since it's computed
+      orderBy = { createdAt: 'desc' };
+      break;
+    case 'newest':
+    default:
+      orderBy = { createdAt: 'desc' };
+      break;
+  }
+
+  // Get user ID if authenticated
+  let studentId: string | null = null;
+  const token = req.cookies.student_token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+      if (decoded.type === 'student') {
+        studentId = decoded.id;
+      }
+    } catch (error) {
+      // Token invalid or expired
+    }
+  }
+
+  // Fetch courses and total count
   const [courses, total] = await Promise.all([
     prisma.course.findMany({
       where,
@@ -1004,47 +1087,78 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
         tutor: {
           select: { id: true, firstName: true, lastName: true, avatar: true }
         },
+        category: {
+          select: { id: true, name: true }
+        },
         _count: {
           select: { enrollments: true, reviews: true, materials: true }
         }
       },
       skip, take: limit,
-      orderBy: { createdAt: 'desc' }
+      orderBy
     }),
     prisma.course.count({ where })
   ]);
 
-  const coursesWithAvgRating = await Promise.all(
-    courses.map(async (course) => {
-      const avgRating = await prisma.review.aggregate({
-        where: { courseId: course.id },
-        _avg: { rating: true }
-      });
+  const courseIds = courses.map(c => c.id);
 
-      let isEnrolled = false;
-      const token = req.cookies.student_token;
-      if (token) {
-        try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
-          if (decoded.type === 'student') {
-            const enrollment = await prisma.enrollment.findFirst({
-              where: { studentId: decoded.id, courseId: course.id, status: 'ACTIVE' }
-            });
-            isEnrolled = !!enrollment;
-          }
-        } catch (error) {
-          // Token invalid or expired, user not enrolled
+  // Batch fetch ratings for all courses in ONE query
+  const ratingsData = await prisma.review.groupBy({
+    by: ['courseId'],
+    where: { courseId: { in: courseIds } },
+    _avg: { rating: true }
+  });
+  const ratingsMap = new Map(ratingsData.map(r => [r.courseId, r._avg.rating || 0]));
+
+  // Batch fetch enrollments and reviews for this student (if logged in) - run in parallel
+  let enrollmentsMap = new Map();
+  let reviewsMap = new Map();
+
+  if (studentId) {
+    const [enrollments, reviews] = await Promise.all([
+      prisma.enrollment.findMany({
+        where: {
+          studentId,
+          courseId: { in: courseIds }
+        },
+        select: {
+          courseId: true,
+          status: true,
+          progressPercentage: true
         }
-      }
+      }),
+      prisma.review.findMany({
+        where: {
+          studentId,
+          courseId: { in: courseIds }
+        },
+        select: {
+          courseId: true
+        }
+      })
+    ]);
 
-      return {
-        ...course,
-        category: null,
-        averageRating: avgRating._avg.rating || 0,
-        isEnrolled
-      };
-    })
-  );
+    enrollmentsMap = new Map(enrollments.map(e => [e.courseId, e]));
+    reviewsMap = new Map(reviews.map(r => [r.courseId, true]));
+  }
+
+  // Combine all data efficiently
+  let coursesWithAvgRating = courses.map((course) => {
+    const enrollment = enrollmentsMap.get(course.id);
+    return {
+      ...course,
+      averageRating: ratingsMap.get(course.id) || 0,
+      isEnrolled: !!enrollment,
+      enrollmentStatus: enrollment?.status,
+      progressPercentage: enrollment?.progressPercentage || 0,
+      hasReviewed: reviewsMap.get(course.id) || false
+    };
+  });
+
+  // Apply rating sort if requested (since it's a computed field)
+  if (sortBy === 'rating') {
+    coursesWithAvgRating.sort((a, b) => b.averageRating - a.averageRating);
+  }
 
   res.json({
     success: true,
@@ -1198,6 +1312,16 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
     const userId = decoded.id;
 
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 8;
+    const skip = (page - 1) * limit;
+
+    // Get total count
+    const totalEnrollments = await prisma.enrollment.count({
+      where: { studentId: userId }
+    });
+
     const enrollments = await prisma.enrollment.findMany({
       where: { studentId: userId },
       select: {
@@ -1215,7 +1339,9 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
           }
         }
       },
-      orderBy: { enrolledAt: 'desc' }
+      orderBy: { enrolledAt: 'desc' },
+      skip,
+      take: limit
     });
 
     const enrichedEnrollments = await Promise.all(
@@ -1256,7 +1382,15 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
 
     res.json({
       success: true,
-      data: { enrollments: enrichedEnrollments }
+      data: {
+        enrollments: enrichedEnrollments,
+        pagination: {
+          total: totalEnrollments,
+          page,
+          limit,
+          pages: Math.ceil(totalEnrollments / limit)
+        }
+      }
     });
   } catch (error) {
     console.error('Error verifying token:', error);
@@ -1647,28 +1781,43 @@ export const SubmitReview = async (req: express.Request, res: express.Response) 
 
 export const GetCourseReviews = async (req: express.Request, res: express.Response) => {
   const { courseId } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
 
   try {
-    const reviews = await prisma.review.findMany({
+    // Fetch paginated reviews and total count in parallel
+    const [reviews, totalReviews] = await Promise.all([
+      prisma.review.findMany({
+        where: { courseId },
+        include: {
+          student: {
+            select: { firstName: true, lastName: true, avatar: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.review.count({ where: { courseId } })
+    ]);
+
+    // Calculate average rating and distribution from total reviews (not paginated)
+    const allReviews = await prisma.review.findMany({
       where: { courseId },
-      include: {
-        student: {
-          select: { firstName: true, lastName: true, avatar: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
+      select: { rating: true }
     });
 
-    const averageRating = reviews.length > 0
-      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+    const averageRating = allReviews.length > 0
+      ? allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length
       : 0;
 
     const ratingDistribution = {
-      5: reviews.filter(r => r.rating === 5).length,
-      4: reviews.filter(r => r.rating === 4).length,
-      3: reviews.filter(r => r.rating === 3).length,
-      2: reviews.filter(r => r.rating === 2).length,
-      1: reviews.filter(r => r.rating === 1).length
+      5: allReviews.filter(r => r.rating === 5).length,
+      4: allReviews.filter(r => r.rating === 4).length,
+      3: allReviews.filter(r => r.rating === 3).length,
+      2: allReviews.filter(r => r.rating === 2).length,
+      1: allReviews.filter(r => r.rating === 1).length
     };
 
     res.json({
@@ -1676,8 +1825,14 @@ export const GetCourseReviews = async (req: express.Request, res: express.Respon
       data: {
         reviews,
         averageRating: Math.round(averageRating * 10) / 10,
-        totalReviews: reviews.length,
-        ratingDistribution
+        totalReviews,
+        ratingDistribution,
+        pagination: {
+          page,
+          limit,
+          totalPages: Math.ceil(totalReviews / limit),
+          hasMore: page < Math.ceil(totalReviews / limit)
+        }
       }
     });
   } catch (error) {

@@ -26,11 +26,11 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
   const selectId = id || `select-${generatedId}`;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1 sm:space-y-2">
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+          className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5"
         >
           {label}
         </label>
@@ -39,7 +39,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
         <select
           id={selectId}
           className={cn(
-            'block w-full rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50 appearance-none pr-8 sm:pr-10',
+            'block w-full rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-sm sm:text-base text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50 appearance-none pr-8 sm:pr-10',
             error && 'border-red-400 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50',
             className
           )}
@@ -55,7 +55,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 sm:pr-3 pointer-events-none">
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 pointer-events-none">
           <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-indigo-600 transition-colors duration-200" fill="none" viewBox="0 0 20 20">
             <path
               d="M6 8L10 12L14 8"

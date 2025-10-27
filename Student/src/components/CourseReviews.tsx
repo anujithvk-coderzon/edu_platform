@@ -24,32 +24,60 @@ interface CourseReviewsProps {
 
 export default function CourseReviews({ courseId }: CourseReviewsProps) {
   const [reviews, setReviews] = useState<ReviewData[]>([]);
-  const [averageRating, setAverageRating] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [totalReviews, setTotalReviews] = useState(0);
-  const [ratingDistribution, setRatingDistribution] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const REVIEWS_PER_PAGE = 10;
 
   useEffect(() => {
     if (courseId) {
-      fetchReviews();
+      fetchReviews(1, false);
     }
   }, [courseId]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = async (pageNum: number, append: boolean) => {
     try {
-      setLoading(true);
-      const response = await api.reviews.getCourseReviews(courseId);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      const response = await api.reviews.getCourseReviews(courseId, {
+        page: pageNum,
+        limit: REVIEWS_PER_PAGE
+      });
+
       if (response.success) {
-        setReviews(response.data.reviews);
-        setAverageRating(response.data.averageRating);
-        setTotalReviews(response.data.totalReviews);
-        setRatingDistribution(response.data.ratingDistribution);
+        const newReviews = response.data.reviews || [];
+
+        if (append) {
+          setReviews(prev => [...prev, ...newReviews]);
+        } else {
+          setReviews(newReviews);
+        }
+
+        setTotalReviews(response.data.totalReviews || 0);
+
+        // Check if there are more reviews to load
+        const totalPages = Math.ceil((response.data.totalReviews || 0) / REVIEWS_PER_PAGE);
+        setHasMore(pageNum < totalPages);
       }
     } catch (error) {
       console.error('Error fetching reviews:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchReviews(nextPage, true);
   };
 
   const formatDate = (dateString: string) => {
@@ -66,15 +94,15 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-lg border p-6 animate-pulse">
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+          <div key={i} className="bg-slate-50 rounded-lg p-5 animate-pulse">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-slate-200 rounded-full"></div>
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-slate-200 rounded w-1/4"></div>
+                <div className="h-3 bg-slate-200 rounded w-full"></div>
+                <div className="h-3 bg-slate-200 rounded w-3/4"></div>
               </div>
             </div>
           </div>
@@ -84,91 +112,92 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Rating Summary */}
-      {totalReviews > 0 && (
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Course Reviews</h3>
-            <div className="text-right">
-              <div className="flex items-center">
-                <StarRating rating={averageRating} readonly showValue size="lg" />
-              </div>
-              <p className="text-sm text-gray-600">{totalReviews} review{totalReviews !== 1 ? 's' : ''}</p>
-            </div>
-          </div>
-
-          {/* Rating Distribution */}
-          <div className="space-y-2">
-            {[5, 4, 3, 2, 1].map((star) => (
-              <div key={star} className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700 w-8">{star}★</span>
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-yellow-400 h-2 rounded-full"
-                    style={{
-                      width: totalReviews > 0 ? `${(ratingDistribution[star] / totalReviews) * 100}%` : '0%'
-                    }}
-                  ></div>
+    <div className="space-y-4">
+      {/* Individual Reviews */}
+      {reviews.length > 0 ? (
+        <>
+          <div className="space-y-3">
+            {reviews.map((review) => (
+              <div key={review.id} className="bg-slate-50 rounded-lg p-5 hover:bg-slate-100 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    {review.student.avatar ? (
+                      <img
+                        src={getCdnUrl(review.student.avatar) || ''}
+                        alt={`${review.student.firstName} ${review.student.lastName}`}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                        <span className="text-indigo-600 font-semibold text-sm">
+                          {getInitials(review.student.firstName, review.student.lastName)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-semibold text-slate-900">
+                        {review.student.firstName} {review.student.lastName}
+                      </h4>
+                      <span className="text-xs text-slate-500">
+                        {formatDate(review.createdAt)}
+                      </span>
+                    </div>
+                    <div className="mb-2">
+                      <StarRating rating={review.rating} readonly size="sm" />
+                    </div>
+                    {review.comment && (
+                      <p className="text-slate-700 text-sm leading-relaxed">
+                        {review.comment}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <span className="text-sm text-gray-600 w-8">{ratingDistribution[star] || 0}</span>
               </div>
             ))}
           </div>
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex flex-col items-center gap-3 pt-4">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="px-6 py-2.5 bg-white border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+              >
+                {loadingMore ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-400 border-t-transparent"></div>
+                    Loading...
+                  </div>
+                ) : (
+                  `Load More Reviews`
+                )}
+              </button>
+              <p className="text-xs text-slate-500">
+                Showing {reviews.length} of {totalReviews} reviews
+              </p>
+            </div>
+          )}
+
+          {/* All Loaded Message */}
+          {!hasMore && reviews.length > 0 && (
+            <div className="text-center pt-4 border-t border-slate-200">
+              <p className="text-xs text-slate-500">
+                All {totalReviews} reviews loaded
+              </p>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="bg-slate-50 rounded-lg p-8 text-center">
+          <UserCircleIcon className="h-12 w-12 text-slate-400 mx-auto mb-3" />
+          <h3 className="text-base font-semibold text-slate-900 mb-1">No Reviews Yet</h3>
+          <p className="text-sm text-slate-600">Be the first to review this course!</p>
         </div>
       )}
-
-      {/* Individual Reviews */}
-      <div className="space-y-4">
-        {reviews.length > 0 ? (
-          reviews.map((review) => (
-            <div key={review.id} className="bg-white rounded-lg border p-6">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  {review.student.avatar ? (
-                    <img
-                      src={getCdnUrl(review.student.avatar) || ''}
-                      alt={`${review.student.firstName} ${review.student.lastName}`}
-                      className="w-10 h-10 rounded-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-medium text-sm">
-                        {getInitials(review.student.firstName, review.student.lastName)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium text-gray-900">
-                      {review.student.firstName} {review.student.lastName}
-                    </h4>
-                    <span className="text-xs text-gray-500">
-                      {formatDate(review.createdAt)}
-                    </span>
-                  </div>
-                  <div className="mb-3">
-                    <StarRating rating={review.rating} readonly size="sm" />
-                  </div>
-                  {review.comment && (
-                    <p className="text-gray-700 text-sm leading-relaxed">
-                      {review.comment}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="bg-white rounded-lg border p-8 text-center">
-            <UserCircleIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Reviews Yet</h3>
-            <p className="text-gray-600">Be the first to review this course!</p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

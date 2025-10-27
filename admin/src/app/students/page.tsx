@@ -142,7 +142,6 @@ interface StudentsStats {
   activeStudents: number;
   newThisMonth: number;
   averageProgress: number;
-  topPerformers: number;
   totalRevenue: number;
 }
 
@@ -187,7 +186,6 @@ export default function StudentsPage() {
     activeStudents: 0,
     newThisMonth: 0,
     averageProgress: 0,
-    topPerformers: 0,
     totalRevenue: 0
   });
   const [loading, setLoading] = useState(true);
@@ -196,6 +194,7 @@ export default function StudentsPage() {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedEnrollmentIndex, setSelectedEnrollmentIndex] = useState<number | null>(null);
 
   const handleSendMessage = (studentEmail: string) => {
     // Open Gmail with the student's email as recipient
@@ -340,16 +339,11 @@ export default function StudentsPage() {
         }, 0);
         const averageProgress = mergedStudents.length > 0 ? totalProgress / mergedStudents.length : 0;
 
-        const topPerformers = mergedStudents.filter((s: Student) =>
-          s.enrollments.some((e: Student['enrollments'][0]) => e.progressPercentage > 80)
-        ).length;
-
         const realStats = {
           totalStudents: totalStudentsCount,
           activeStudents: activeStudents,
           newThisMonth: newThisMonth,
           averageProgress: averageProgress,
-          topPerformers: topPerformers,
           totalRevenue: 0
         };
 
@@ -372,7 +366,6 @@ export default function StudentsPage() {
         activeStudents: 0,
         newThisMonth: 0,
         averageProgress: 0,
-        topPerformers: 0,
         totalRevenue: 0
       });
     } finally {
@@ -506,8 +499,8 @@ export default function StudentsPage() {
               <div className="h-6 sm:h-8 bg-slate-200 rounded w-1/2 sm:w-1/3 mx-auto mb-2"></div>
               <div className="h-4 bg-slate-200 rounded w-3/4 sm:w-1/2 mx-auto"></div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              {[1, 2, 3, 4].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              {[1, 2, 3].map((i) => (
                 <div key={i} className="h-20 sm:h-24 bg-white rounded-xl shadow-sm border border-slate-200"></div>
               ))}
             </div>
@@ -527,585 +520,385 @@ export default function StudentsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-            <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 mb-2">
+      {/* Hero Header with Gradient */}
+      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 pt-6 pb-32 sm:pt-8 sm:pb-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/20 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center ring-2 ring-white/30">
+              <UserGroupIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold" style={{ color: 'white' }}>
                 My Students
               </h1>
-              <p className="text-slate-600 text-sm sm:text-base">Track your students&apos; progress and engagement</p>
+              <p className="text-xs sm:text-sm md:text-base mt-0.5 sm:mt-1" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                Track your students&apos; progress and engagement
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 sm:-mt-32 pb-8 sm:pb-12">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                <UserGroupIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              </div>
+              <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-slate-600">Total Students</p>
+            </div>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              {stats.totalStudents}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                <AcademicCapIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              </div>
+              <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-slate-600">Active Enrolled</p>
+            </div>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-green-600 to-green-700 bg-clip-text text-transparent">
+              {stats.activeStudents}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                <ChartBarIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              </div>
+              <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-slate-600">Avg Progress</p>
+            </div>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-br from-purple-600 to-purple-700 bg-clip-text text-transparent">
+              {stats.averageProgress.toFixed(0)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Search Bar - Mobile Optimized */}
+        <div className="mb-3 sm:mb-6">
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+            <Input
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 sm:pl-12 pr-3 sm:pr-4 py-2.5 sm:py-4 w-full border-2 border-slate-300 rounded-lg sm:rounded-xl text-sm sm:text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* Filters - Mobile Optimized */}
+        <div className="mb-3 sm:mb-6 bg-white rounded-lg sm:rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+          <div className="p-2 sm:p-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <Select
+                value={filterBy}
+                onChange={setFilterBy}
+                options={filterOptions}
+                className="w-full"
+              />
+              <Select
+                value={sortBy}
+                onChange={setSortBy}
+                options={sortOptions}
+                className="w-full"
+              />
             </div>
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="bg-white shadow-sm border border-slate-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">Total Students</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.totalStudents}</p>
-                </div>
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <UserGroupIcon className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-sm border border-slate-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">Actively Enrolled</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.activeStudents}</p>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <AcademicCapIcon className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-sm border border-slate-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">Avg Progress</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.averageProgress.toFixed(0)}%</p>
-                </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <ChartBarIcon className="w-5 h-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-sm border border-slate-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600 mb-1">Top Performers</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.topPerformers}</p>
-                </div>
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <TrophyIcon className="w-5 h-5 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters and Search */}
-        <Card className="mb-6 bg-white shadow-sm border border-slate-200 relative z-10">
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col gap-4">
-              <div className="w-full relative">
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                  <MagnifyingGlassIcon className="w-4 h-4 text-slate-400" />
-                </div>
-                <Input
-                  placeholder="Search students by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 relative z-20">
-                <Select
-                  value={filterBy}
-                  onChange={setFilterBy}
-                  options={filterOptions}
-                  className="w-full sm:w-auto sm:min-w-[140px]"
-                />
-
-                <Select
-                  value={sortBy}
-                  onChange={setSortBy}
-                  options={sortOptions}
-                  className="w-full sm:w-auto sm:min-w-[120px]"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Students List */}
-        <Card className="bg-white shadow-sm border border-slate-200">
-          <CardHeader className="p-4 sm:p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-900 mb-1">
-                  Students ({filteredStudents.length})
-                </CardTitle>
-                <CardDescription className="text-slate-600 text-sm">
-                  {filterBy === 'enrolled' ? 'Currently enrolled students' :
-                   filterBy === 'completed' ? 'Students who completed courses' :
-                   filterBy === 'new' ? 'New registrations this month' :
-                   filterBy === 'blocked' ? 'Students blocked by administrator' :
-                   'All registered students'}
-                </CardDescription>
-              </div>
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-6 py-2.5 sm:py-4 border-b border-slate-200">
+            <div className="flex items-center gap-2">
+              <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              <h3 className="text-sm sm:text-lg font-semibold text-slate-900">
+                Students ({filteredStudents.length})
+              </h3>
             </div>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
+          </div>
+          <div className="p-2 sm:p-6">
             {filteredStudents.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-2 sm:space-y-3">
                 {filteredStudents.map((student) => (
                   <div
                     key={student.id}
-                    className="bg-white border-2 border-slate-200 rounded-xl p-4 sm:p-5 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    onClick={() => setSelectedStudent(selectedStudent?.id === student.id ? null : student)}
+                    className="bg-white border border-slate-200 rounded-lg sm:rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                      <div className="flex items-center space-x-4 flex-1 min-w-0">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
+                    {/* Student Card Header - Always Visible */}
+                    <div
+                      className="p-2.5 sm:p-4 cursor-pointer active:bg-slate-50"
+                      onClick={() => {
+                        if (selectedStudent?.id === student.id) {
+                          setSelectedStudent(null);
+                          setSelectedEnrollmentIndex(null);
+                        } else {
+                          setSelectedStudent(student);
+                          setSelectedEnrollmentIndex(null);
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0 shadow-md">
                           {student.firstName.charAt(0)}{student.lastName.charAt(0)}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 mb-1 flex-wrap">
-                            <h3 className="text-base sm:text-lg font-semibold text-slate-900 truncate">
-                              {student.firstName} {student.lastName}
-                            </h3>
-                            {/* Enrollment Status Badge */}
-                            {student.enrollments && student.enrollments.length > 0 ? (
-                              student.completedCourses > 0 && student.completedCourses === student.totalCourses ? (
-                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex-shrink-0">
-                                  ✓ Completed
-                                </span>
-                              ) : student.enrollments.some(e => e.status === 'ACTIVE') ? (
-                                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full flex-shrink-0">
-                                  • Enrolled
-                                </span>
-                              ) : null
-                            ) : (
-                              <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full flex-shrink-0">
-                                Not Enrolled
-                              </span>
-                            )}
-                            {/* Blocked Status Badge */}
-                            {student.blocked && (
-                              <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full flex-shrink-0 border border-red-300">
-                                🚫 Blocked
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-slate-600 mb-3 truncate">{student.email}</p>
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
-                            {student.enrollments && student.enrollments.length > 0 && (
-                              <>
-                                <span className="flex items-center bg-blue-50 px-2 py-1 rounded-md">
-                                  <BookOpenIcon className="w-3 h-3 mr-1 flex-shrink-0 text-blue-600" />
-                                  <span className="font-medium text-blue-700">{student.totalCourses} {student.totalCourses === 1 ? 'course' : 'courses'}</span>
-                                </span>
-                                {student.completedCourses > 0 && (
-                                  <span className="flex items-center bg-green-50 px-2 py-1 rounded-md">
-                                    <CheckCircleIcon className="w-3 h-3 mr-1 flex-shrink-0 text-green-600" />
-                                    <span className="font-medium text-green-700">{student.completedCourses} completed</span>
-                                  </span>
-                                )}
-                              </>
-                            )}
-                            <span className="flex items-center">
-                              <CalendarIcon className="w-3 h-3 mr-1 flex-shrink-0" />
-                              <span className="truncate">Joined {new Date(student.joinedAt).toLocaleDateString()}</span>
-                            </span>
-                          </div>
-
-                          {/* Enhanced completion statistics - Only show for enrolled students */}
-                          {student.enrollments && student.enrollments.length > 0 && (student.totalMaterials !== undefined || student.totalAssignments !== undefined) && (
-                            <div className="mt-3 pt-3 border-t border-slate-200">
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-                                {/* Materials Stats */}
-                                <div className="bg-blue-50 rounded-lg p-2 text-center border border-blue-100">
-                                  <DocumentTextIcon className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-                                  <div className="text-xs font-medium text-blue-700">
-                                    {student.completedMaterials || 0}/{student.totalMaterials || 0}
-                                  </div>
-                                  <div className="text-xs text-blue-600">Materials</div>
-                                </div>
-
-                                {/* Assignments Stats */}
-                                <div className="bg-green-50 rounded-lg p-2 text-center border border-green-100">
-                                  <ClipboardDocumentListIcon className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                                  <div className="text-xs font-medium text-green-700">
-                                    {student.submittedAssignments || 0}/{student.totalAssignments || 0}
-                                  </div>
-                                  <div className="text-xs text-green-600">Assignments</div>
-                                </div>
-
-                                {/* Graded Stats */}
-                                {student.gradedAssignments !== undefined && student.gradedAssignments > 0 && (
-                                  <div className="bg-emerald-50 rounded-lg p-2 text-center border border-emerald-100">
-                                    <CheckCircleIcon className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
-                                    <div className="text-xs font-medium text-emerald-700">
-                                      {student.gradedAssignments}
-                                    </div>
-                                    <div className="text-xs text-emerald-600">Graded</div>
-                                  </div>
-                                )}
-
-                                {/* Remaining Items */}
-                                {(() => {
-                                  const totalItems = (student.totalMaterials || 0) + (student.totalAssignments || 0);
-                                  const completedItems = (student.completedMaterials || 0) + (student.submittedAssignments || 0);
-                                  const remaining = totalItems - completedItems;
-                                  return remaining > 0 ? (
-                                    <div className="bg-orange-50 rounded-lg p-2 text-center border border-orange-100">
-                                      <ClockIcon className="w-4 h-4 text-orange-500 mx-auto mb-1" />
-                                      <div className="text-xs font-medium text-orange-700">
-                                        {remaining}
-                                      </div>
-                                      <div className="text-xs text-orange-600">Remaining</div>
-                                    </div>
-                                  ) : (
-                                    <div className="bg-green-50 rounded-lg p-2 text-center border border-green-100">
-                                      <TrophyIcon className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                                      <div className="text-xs font-medium text-green-700">
-                                        All Done!
-                                      </div>
-                                      <div className="text-xs text-green-600">Complete</div>
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-
-                              {/* Progress Summary */}
-                              <div className="text-center">
-                                <div className="text-xs text-slate-600">
-                                  Overall completion across all courses
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                            {student.firstName} {student.lastName}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-slate-600 truncate">{student.email}</p>
                         </div>
+                        <ChevronDownIcon
+                          className={`w-5 h-5 sm:w-6 sm:h-6 text-slate-400 transition-transform duration-200 flex-shrink-0 ${
+                            selectedStudent?.id === student.id ? 'rotate-180' : ''
+                          }`}
+                        />
                       </div>
 
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <div className="flex flex-col items-end gap-2">
+                      {/* Status & Quick Stats */}
+                      <div className="space-y-1.5 sm:space-y-2">
+                        {/* Status Badge */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           {student.enrollments && student.enrollments.length > 0 ? (
-                            <>
-                              <div className="flex items-center gap-2">
-                                <div className="text-right">
-                                  <div className="text-lg font-bold text-indigo-600">
-                                    {(student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length).toFixed(0)}%
-                                  </div>
-                                  <div className="text-xs text-slate-500">Avg Progress</div>
-                                </div>
-                                <div className="w-16 sm:w-20 h-16 sm:h-20">
-                                  <svg className="transform -rotate-90 w-full h-full">
-                                    <circle
-                                      cx="50%"
-                                      cy="50%"
-                                      r="30"
-                                      stroke="currentColor"
-                                      strokeWidth="6"
-                                      fill="transparent"
-                                      className="text-slate-200"
-                                    />
-                                    <circle
-                                      cx="50%"
-                                      cy="50%"
-                                      r="30"
-                                      stroke="currentColor"
-                                      strokeWidth="6"
-                                      fill="transparent"
-                                      strokeDasharray={`${2 * Math.PI * 30}`}
-                                      strokeDashoffset={`${2 * Math.PI * 30 * (1 - (student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length) / 100)}`}
-                                      className="text-indigo-600 transition-all duration-300"
-                                    />
-                                  </svg>
-                                </div>
-                              </div>
-                              <p className="text-xs text-slate-500 flex items-center gap-1">
-                                <ClockIcon className="w-3 h-3" />
-                                {new Date(student.lastActive).toLocaleDateString()}
-                              </p>
-                            </>
-                          ) : (
-                            <div className="text-right">
-                              <div className="text-sm text-slate-500 mb-1">No progress yet</div>
-                              <p className="text-xs text-slate-400 flex items-center gap-1 justify-end">
-                                <CalendarIcon className="w-3 h-3" />
-                                {new Date(student.lastActive).toLocaleDateString()}
-                              </p>
-                            </div>
-                          )}
-                          {/* Block/Unblock Button - Always Visible */}
-                          <div onClick={(e) => e.stopPropagation()}>
-                            {student.blocked ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUnblockStudent(student.id, `${student.firstName} ${student.lastName}`)}
-                                className="border-green-300 text-green-700 hover:bg-green-50 whitespace-nowrap text-xs px-2 py-1 h-auto"
-                              >
-                                <CheckCircleIcon className="w-3 h-3 mr-1" />
-                                Unblock
-                              </Button>
+                            student.completedCourses > 0 && student.completedCourses === student.totalCourses ? (
+                              <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-green-50 text-green-700 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg border border-green-200">
+                                <CheckCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                                All Completed
+                              </span>
                             ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleBlockStudent(student.id, `${student.firstName} ${student.lastName}`)}
-                                className="border-red-300 text-red-700 hover:bg-red-50 whitespace-nowrap text-xs px-2 py-1 h-auto"
-                              >
-                                <XCircleIcon className="w-3 h-3 mr-1" />
-                                Block
-                              </Button>
-                            )}
-                          </div>
+                              <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-50 text-blue-700 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg border border-blue-200">
+                                <BookOpenIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                                {student.totalCourses} Course{student.totalCourses !== 1 ? 's' : ''}
+                              </span>
+                            )
+                          ) : (
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-50 text-slate-600 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg border border-slate-200">
+                              Not Enrolled
+                            </span>
+                          )}
+                          {student.blocked && (
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-red-50 text-red-700 text-xs sm:text-sm font-semibold rounded-md sm:rounded-lg border border-red-300">
+                              <XCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                              Blocked
+                            </span>
+                          )}
+                          {student.completedCourses > 0 && (
+                            <span className="inline-flex items-center gap-1 text-green-600 font-medium text-xs">
+                              <CheckCircleIcon className="w-3 h-3" />
+                              {student.completedCourses} Done
+                            </span>
+                          )}
                         </div>
-                        {/* Expand/Collapse Indicator */}
-                        <div className="ml-2">
-                          <ChevronDownIcon
-                            className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${
-                              selectedStudent?.id === student.id ? 'transform rotate-180' : ''
-                            }`}
-                          />
+
+                        {/* Progress Bar - Only for enrolled students */}
+                        {student.enrollments && student.enrollments.length > 0 && (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] sm:text-xs font-medium text-slate-600">Progress</span>
+                              <span className="text-xs sm:text-sm font-bold text-indigo-600">
+                                {(student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length).toFixed(0)}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
+                              <div
+                                className="bg-gradient-to-r from-indigo-600 to-blue-600 h-1.5 sm:h-2 rounded-full transition-all"
+                                style={{ width: `${(student.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / student.enrollments.length).toFixed(0)}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Meta Info */}
+                        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-500">
+                          <CalendarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                          <span>Joined {new Date(student.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                         </div>
                       </div>
                     </div>
 
+                    {/* Action Buttons - Always Visible */}
+                    <div className="px-2.5 sm:px-4 pb-2.5 sm:pb-4 flex gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSendMessage(student.email)}
+                        className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50 py-1.5 sm:py-2.5 text-xs sm:text-sm font-medium"
+                      >
+                        <EnvelopeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                        Email
+                      </Button>
+                      {student.blocked ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUnblockStudent(student.id, `${student.firstName} ${student.lastName}`)}
+                          className="flex-1 border-green-300 text-green-700 hover:bg-green-50 py-1.5 sm:py-2.5 text-xs sm:text-sm font-medium"
+                        >
+                          <CheckCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                          Unblock
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBlockStudent(student.id, `${student.firstName} ${student.lastName}`)}
+                          className="flex-1 border-red-300 text-red-700 hover:bg-red-50 py-1.5 sm:py-2.5 text-xs sm:text-sm font-medium"
+                        >
+                          <XCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+                          Block
+                        </Button>
+                      )}
+                    </div>
+
                     {/* Expanded Student Details */}
                     {selectedStudent?.id === student.id && (
-                      <div className="mt-6 pt-6 border-t-2 border-slate-200">
+                      <div className="border-t-2 border-slate-100 bg-slate-50 p-2.5 sm:p-4">
+                        {/* Quick Stats - Only for enrolled students */}
+                        {student.enrollments && student.enrollments.length > 0 && (student.totalMaterials !== undefined || student.totalAssignments !== undefined) && (
+                          <div className="mb-2.5 sm:mb-4">
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-700 mb-2 sm:mb-3 uppercase tracking-wide">Learning Progress</p>
+                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                              <div className="bg-white rounded-lg p-2 sm:p-3 border border-slate-200 text-center">
+                                <DocumentTextIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mx-auto mb-1 sm:mb-1.5" />
+                                <div className="text-sm sm:text-lg font-bold text-blue-700">
+                                  {student.completedMaterials || 0}/{student.totalMaterials || 0}
+                                </div>
+                                <div className="text-[10px] sm:text-xs text-slate-600">Materials</div>
+                              </div>
+                              <div className="bg-white rounded-lg p-2 sm:p-3 border border-slate-200 text-center">
+                                <ClipboardDocumentListIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mx-auto mb-1 sm:mb-1.5" />
+                                <div className="text-sm sm:text-lg font-bold text-green-700">
+                                  {student.submittedAssignments || 0}/{student.totalAssignments || 0}
+                                </div>
+                                <div className="text-[10px] sm:text-xs text-slate-600">Assignments</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Student Information */}
-                        <div className="mb-6 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-5 border-2 border-slate-300">
-                          <h4 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            <UserIcon className="w-5 h-5" />
-                            Student Details
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {/* Full Name */}
-                            <div className="bg-white rounded-lg p-3 border border-slate-200">
-                              <div className="text-xs font-medium text-slate-500 mb-1">Full Name</div>
-                              <div className="text-sm font-semibold text-slate-900">
-                                {student.firstName} {student.lastName}
-                              </div>
-                            </div>
-
-                            {/* Email */}
-                            <div className="bg-white rounded-lg p-3 border border-slate-200">
-                              <div className="text-xs font-medium text-slate-500 mb-1">Email</div>
-                              <div className="text-sm font-semibold text-slate-900 truncate">
-                                {student.email}
-                              </div>
-                            </div>
-
-                            {/* Mobile Number */}
-                            {student.phone && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Mobile Number</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.phone}
+                        {(student.phone || student.dateOfBirth || student.gender || student.country || student.city ||
+                          student.education || student.institution || student.occupation || student.company || student.registeredAt) && (
+                          <div className="bg-white rounded-lg p-2.5 sm:p-4 border border-slate-200">
+                            <h4 className="text-[10px] sm:text-sm font-bold text-slate-700 mb-2 sm:mb-3 uppercase tracking-wide">Additional Details</h4>
+                            <div className="space-y-1.5 sm:space-y-2.5">
+                              {student.phone && (
+                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                  <span className="text-[10px] sm:text-xs text-slate-500">Phone</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900">{student.phone}</span>
                                 </div>
-                              </div>
-                            )}
-
-                            {/* Date of Birth */}
-                            {student.dateOfBirth && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Date of Birth</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {new Date(student.dateOfBirth).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Gender */}
-                            {student.gender && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Gender</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.gender}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Country */}
-                            {student.country && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Country</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.country}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* City */}
-                            {student.city && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">City</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.city}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Education */}
-                            {student.education && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Education Level</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.education}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Institution */}
-                            {student.institution && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Institution</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.institution}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Occupation */}
-                            {student.occupation && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Occupation</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.occupation}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Company */}
-                            {student.company && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Company</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {student.company}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Registration Date */}
-                            {student.registeredAt && (
-                              <div className="bg-white rounded-lg p-3 border border-slate-200">
-                                <div className="text-xs font-medium text-slate-500 mb-1">Registered On</div>
-                                <div className="text-sm font-semibold text-slate-900">
-                                  {new Date(student.registeredAt).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Verification Status */}
-                            <div className="bg-white rounded-lg p-3 border border-slate-200">
-                              <div className="text-xs font-medium text-slate-500 mb-1">Account Status</div>
-                              <div className="flex gap-2 flex-wrap">
-                                {student.isVerified ? (
-                                  <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold">
-                                    ✓ Verified
-                                  </span>
-                                ) : (
-                                  <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded-full font-semibold">
-                                    ⚠ Unverified
-                                  </span>
-                                )}
-                                {student.isActive ? (
-                                  <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold">
-                                    Active
-                                  </span>
-                                ) : (
-                                  <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full font-semibold">
-                                    Inactive
-                                  </span>
-                                )}
-                                {student.blocked ? (
-                                  <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full font-semibold">
-                                    🚫 Blocked
-                                  </span>
-                                ) : (
-                                  <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-semibold">
-                                    ✓ Not Blocked
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Block/Unblock Actions */}
-                          <div className="mt-4 pt-4 border-t border-slate-200">
-                            <div className="flex gap-3 justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleSendMessage(student.email)}
-                                className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                              >
-                                <EnvelopeIcon className="w-4 h-4 mr-1.5" />
-                                Send Email
-                              </Button>
-                              {student.blocked ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleUnblockStudent(student.id, `${student.firstName} ${student.lastName}`)}
-                                  className="border-green-300 text-green-700 hover:bg-green-50"
-                                >
-                                  <CheckCircleIcon className="w-4 h-4 mr-1.5" />
-                                  Unblock Student
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleBlockStudent(student.id, `${student.firstName} ${student.lastName}`)}
-                                  className="border-red-300 text-red-700 hover:bg-red-50"
-                                >
-                                  <XCircleIcon className="w-4 h-4 mr-1.5" />
-                                  Block Student
-                                </Button>
                               )}
+                              {student.dateOfBirth && (
+                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                  <span className="text-[10px] sm:text-xs text-slate-500">Birth</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900">
+                                    {new Date(student.dateOfBirth).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              )}
+                              {student.gender && (
+                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                  <span className="text-[10px] sm:text-xs text-slate-500">Gender</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900">{student.gender}</span>
+                                </div>
+                              )}
+                              {student.country && (
+                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                  <span className="text-[10px] sm:text-xs text-slate-500">Country</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900">{student.country}</span>
+                                </div>
+                              )}
+                              {student.city && (
+                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                  <span className="text-[10px] sm:text-xs text-slate-500">City</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900">{student.city}</span>
+                                </div>
+                              )}
+                              {student.education && (
+                                <div className="flex justify-between items-start py-1 sm:py-1.5 border-b border-slate-100 gap-2">
+                                  <span className="text-[10px] sm:text-xs text-slate-500 flex-shrink-0">Education</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900 text-right">{student.education}</span>
+                                </div>
+                              )}
+                              {student.institution && (
+                                <div className="flex justify-between items-start py-1 sm:py-1.5 border-b border-slate-100 gap-2">
+                                  <span className="text-[10px] sm:text-xs text-slate-500 flex-shrink-0">Institution</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900 text-right">{student.institution}</span>
+                                </div>
+                              )}
+                              {student.occupation && (
+                                <div className="flex justify-between items-start py-1 sm:py-1.5 border-b border-slate-100 gap-2">
+                                  <span className="text-[10px] sm:text-xs text-slate-500 flex-shrink-0">Job</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900 text-right">{student.occupation}</span>
+                                </div>
+                              )}
+                              {student.company && (
+                                <div className="flex justify-between items-start py-1 sm:py-1.5 border-b border-slate-100 gap-2">
+                                  <span className="text-[10px] sm:text-xs text-slate-500 flex-shrink-0">Company</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900 text-right">{student.company}</span>
+                                </div>
+                              )}
+                              {student.registeredAt && (
+                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                  <span className="text-[10px] sm:text-xs text-slate-500">Registered</span>
+                                  <span className="text-[10px] sm:text-xs font-medium text-slate-900">
+                                    {new Date(student.registeredAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex justify-between items-center py-1 sm:py-1.5">
+                                <span className="text-[10px] sm:text-xs text-slate-500">Status</span>
+                                <div>
+                                  {student.isVerified ? (
+                                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-green-50 text-green-700 rounded-full font-semibold border border-green-200">
+                                      ✓ Verified
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full font-semibold border border-orange-200">
+                                      ⚠ Unverified
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Enrollment Details - Only show if student has enrollments */}
                         {student.enrollments && student.enrollments.length > 0 ? (
                           <>
                             {/* Section Header with Summary Stats */}
-                            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="mb-2.5 sm:mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-2 sm:p-3 border border-blue-200">
+                              <div className="flex items-center justify-between gap-2">
                                 <div>
-                                  <h4 className="text-lg font-bold text-slate-900 mb-1">
-                                    Enrolled Courses Overview
+                                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">
+                                    Enrolled Courses
                                   </h4>
-                                  <p className="text-sm text-slate-600">
-                                    Detailed progress tracking across all enrolled courses
+                                  <p className="text-[9px] sm:text-[10px] text-slate-600 mt-0.5">
+                                    {selectedEnrollmentIndex !== null ? 'Tap course to close details' : 'Tap a course to view details'}
                                   </p>
                                 </div>
-                                <div className="flex gap-4">
-                                  <div className="text-center px-4 py-2 bg-white rounded-lg shadow-sm">
-                                    <div className="text-2xl font-bold text-blue-600">{student.enrollments.length}</div>
-                                    <div className="text-xs text-slate-600 font-medium">Total Courses</div>
+                                <div className="flex gap-2">
+                                  <div className="text-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white rounded-md shadow-sm">
+                                    <div className="text-sm sm:text-lg font-bold text-blue-600">{student.enrollments.length}</div>
+                                    <div className="text-[9px] sm:text-[10px] text-slate-600">Total</div>
                                   </div>
-                                  <div className="text-center px-4 py-2 bg-white rounded-lg shadow-sm">
-                                    <div className="text-2xl font-bold text-green-600">{student.completedCourses}</div>
-                                    <div className="text-xs text-slate-600 font-medium">Completed</div>
+                                  <div className="text-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white rounded-md shadow-sm">
+                                    <div className="text-sm sm:text-lg font-bold text-green-600">{student.completedCourses}</div>
+                                    <div className="text-[9px] sm:text-[10px] text-slate-600">Done</div>
                                   </div>
                                 </div>
                               </div>
                             </div>
 
-                            {/* Course Cards */}
-                            <div className="space-y-6">
+                            {/* Course List - Clickable Cards */}
+                            <div className="space-y-2 sm:space-y-3">
                           {student.enrollments.map((enrollment, index) => {
                             const materialCompletionRate = enrollment.totalMaterials ?
                               Math.round(((enrollment.completedMaterials || 0) / enrollment.totalMaterials) * 100) : 0;
@@ -1119,194 +912,179 @@ export default function StudentsPage() {
                             // Calculate ungraded assignments (submitted but not graded)
                             const ungradedAssignments = (enrollment.submittedAssignments || 0) - (enrollment.gradedAssignments || 0);
 
-                            return (
-                              <div key={index} className="bg-white border-2 border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-                                {/* Course Header Section */}
-                                <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 sm:p-5 border-b-2 border-slate-200 rounded-t-xl">
-                                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                                    {/* Left: Course Info */}
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-start gap-3">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
-                                          <BookOpenIcon className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <h5 className="text-base sm:text-lg font-bold text-slate-900 mb-2 line-clamp-2">
-                                            {enrollment.courseTitle}
-                                          </h5>
-                                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
-                                            <div className="flex items-center gap-1">
-                                              <CalendarIcon className="w-4 h-4 text-slate-500" />
-                                              <span className="font-medium">Enrolled:</span>
-                                              <span>{new Date(enrollment.enrolledAt).toLocaleDateString()}</span>
-                                            </div>
-                                            {enrollment.creator && (
-                                              <div className="flex items-center gap-1">
-                                                <UserIcon className="w-4 h-4 text-slate-500" />
-                                                <span className="font-medium">Creator:</span>
-                                                <span>{enrollment.creator.firstName} {enrollment.creator.lastName}</span>
-                                              </div>
-                                            )}
-                                            {enrollment.tutor && (
-                                              <div className="flex items-center gap-1">
-                                                <AcademicCapIcon className="w-4 h-4 text-slate-500" />
-                                                <span className="font-medium">Tutor:</span>
-                                                <span>{enrollment.tutor.firstName} {enrollment.tutor.lastName}</span>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
+                            const isSelected = selectedEnrollmentIndex === index;
 
-                                    {/* Right: Progress & Status */}
-                                    <div className="flex items-center gap-4">
-                                      <div className="text-center px-4 py-3 bg-white rounded-lg shadow-sm border border-slate-200">
-                                        <div className="text-2xl font-bold text-indigo-600 mb-1">
-                                          {enrollment.progressPercentage}%
+                            return (
+                              <div key={index} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl shadow-sm overflow-hidden">
+                                {/* Course Header Section - Always Visible & Clickable */}
+                                <div
+                                  className="bg-gradient-to-r from-slate-50 to-slate-100 p-2 sm:p-3 border-b border-slate-200 cursor-pointer active:bg-slate-100 transition-colors"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedEnrollmentIndex(isSelected ? null : index);
+                                  }}
+                                >
+                                  <div className="flex items-start gap-2 sm:gap-3">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                                      <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="text-xs sm:text-sm font-bold text-slate-900 mb-1 sm:mb-2 line-clamp-2">
+                                        {enrollment.courseTitle}
+                                      </h5>
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div className="space-y-0.5 sm:space-y-1">
+                                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-600">
+                                            <CalendarIcon className="w-3 h-3 flex-shrink-0" />
+                                            <span>{new Date(enrollment.enrolledAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                                          </div>
+                                          {enrollment.creator && (
+                                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-slate-600">
+                                              <UserIcon className="w-3 h-3 flex-shrink-0" />
+                                              <span className="truncate">{enrollment.creator.firstName} {enrollment.creator.lastName}</span>
+                                            </div>
+                                          )}
                                         </div>
-                                        <div className="text-xs text-slate-600 font-medium">Progress</div>
-                                        <div className="w-24 bg-slate-200 rounded-full h-2 mt-2">
-                                          <div
-                                            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                                            style={{ width: `${enrollment.progressPercentage}%` }}
-                                          />
+                                        {/* Progress Badge */}
+                                        <div className="text-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white rounded-md shadow-sm border border-slate-200 flex-shrink-0">
+                                          <div className="text-sm sm:text-lg font-bold text-indigo-600">
+                                            {enrollment.progressPercentage}%
+                                          </div>
+                                          <div className="text-[9px] sm:text-[10px] text-slate-600">Progress</div>
                                         </div>
                                       </div>
-                                      <span className={`px-4 py-2 rounded-lg text-sm font-bold shadow-sm ${getStatusColor(enrollment.status)}`}>
-                                        {enrollment.status}
-                                      </span>
                                     </div>
+                                    <ChevronDownIcon
+                                      className={`w-5 h-5 sm:w-6 sm:h-6 text-slate-400 transition-transform duration-200 flex-shrink-0 ${
+                                        isSelected ? 'rotate-180' : ''
+                                      }`}
+                                    />
+                                  </div>
+
+                                  {/* Quick Summary - Always visible */}
+                                  <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+                                    <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-slate-600">
+                                      <DocumentTextIcon className="w-3 h-3 text-blue-500" />
+                                      <span>{enrollment.completedMaterials || 0}/{enrollment.totalMaterials || 0} Materials</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-slate-600">
+                                      <ClipboardDocumentListIcon className="w-3 h-3 text-green-500" />
+                                      <span>{enrollment.submittedAssignments || 0}/{enrollment.totalAssignments || 0} Assignments</span>
+                                    </div>
+                                    {ungradedAssignments > 0 && (
+                                      <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded-full text-[9px] font-bold">
+                                        {ungradedAssignments} Pending Grade
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
 
+                                {/* Detailed Course Info - Only shown when selected */}
+                                {isSelected && (
+                                  <>
+
                                 {/* Progress Metrics Section */}
-                                <div className="p-5 sm:p-6 bg-slate-50">
-                                  <h6 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4">
-                                    Performance Metrics
-                                  </h6>
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="p-2 sm:p-3 bg-slate-50">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                     {/* Materials Progress Card */}
-                                    <div className="bg-white rounded-lg p-4 border-l-4 border-blue-500 shadow-sm">
-                                      <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <DocumentTextIcon className="w-5 h-5 text-blue-600" />
-                                          </div>
-                                          <span className="text-sm font-bold text-slate-700">Learning Materials</span>
+                                    <div className="bg-white rounded-lg p-2 sm:p-3 border-l-2 sm:border-l-4 border-blue-500 shadow-sm">
+                                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                                        <div className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-100 rounded-md flex items-center justify-center flex-shrink-0">
+                                          <DocumentTextIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                                         </div>
+                                        <span className="text-[10px] sm:text-xs font-bold text-slate-700">Materials</span>
                                       </div>
-                                      <div className="space-y-2">
+                                      <div className="space-y-1 sm:space-y-1.5">
                                         <div className="flex items-baseline justify-between">
-                                          <span className="text-2xl font-bold text-blue-600">
+                                          <span className="text-base sm:text-xl font-bold text-blue-600">
                                             {enrollment.completedMaterials || 0}
                                           </span>
-                                          <span className="text-sm text-slate-500">
-                                            of {enrollment.totalMaterials || 0}
+                                          <span className="text-[10px] sm:text-xs text-slate-500">
+                                            / {enrollment.totalMaterials || 0}
                                           </span>
                                         </div>
-                                        <div className="w-full bg-slate-200 rounded-full h-2">
+                                        <div className="w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
                                           <div
-                                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                            className="bg-blue-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                                             style={{ width: `${materialCompletionRate}%` }}
                                           />
                                         </div>
-                                        <div className="flex justify-between items-center text-xs">
-                                          <span className="font-medium text-blue-600">{materialCompletionRate}% Complete</span>
-                                          {(enrollment.totalMaterials || 0) > (enrollment.completedMaterials || 0) && (
-                                            <span className="text-orange-600 font-medium">
-                                              {(enrollment.totalMaterials || 0) - (enrollment.completedMaterials || 0)} Remaining
-                                            </span>
-                                          )}
+                                        <div className="text-[9px] sm:text-[10px] font-medium text-blue-600">
+                                          {materialCompletionRate}% Complete
                                         </div>
                                       </div>
                                     </div>
 
                                     {/* Assignments Progress Card */}
-                                    <div className="bg-white rounded-lg p-4 border-l-4 border-green-500 shadow-sm">
-                                      <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2">
-                                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                            <ClipboardDocumentListIcon className="w-5 h-5 text-green-600" />
+                                    <div className="bg-white rounded-lg p-2 sm:p-3 border-l-2 sm:border-l-4 border-green-500 shadow-sm">
+                                      <div className="flex items-center justify-between gap-1 mb-1.5 sm:mb-2">
+                                        <div className="flex items-center gap-1.5 sm:gap-2">
+                                          <div className="w-6 h-6 sm:w-7 sm:h-7 bg-green-100 rounded-md flex items-center justify-center flex-shrink-0">
+                                            <ClipboardDocumentListIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
                                           </div>
-                                          <span className="text-sm font-bold text-slate-700">Assignments</span>
+                                          <span className="text-[10px] sm:text-xs font-bold text-slate-700">Assignments</span>
                                         </div>
                                         {ungradedAssignments > 0 && (
-                                          <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">
+                                          <div className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded-full text-[9px] sm:text-[10px] font-bold">
                                             {ungradedAssignments} Pending
                                           </div>
                                         )}
                                       </div>
                                       {(enrollment.totalAssignments || 0) > 0 ? (
-                                        <div className="space-y-2">
+                                        <div className="space-y-1 sm:space-y-1.5">
                                           <div className="flex items-baseline justify-between">
-                                            <span className="text-2xl font-bold text-green-600">
+                                            <span className="text-base sm:text-xl font-bold text-green-600">
                                               {enrollment.submittedAssignments || 0}
                                             </span>
-                                            <span className="text-sm text-slate-500">
-                                              of {enrollment.totalAssignments || 0}
+                                            <span className="text-[10px] sm:text-xs text-slate-500">
+                                              / {enrollment.totalAssignments || 0}
                                             </span>
                                           </div>
-                                          <div className="w-full bg-slate-200 rounded-full h-2">
+                                          <div className="w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
                                             <div
-                                              className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                              className="bg-green-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                                               style={{ width: `${assignmentCompletionRate}%` }}
                                             />
                                           </div>
-                                          <div className="space-y-1">
-                                            <div className="flex justify-between items-center text-xs">
-                                              <span className="font-medium text-green-600">{assignmentCompletionRate}% Submitted</span>
-                                              {(enrollment.totalAssignments || 0) > (enrollment.submittedAssignments || 0) && (
-                                                <span className="text-slate-600">
-                                                  {(enrollment.totalAssignments || 0) - (enrollment.submittedAssignments || 0)} Pending
-                                                </span>
-                                              )}
-                                            </div>
+                                          <div className="text-[9px] sm:text-[10px] font-medium text-green-600">
+                                            {assignmentCompletionRate}% Submitted
                                             {enrollment.gradedAssignments !== undefined && enrollment.gradedAssignments > 0 && (
-                                              <div className="text-xs text-emerald-600 font-medium">
-                                                ✓ {enrollment.gradedAssignments} Graded
-                                              </div>
+                                              <span className="text-emerald-600 ml-2">• {enrollment.gradedAssignments} Graded</span>
                                             )}
                                           </div>
                                         </div>
                                       ) : (
-                                        <div className="text-center py-2">
-                                          <div className="text-sm text-slate-500 font-medium">No Assignments</div>
-                                          <div className="text-xs text-slate-400">None created yet</div>
+                                        <div className="text-center py-1.5">
+                                          <div className="text-[10px] sm:text-xs text-slate-500">No Assignments</div>
                                         </div>
                                       )}
                                     </div>
 
                                     {/* Overall Summary Card */}
-                                    <div className="bg-white rounded-lg p-4 border-l-4 border-indigo-500 shadow-sm">
-                                      <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                          <ChartBarIcon className="w-5 h-5 text-indigo-600" />
+                                    <div className="bg-white rounded-lg p-2 sm:p-3 border-l-2 sm:border-l-4 border-indigo-500 shadow-sm">
+                                      <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                                        <div className="w-6 h-6 sm:w-7 sm:h-7 bg-indigo-100 rounded-md flex items-center justify-center flex-shrink-0">
+                                          <ChartBarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
                                         </div>
-                                        <span className="text-sm font-bold text-slate-700">Overall Summary</span>
+                                        <span className="text-[10px] sm:text-xs font-bold text-slate-700">Overall</span>
                                       </div>
-                                      <div className="space-y-2">
+                                      <div className="space-y-1 sm:space-y-1.5">
                                         <div className="flex items-baseline justify-between">
-                                          <span className="text-2xl font-bold text-indigo-600">
+                                          <span className="text-base sm:text-xl font-bold text-indigo-600">
                                             {completedItems}
                                           </span>
-                                          <span className="text-sm text-slate-500">
-                                            of {totalItems} items
+                                          <span className="text-[10px] sm:text-xs text-slate-500">
+                                            / {totalItems} items
                                           </span>
                                         </div>
-                                        <div className="w-full bg-slate-200 rounded-full h-2">
+                                        <div className="w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
                                           <div
-                                            className="bg-indigo-500 h-2 rounded-full transition-all duration-300"
+                                            className="bg-indigo-500 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                                             style={{ width: `${enrollment.progressPercentage}%` }}
                                           />
                                         </div>
-                                        <div className="flex justify-between items-center text-xs">
-                                          <span className="font-medium text-indigo-600">{enrollment.progressPercentage}% Complete</span>
-                                          {remainingItems > 0 && (
-                                            <span className="text-orange-600 font-medium">
-                                              {remainingItems} Remaining
-                                            </span>
-                                          )}
+                                        <div className="text-[9px] sm:text-[10px] font-medium text-indigo-600">
+                                          {enrollment.progressPercentage}% Complete
                                         </div>
                                       </div>
                                     </div>
@@ -1316,30 +1094,30 @@ export default function StudentsPage() {
                                 {/* Detailed Activity Sections */}
                                 {(enrollment.completedMaterialsList && enrollment.completedMaterialsList.length > 0) ||
                                  (enrollment.submittedAssignmentsList && enrollment.submittedAssignmentsList.length > 0) ? (
-                                  <div className="p-5 sm:p-6 border-t-2 border-slate-200">
-                                    <h6 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4">
-                                      Detailed Activity Log
+                                  <div className="p-2 sm:p-3 border-t border-slate-200">
+                                    <h6 className="text-[10px] sm:text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">
+                                      Activity Log
                                     </h6>
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 gap-2">
                                       {/* Completed Materials Section */}
                                       {enrollment.completedMaterialsList && enrollment.completedMaterialsList.length > 0 && (
-                                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border-2 border-blue-200">
-                                          <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-2">
-                                              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-md">
-                                                <DocumentTextIcon className="w-6 h-6 text-white" />
+                                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-blue-200 sm:border-2">
+                                          <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 rounded-md sm:rounded-lg flex items-center justify-center shadow-md">
+                                                <DocumentTextIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
                                               </div>
                                               <div>
-                                                <h6 className="text-sm font-bold text-blue-900">
+                                                <h6 className="text-[10px] sm:text-xs font-bold text-blue-900">
                                                   Completed Materials
                                                 </h6>
-                                                <p className="text-xs text-blue-700">
+                                                <p className="text-[9px] sm:text-[10px] text-blue-700">
                                                   {enrollment.completedMaterialsList.length} items finished
                                                 </p>
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                                          <div className="space-y-1.5 sm:space-y-2 max-h-48 sm:max-h-60 overflow-y-auto pr-1 sm:pr-2">
                                             {enrollment.completedMaterialsList
                                               .sort((a, b) => {
                                                 if (a.chapter && b.chapter) {
@@ -1350,23 +1128,23 @@ export default function StudentsPage() {
                                                 return new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime();
                                               })
                                               .map((material, idx) => (
-                                                <div key={idx} className="bg-white rounded-lg p-3 border border-blue-200 shadow-sm hover:shadow-md transition-all">
-                                                  <div className="flex items-start gap-3">
-                                                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                <div key={idx} className="bg-white rounded-md sm:rounded-lg p-2 sm:p-2.5 border border-blue-200 shadow-sm">
+                                                  <div className="flex items-start gap-1.5 sm:gap-2">
+                                                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-100 rounded-md flex items-center justify-center flex-shrink-0">
                                                       {getMaterialIcon(material.type)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                      <div className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">
+                                                      <div className="font-semibold text-slate-900 text-[10px] sm:text-xs mb-0.5 sm:mb-1 line-clamp-2">
                                                         {material.title}
                                                       </div>
                                                       {material.chapter && (
-                                                        <div className="text-xs text-blue-700 font-medium mb-1">
+                                                        <div className="text-[9px] sm:text-[10px] text-blue-700 font-medium mb-0.5 truncate">
                                                           📖 {material.chapter.title}
                                                         </div>
                                                       )}
-                                                      <div className="text-xs text-slate-500 flex items-center gap-1">
-                                                        <CheckCircleIcon className="w-3 h-3 text-green-500" />
-                                                        {new Date(material.completedAt).toLocaleDateString()}
+                                                      <div className="text-[9px] sm:text-[10px] text-slate-500 flex items-center gap-0.5 sm:gap-1">
+                                                        <CheckCircleIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-500" />
+                                                        {new Date(material.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                       </div>
                                                     </div>
                                                   </div>
@@ -1378,64 +1156,64 @@ export default function StudentsPage() {
 
                                       {/* Submitted Assignments Section */}
                                       {enrollment.submittedAssignmentsList && enrollment.submittedAssignmentsList.length > 0 && (
-                                        <div className={`rounded-xl p-4 border-2 ${
+                                        <div className={`rounded-lg sm:rounded-xl p-2 sm:p-3 border sm:border-2 ${
                                           ungradedAssignments > 0
                                             ? 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200'
                                             : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
                                         }`}>
-                                          <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-2">
-                                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shadow-md ${
+                                          <div className="flex items-center justify-between mb-2 sm:mb-3">
+                                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                              <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center shadow-md ${
                                                 ungradedAssignments > 0 ? 'bg-orange-500' : 'bg-green-500'
                                               }`}>
-                                                <ClipboardDocumentListIcon className="w-6 h-6 text-white" />
+                                                <ClipboardDocumentListIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
                                               </div>
                                               <div>
-                                                <h6 className={`text-sm font-bold ${
+                                                <h6 className={`text-[10px] sm:text-xs font-bold ${
                                                   ungradedAssignments > 0 ? 'text-orange-900' : 'text-green-900'
                                                 }`}>
                                                   Submitted Assignments
                                                 </h6>
-                                                <p className={`text-xs ${
+                                                <p className={`text-[9px] sm:text-[10px] ${
                                                   ungradedAssignments > 0 ? 'text-orange-700' : 'text-green-700'
                                                 }`}>
                                                   {enrollment.submittedAssignmentsList.length} submissions
-                                                  {ungradedAssignments > 0 && ` • ${ungradedAssignments} pending review`}
+                                                  {ungradedAssignments > 0 && ` • ${ungradedAssignments} pending`}
                                                 </p>
                                               </div>
                                             </div>
                                           </div>
-                                          <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                                          <div className="space-y-1.5 sm:space-y-2 max-h-48 sm:max-h-60 overflow-y-auto pr-1 sm:pr-2">
                                             {enrollment.submittedAssignmentsList
                                               .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
                                               .map((assignment, idx) => (
-                                                <div key={idx} className={`bg-white rounded-lg p-3 border-2 shadow-sm hover:shadow-md transition-all ${
+                                                <div key={idx} className={`bg-white rounded-md sm:rounded-lg p-2 sm:p-2.5 border shadow-sm ${
                                                   assignment.status === 'GRADED' ? 'border-green-200' : 'border-orange-200'
                                                 }`}>
-                                                  <div className="flex items-start gap-3">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                                  <div className="flex items-start gap-1.5 sm:gap-2">
+                                                    <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center flex-shrink-0 ${
                                                       assignment.status === 'GRADED' ? 'bg-green-100' : 'bg-orange-100'
                                                     }`}>
-                                                      <ClipboardDocumentListIcon className={`w-5 h-5 ${
+                                                      <ClipboardDocumentListIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                                                         assignment.status === 'GRADED' ? 'text-green-600' : 'text-orange-600'
                                                       }`} />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                      <div className="font-semibold text-slate-900 text-sm mb-2 line-clamp-2">
+                                                      <div className="font-semibold text-slate-900 text-[10px] sm:text-xs mb-1 sm:mb-1.5 line-clamp-2">
                                                         {assignment.title}
                                                       </div>
-                                                      <div className="flex flex-wrap items-center gap-2">
-                                                        <div className="text-xs text-slate-500 flex items-center gap-1">
-                                                          <CalendarIcon className="w-3 h-3" />
-                                                          {new Date(assignment.submittedAt).toLocaleDateString()}
+                                                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                                                        <div className="text-[9px] sm:text-[10px] text-slate-500 flex items-center gap-0.5 sm:gap-1">
+                                                          <CalendarIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                                                          {new Date(assignment.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                         </div>
                                                         {assignment.status === 'GRADED' && assignment.score !== null ? (
-                                                          <div className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs font-bold">
-                                                            ✓ {assignment.score}/{assignment.maxScore} Points
+                                                          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-md text-[9px] sm:text-[10px] font-bold">
+                                                            ✓ {assignment.score}/{assignment.maxScore}
                                                           </div>
                                                         ) : (
-                                                          <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-xs font-bold">
-                                                            ⏳ Awaiting Grade
+                                                          <div className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-orange-100 text-orange-700 rounded-md text-[9px] sm:text-[10px] font-bold">
+                                                            ⏳ Pending
                                                           </div>
                                                         )}
                                                       </div>
@@ -1449,6 +1227,8 @@ export default function StudentsPage() {
                                     </div>
                                   </div>
                                 ) : null}
+                                  </>
+                                )}
                               </div>
                             );
                           })}
@@ -1467,12 +1247,12 @@ export default function StudentsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 sm:py-16 px-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <UserGroupIcon className="w-10 h-10 text-slate-500" />
+              <div className="text-center py-8 sm:py-12 md:py-16 px-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">
+                  <UserGroupIcon className="w-8 h-8 sm:w-10 sm:h-10 text-slate-500" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No students found</h3>
-                <p className="text-slate-600 text-sm mb-6 max-w-md mx-auto leading-relaxed">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1.5 sm:mb-2">No students found</h3>
+                <p className="text-slate-600 text-xs sm:text-sm mb-4 sm:mb-6 max-w-md mx-auto leading-relaxed">
                   {searchTerm ? (
                     <>No students match your search &quot;<span className="font-semibold">{searchTerm}</span>&quot;. Try a different search term.</>
                   ) : filterBy === 'enrolled' ? (
@@ -1505,8 +1285,8 @@ export default function StudentsPage() {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

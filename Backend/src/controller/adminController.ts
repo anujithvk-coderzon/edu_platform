@@ -20,6 +20,7 @@ import { generateOTP, storeOTP, verifyOTP, StoreForgetOtp, VerifyForgetOtp, Forg
 import { Upload_Files, Delete_File } from '../utils/CDN_management';
 import { Upload_Files_Stream } from '../utils/CDN_streaming';
 import { Upload_Files_Local, Delete_File_Local } from '../utils/localStorage';
+import { deleteVideoFromBunnyStream } from '../utils/BunnyStream';
 
 // ===== UTILITY FUNCTIONS =====
 const GenerateToken = (userId: string, type: 'admin' | 'student' = 'admin') => {
@@ -57,12 +58,24 @@ const safeDeleteCourse = async (courseId: string, reason?: string) => {
       return false;
     }
 
-    // Delete associated CDN files
+    // Delete associated CDN files and Bunny Stream videos
     for (const material of course.materials) {
-      if (material.fileUrl) {
+      if (material.fileUrl && material.type !== MaterialType.LINK) {
         try {
-          await Delete_File(material.fileUrl);
-          console.log(`✅ Deleted material file: ${material.fileUrl}`);
+          if (material.type === MaterialType.VIDEO) {
+            // For VIDEO materials, delete from Bunny Stream
+            const guid = material.fileUrl;
+            const deleted = await deleteVideoFromBunnyStream(guid);
+            if (deleted) {
+              console.log(`✅ Deleted video from Bunny Stream: ${guid}`);
+            } else {
+              console.error(`⚠️ Failed to delete video from Bunny Stream: ${guid}`);
+            }
+          } else {
+            // For other materials, delete from Bunny Storage
+            await Delete_File(material.fileUrl);
+            console.log(`✅ Deleted material file from Bunny Storage: ${material.fileUrl}`);
+          }
         } catch (error) {
           console.error(`❌ Failed to delete material file ${material.fileUrl}:`, error);
         }
@@ -1401,6 +1414,15 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
     const userId = req.user!.id;
     const userRole = req.user!.role; // This is the specific admin role (admin/tutor)
 
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 8;
+    const skip = (page - 1) * limit;
+
+    // Search and filter parameters
+    const search = req.query.search as string;
+    const status = req.query.status as string;
+
     let whereClause: any = {};
 
     if (userRole === "Admin") {
@@ -1421,45 +1443,104 @@ export const GetMyCourses = async (req: AuthRequest, res: express.Response) => {
       whereClause = { creatorId: userId };
     }
 
-    const courses = await prisma.course.findMany({
-      where: whereClause,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true
+    // Add search filter (ensure we preserve existing OR conditions for tutors)
+    if (search) {
+      const searchCondition = {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' as const } },
+          { description: { contains: search, mode: 'insensitive' as const } }
+        ]
+      };
+
+      // If there's already an OR condition (for tutors), combine them with AND
+      if (whereClause.OR) {
+        whereClause = {
+          AND: [
+            { OR: whereClause.OR },
+            searchCondition
+          ]
+        };
+      } else {
+        whereClause = { ...whereClause, ...searchCondition };
+      }
+    }
+
+    // Add status filter
+    if (status && status !== 'ALL') {
+      whereClause.status = status;
+    }
+
+    // Get total count and courses with pagination
+    const [totalCourses, courses] = await Promise.all([
+      prisma.course.count({ where: whereClause }),
+      prisma.course.findMany({
+        where: whereClause,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
+          creator: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          tutor: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          _count: {
+            select: {
+              enrollments: true,
+              materials: true,
+              reviews: true
+            }
           }
         },
-        creator: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
-        tutor: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
-        _count: {
-          select: {
-            enrollments: true,
-            materials: true,
-            reviews: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' }
+      })
+    ]);
+
+    // Calculate average rating for each course
+    const coursesWithRatings = await Promise.all(
+      courses.map(async (course) => {
+        const avgRating = await prisma.review.aggregate({
+          where: { courseId: course.id },
+          _avg: { rating: true }
+        });
+
+        return {
+          ...course,
+          averageRating: avgRating._avg.rating || null
+        };
+      })
+    );
+
+    const totalPages = Math.ceil(totalCourses / limit);
 
     return res.json({
       success: true,
-      data: { courses }
+      data: {
+        courses: coursesWithRatings,
+        pagination: {
+          total: totalCourses,
+          pages: totalPages,
+          totalPages,
+          currentPage: page,
+          limit
+        }
+      }
     });
   } catch (error) {
     console.error('GetMyCourses error:', error);
@@ -2374,27 +2455,39 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    // Delete all associated material files from CDN
-    const materialFileUrls = course.materials
-      .filter(material => material.fileUrl && material.type !== 'LINK')
-      .map(material => material.fileUrl!);
+    // Delete all associated material files from CDN and Bunny Stream
+    const materials = course.materials.filter(material => material.fileUrl && material.type !== 'LINK');
 
     let deletedMaterialsCount = 0;
-    for (const fileUrl of materialFileUrls) {
+    for (const material of materials) {
       try {
-        // fileUrl should already be in format "folder/filename"
-        const deleted = await Delete_File(fileUrl);
-        if (deleted) {
-          deletedMaterialsCount++;
-          console.log(`✅ Deleted material: ${fileUrl}`);
+        if (material.type === MaterialType.VIDEO) {
+          // For VIDEO materials, delete from Bunny Stream using GUID
+          const guid = material.fileUrl!;
+          console.log(`🎬 Deleting video from Bunny Stream: ${guid}`);
+          const deleted = await deleteVideoFromBunnyStream(guid);
+          if (deleted) {
+            deletedMaterialsCount++;
+            console.log(`✅ Deleted video from Bunny Stream: ${guid}`);
+          } else {
+            console.log(`⚠️ Failed to delete video from Bunny Stream: ${guid}`);
+          }
         } else {
-          console.log(`⚠️ Failed to delete material: ${fileUrl}`);
+          // For other materials (PDF, DOCUMENT, IMAGE), delete from Bunny Storage
+          const fileUrl = material.fileUrl!;
+          const deleted = await Delete_File(fileUrl);
+          if (deleted) {
+            deletedMaterialsCount++;
+            console.log(`✅ Deleted material from Bunny Storage: ${fileUrl}`);
+          } else {
+            console.log(`⚠️ Failed to delete material from Bunny Storage: ${fileUrl}`);
+          }
         }
       } catch (err) {
-        console.error(`❌ Error deleting material file: ${fileUrl}`, err);
+        console.error(`❌ Error deleting material (${material.type}): ${material.fileUrl}`, err);
       }
     }
-    console.log(`🗑️ Deleted ${deletedMaterialsCount}/${materialFileUrls.length} material files for course: ${course.title}`);
+    console.log(`🗑️ Deleted ${deletedMaterialsCount}/${materials.length} material files for course: ${course.title}`);
 
     // Delete all assignment submission files from CDN
     let deletedSubmissionsCount = 0;
@@ -2448,7 +2541,7 @@ export const DeleteCourse = async (req: AuthRequest, res: express.Response) => {
 
     const deletionSummary = {
       courseName: course.title,
-      deletedMaterials: `${deletedMaterialsCount}/${materialFileUrls.length}`,
+      deletedMaterials: `${deletedMaterialsCount}/${materials.length}`,
       deletedSubmissions: `${deletedSubmissionsCount}/${totalSubmissionFiles}`,
       thumbnailDeleted: course.thumbnail ? 'Yes' : 'N/A'
     };
@@ -3339,6 +3432,30 @@ export const UpdateMaterial = async (req: AuthRequest, res: express.Response) =>
       }
     }
 
+    // If fileUrl is being updated and old file exists, delete the old file
+    if (fileUrl !== undefined && existingMaterial.fileUrl && existingMaterial.fileUrl !== fileUrl && existingMaterial.type !== MaterialType.LINK) {
+      try {
+        if (existingMaterial.type === MaterialType.VIDEO) {
+          // Delete old video from Bunny Stream
+          const oldGuid = existingMaterial.fileUrl;
+          console.log(`🎬 Deleting old video from Bunny Stream: ${oldGuid}`);
+          const deleted = await deleteVideoFromBunnyStream(oldGuid);
+          if (deleted) {
+            console.log(`✅ Deleted old video from Bunny Stream: ${oldGuid}`);
+          } else {
+            console.log(`⚠️ Failed to delete old video from Bunny Stream: ${oldGuid}`);
+          }
+        } else {
+          // Delete old file from Bunny Storage
+          await Delete_File(existingMaterial.fileUrl);
+          console.log(`✅ Deleted old material from Bunny Storage: ${existingMaterial.fileUrl}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error deleting old material file: ${existingMaterial.fileUrl}`, error);
+        // Continue with update even if deletion fails
+      }
+    }
+
     const material = await prisma.material.update({
       where: { id },
       data: updates,
@@ -3407,9 +3524,23 @@ export const DeleteMaterial = async (req: AuthRequest, res: express.Response) =>
       }
     }
 
-    // Delete the file from CDN if it exists
+    // Delete the file from CDN or Bunny Stream if it exists
     if (material.fileUrl && material.type !== 'LINK') {
-      await Delete_File(material.fileUrl);
+      if (material.type === MaterialType.VIDEO) {
+        // For VIDEO materials, delete from Bunny Stream using GUID
+        const guid = material.fileUrl;
+        console.log(`🎬 Deleting video from Bunny Stream: ${guid}`);
+        const deleted = await deleteVideoFromBunnyStream(guid);
+        if (deleted) {
+          console.log(`✅ Deleted video from Bunny Stream: ${guid}`);
+        } else {
+          console.log(`⚠️ Failed to delete video from Bunny Stream: ${guid}`);
+        }
+      } else {
+        // For other materials (PDF, DOCUMENT, IMAGE), delete from Bunny Storage
+        await Delete_File(material.fileUrl);
+        console.log(`✅ Deleted material from Bunny Storage: ${material.fileUrl}`);
+      }
     }
 
     // Delete the material from database

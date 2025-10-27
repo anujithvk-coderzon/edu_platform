@@ -34,6 +34,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import './animations.css';
 
 interface Material {
   id: string;
@@ -632,16 +633,19 @@ export default function CreateCoursePage() {
   };
 
   const renderStep1 = () => (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="text-center mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
+    <div className="space-y-2 sm:space-y-4 md:space-y-5">
+      <div className="text-center mb-2 sm:mb-4 md:mb-5">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg mb-1 sm:mb-3">
+          <BookOpenIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+        </div>
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
           Basic Information
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm md:text-base">Let's start with the fundamentals of your course</p>
+        <p className="text-slate-600 text-xs sm:text-sm px-2">Let's start with the fundamentals of your course</p>
       </div>
 
-      <div className="space-y-1.5 sm:space-y-2">
-        <label className="block text-xs sm:text-sm font-medium text-slate-700">
+      <div>
+        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
           Course Title <span className="text-red-500">*</span>
         </label>
         <Input
@@ -649,11 +653,12 @@ export default function CreateCoursePage() {
           onChange={(e) => handleInputChange('title', e.target.value)}
           placeholder="e.g., Complete JavaScript Bootcamp 2024"
           error={errors.title}
+          className="text-sm sm:text-base"
         />
       </div>
 
-      <div className="space-y-1.5 sm:space-y-2">
-        <label className="block text-xs sm:text-sm font-medium text-slate-700">
+      <div>
+        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
           Course Description <span className="text-red-500">*</span>
         </label>
         <Textarea
@@ -662,46 +667,73 @@ export default function CreateCoursePage() {
           placeholder="Describe what students will learn in this course..."
           rows={4}
           error={errors.description}
+          className="text-sm sm:text-base"
         />
       </div>
 
       {/* Only show tutor selection for Admin users */}
       {user?.role?.toLowerCase() === 'admin' && (
-        <div className="space-y-1.5 sm:space-y-2">
-          <label className="block text-xs sm:text-sm font-medium text-slate-700">
+        <div>
+          <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
             Assign Tutor <span className="text-red-500">*</span>
           </label>
-          <Select
-            value={formData.tutorId}
-            onChange={(value) => handleInputChange('tutorId', value)}
-            options={tutors}
-            placeholder="Select a tutor for this course..."
-          />
-          {errors.tutorId && (
-            <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.tutorId}</p>
+          {tutors.length > 0 ? (
+            <>
+              <Select
+                value={formData.tutorId}
+                onChange={(value) => handleInputChange('tutorId', value)}
+                options={tutors}
+                placeholder="Select a tutor for this course..."
+              />
+              {errors.tutorId && (
+                <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.tutorId}</p>
+              )}
+            </>
+          ) : (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2.5 sm:p-3 md:p-4">
+              <div className="flex items-center gap-2 mb-2 sm:mb-2.5">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <UserGroupIcon className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm text-blue-800 font-medium">
+                    No tutors available. Please create a tutor first to assign to this course.
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                onClick={() => router.push('/create-user')}
+                size="sm"
+                className="w-full"
+              >
+                <PlusIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <span className="text-xs sm:text-sm">Create New Tutor</span>
+              </Button>
+            </div>
           )}
         </div>
       )}
 
       {/* Show assigned tutor info for Tutor users */}
       {user?.role?.toLowerCase() === 'tutor' && (
-        <div className="space-y-1.5 sm:space-y-2">
-          <label className="block text-xs sm:text-sm font-medium text-slate-700">
+        <div>
+          <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
             Course Instructor
           </label>
           <div className="p-2.5 sm:p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
             <div className="text-xs sm:text-sm text-blue-800">
               <strong>{user.firstName} {user.lastName}</strong> (You)
             </div>
-            <div className="text-[10px] sm:text-xs text-blue-600 mt-0.5 sm:mt-1">
+            <div className="text-[10px] sm:text-xs text-blue-600 mt-0.5">
               You will be assigned as the instructor for this course
             </div>
           </div>
         </div>
       )}
 
-      <div className="space-y-1.5 sm:space-y-2">
-        <label className="block text-xs sm:text-sm font-medium text-slate-700">
+      <div>
+        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
           Course Thumbnail
         </label>
         <FileUpload
@@ -715,12 +747,15 @@ export default function CreateCoursePage() {
   );
 
   const renderStep2 = () => (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="text-center mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
+    <div className="space-y-2 sm:space-y-4 md:space-y-5">
+      <div className="text-center mb-2 sm:mb-4 md:mb-5">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg mb-1 sm:mb-3">
+          <CurrencyDollarIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+        </div>
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
           Course Details
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm md:text-base">Pricing, level, and requirements</p>
+        <p className="text-slate-600 text-xs sm:text-sm px-2">Pricing, level, and requirements</p>
       </div>
 
       {/* Course Type Selection */}
@@ -834,7 +869,6 @@ export default function CreateCoursePage() {
             placeholder="e.g., 10 hours"
             error={errors.duration}
           />
-          <p className="text-xs text-slate-500 mt-1">Total course duration (e.g., "10 hours", "5.5 hours")</p>
         </div>
       </div>
 
@@ -915,12 +949,15 @@ export default function CreateCoursePage() {
   );
 
   const renderStep3 = () => (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="text-center mb-4 sm:mb-6">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
+    <div className="space-y-2 sm:space-y-4 md:space-y-5">
+      <div className="text-center mb-2 sm:mb-4 md:mb-5">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg mb-1 sm:mb-3">
+          <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+        </div>
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
           Course Content
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm md:text-base">Structure your course with chapters and materials</p>
+        <p className="text-slate-600 text-xs sm:text-sm px-2">Structure your course with chapters and materials</p>
       </div>
 
       {/* Error message display */}
@@ -930,10 +967,10 @@ export default function CreateCoursePage() {
         </div>
       )}
 
-      <div className="space-y-3 sm:space-y-4">
+      <div className="space-y-2 sm:space-y-3 md:space-y-4">
         {formData.chapters.map((chapter, chapterIndex) => (
-          <Card key={chapter.id} className="bg-white shadow-sm border border-slate-200 rounded-lg sm:rounded-xl">
-            <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4 md:p-6 bg-gradient-to-r from-slate-50 to-blue-50/30">
+          <Card key={chapter.id} className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200 rounded-lg overflow-hidden">
+            <CardHeader className="pb-1.5 sm:pb-2.5 p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-slate-200">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
@@ -1106,26 +1143,28 @@ export default function CreateCoursePage() {
       {/* Add Chapter Button - Placed at bottom of all chapters */}
       {formData.chapters.length > 0 && (
         <div className="flex justify-center">
-          <Button onClick={addChapter} type="button" size="md" className="w-full sm:w-auto">
+          <Button onClick={addChapter} type="button" size="sm" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
             <PlusIcon className="w-4 h-4 mr-2" />
-            <span className="text-sm">Add Another Chapter</span>
+            <span className="text-sm font-semibold">Add Another Chapter</span>
           </Button>
         </div>
       )}
 
       {formData.chapters.length === 0 && (
-        <div className="text-center py-8 sm:py-12 border-2 border-dashed border-slate-300 rounded-lg bg-gradient-to-r from-slate-50 to-blue-50/30">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-200 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
-            <BookOpenIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" />
+        <div className="text-center py-10 sm:py-14 border-2 border-dashed border-indigo-200 rounded-2xl bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-lg">
+            <BookOpenIcon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <p className="text-slate-900 font-semibold text-base sm:text-lg mb-3 sm:mb-4 px-3">No chapters yet</p>
+          <p className="text-slate-900 font-bold text-base sm:text-lg mb-2 px-3">No chapters yet</p>
+          <p className="text-slate-600 text-xs sm:text-sm mb-4 sm:mb-5 px-3">Start building your course by adding your first chapter</p>
           <Button
             onClick={addChapter}
             type="button"
-            className="w-auto"
+            size="sm"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
           >
-            <PlusIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-            <span className="text-xs sm:text-sm">Add Your First Chapter</span>
+            <PlusIcon className="w-4 h-4 mr-2" />
+            <span className="text-sm font-semibold">Add Your First Chapter</span>
           </Button>
         </div>
       )}
@@ -1133,22 +1172,23 @@ export default function CreateCoursePage() {
   );
 
   const renderStep4 = () => (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="text-center mb-4 sm:mb-6">
-        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">
-          <CheckCircleIcon className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+    <div className="space-y-2 sm:space-y-4 md:space-y-5">
+      <div className="text-center mb-2 sm:mb-4 md:mb-5">
+        <div className="inline-flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-2xl shadow-green-500/30 mx-auto mb-1 sm:mb-3 animate-pulse-subtle">
+          <CheckCircleIcon className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
         </div>
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-1.5 sm:mb-2">Review Your Course</h2>
-        <p className="text-slate-600 text-xs sm:text-sm md:text-base px-3">Review all the information below and click "Create Course" to publish</p>
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">Review Your Course</h2>
+        <p className="text-slate-600 text-xs sm:text-sm px-2">Review all the information below and click "Create Course" to publish</p>
       </div>
 
-      <Card className="bg-white shadow-sm border border-slate-200 rounded-lg sm:rounded-xl">
-        <CardHeader className="p-3 sm:p-4 md:p-6 bg-gradient-to-r from-slate-50 to-blue-50/30">
-          <CardTitle className="text-base sm:text-lg font-semibold text-slate-900">
+      <Card className="bg-white shadow-xl border border-slate-200 rounded-lg overflow-hidden">
+        <CardHeader className="p-2.5 sm:p-4 md:p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-slate-200">
+          <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
+            <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
             Course Overview
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+        <CardContent className="space-y-2 sm:space-y-3 md:space-y-4 p-2.5 sm:p-3 md:p-4 lg:p-5">
           <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
             <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">
               Title:
@@ -1208,66 +1248,148 @@ export default function CreateCoursePage() {
 
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 md:py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-3xl animate-float-slower"></div>
+        <div className="absolute top-40 right-40 w-80 h-80 bg-purple-400/8 rounded-full blur-3xl animate-float-slow"></div>
+      </div>
+
+      <div className="relative z-10 max-w-5xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6 md:py-8">
         {/* Header */}
-        <div className="mb-6 sm:mb-8 md:mb-12">
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
-            <div className="text-center">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
-                Create New Course
-              </h1>
-              <p className="text-slate-600 text-xs sm:text-sm md:text-base">Build your course with chapters and materials</p>
+        <div className="mb-3 sm:mb-6 md:mb-8 animate-fade-in-up">
+          <div className="text-center mb-2 sm:mb-4">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
+              <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-lg sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30 animate-glow">
+                <BookOpenIcon className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+              </div>
+              <div className="text-left">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Create New Course
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600">Build your course with chapters and materials</p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-4 sm:mb-6 md:mb-8">
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
-            <div className="flex justify-between items-center">
-              {steps.map((step, index) => (
-                <div key={step.number} className="flex-1">
-                  <div className="flex items-center">
-                    <div className={`
-                      w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center text-xs sm:text-sm md:text-base font-semibold transition-all duration-200 shadow-sm
-                      ${currentStep >= step.number
-                        ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white'
-                        : 'bg-slate-200 text-slate-600'
-                      }
-                    `}>
-                      {currentStep > step.number ? (
-                        <span className="text-xs sm:text-sm md:text-base">✓</span>
-                      ) : (
-                        step.number
-                      )}
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div className={`
-                        flex-1 h-0.5 mx-1.5 sm:mx-2 md:mx-4 rounded-full transition-all duration-300
-                        ${currentStep > step.number ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-slate-200'}
-                      `} />
-                    )}
-                  </div>
-                  <div className="mt-1.5 sm:mt-2 md:mt-3">
-                    <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-slate-900 leading-tight">{step.title}</p>
-                    <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5 sm:mt-1 hidden sm:block leading-tight">{step.description}</p>
+        <div className="mb-3 sm:mb-6 md:mb-8 animate-fade-in">
+          <div className="relative group">
+            {/* Glow effect */}
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+
+            <div className="relative bg-white rounded-lg sm:rounded-2xl shadow-xl border border-slate-200/50 p-2 sm:p-4 md:p-6 overflow-hidden">
+              {/* Animated gradient bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+
+              {/* Mobile: Show only current step info */}
+              <div className="md:hidden">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="flex items-center gap-1">
+                    {steps.map((s, idx) => (
+                      <React.Fragment key={s.number}>
+                        <div className={`
+                          w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-300
+                          ${currentStep >= s.number
+                            ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md'
+                            : 'bg-slate-200 text-slate-400'
+                          }
+                        `}>
+                          {currentStep > s.number ? (
+                            <CheckCircleIcon className="w-4 h-4" />
+                          ) : (
+                            s.number
+                          )}
+                        </div>
+                        {idx < steps.length - 1 && (
+                          <div className={`w-6 h-0.5 rounded-full ${currentStep > s.number ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-slate-200'}`} />
+                        )}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </div>
-              ))}
+                <div className="text-center">
+                  <p className="text-xs font-bold text-slate-900 mb-0.5">
+                    {steps[currentStep - 1].title}
+                  </p>
+                  <p className="text-[10px] text-slate-600">
+                    Step {currentStep} of {steps.length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Desktop: Full progress bar */}
+              <div className="hidden md:flex items-start justify-between gap-1 lg:gap-2">
+                {steps.map((step, index) => (
+                  <React.Fragment key={step.number}>
+                    {/* Step Circle and Label */}
+                    <div className="flex flex-col items-center gap-2 flex-shrink-0 min-w-0" style={{ width: '100px', maxWidth: '120px' }}>
+                      <div className={`
+                        relative w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center text-sm lg:text-base font-bold transition-all duration-500 shadow-md flex-shrink-0
+                        ${currentStep >= step.number
+                          ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white scale-110 ring-4 ring-indigo-100'
+                          : 'bg-slate-100 text-slate-500'
+                        }
+                      `}>
+                        {currentStep > step.number ? (
+                          <CheckCircleIcon className="w-5 h-5 lg:w-6 lg:h-6" />
+                        ) : (
+                          step.number
+                        )}
+                        {currentStep === step.number && (
+                          <div className="absolute inset-0 rounded-xl animate-ping bg-indigo-400 opacity-20"></div>
+                        )}
+                      </div>
+                      <div className="text-center w-full">
+                        <p className={`text-[10px] lg:text-xs font-bold leading-tight transition-colors ${currentStep >= step.number ? 'text-slate-900' : 'text-slate-500'}`}
+                           style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {step.title}
+                        </p>
+                        <p className="text-[9px] lg:text-[10px] text-slate-600 mt-0.5 hidden lg:block leading-tight"
+                           style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Connecting Line */}
+                    {index < steps.length - 1 && (
+                      <div className="flex-1 flex items-start pt-4 lg:pt-5 px-1 min-w-[30px]">
+                        <div className={`
+                          w-full h-1 rounded-full transition-all duration-500
+                          ${currentStep > step.number ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600' : 'bg-slate-200'}
+                        `} />
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Form Content */}
-        <Card className="bg-white shadow-sm border border-slate-200 rounded-lg sm:rounded-xl">
-          <CardContent className="p-3 sm:p-4 md:p-6 lg:p-8">
-            {renderStepContent()}
-          </CardContent>
-        </Card>
+        <div className="relative group animate-fade-in-up">
+          {/* Glow effect */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+
+          <Card className="relative bg-white shadow-2xl border border-slate-200/50 rounded-lg sm:rounded-2xl overflow-hidden">
+            {/* Animated gradient bar */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+
+            {/* Subtle background pattern */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30"></div>
+
+            <CardContent className="relative p-2 sm:p-4 md:p-6 lg:p-8">
+              {renderStepContent()}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center mt-4 sm:mt-6 md:mt-8 gap-2">
+        <div className="flex justify-between items-center mt-3 sm:mt-6 md:mt-8 gap-2 sm:gap-3">
           <div>
             {currentStep > 1 && (
               <Button
@@ -1275,9 +1397,10 @@ export default function CreateCoursePage() {
                 onClick={prevStep}
                 disabled={isSubmitting}
                 type="button"
-                className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                size="sm"
+                className="flex items-center gap-1.5 sm:gap-2 hover:bg-slate-50 transition-all duration-200"
               >
-                <ChevronLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Previous</span>
                 <span className="sm:hidden">Back</span>
               </Button>
@@ -1290,28 +1413,35 @@ export default function CreateCoursePage() {
                 onClick={nextStep}
                 disabled={isSubmitting}
                 type="button"
-                className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                size="sm"
+                className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
               >
-                <span>Next</span>
-                <ChevronRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <span className="relative">Next</span>
+                <ChevronRightIcon className="relative w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
                 type="button"
-                className="flex items-center gap-1.5 sm:gap-2 bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                size="sm"
+                className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
               >
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 {isSubmitting ? (
                   <>
-                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span className="hidden sm:inline">{submissionProgress || 'Creating Course...'}</span>
-                    <span className="sm:hidden">Creating...</span>
+                    <div className="relative w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span className="relative hidden sm:inline">{submissionProgress || 'Creating Course...'}</span>
+                    <span className="relative sm:hidden">Creating...</span>
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">Create Course</span>
-                    <span className="sm:hidden">Create</span>
+                    <CheckCircleIcon className="relative w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="relative hidden sm:inline">Create Course</span>
+                    <span className="relative sm:hidden">Create</span>
                   </>
                 )}
               </Button>

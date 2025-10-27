@@ -228,6 +228,8 @@ router.get('/courses',
     query('category').optional().isString(),
     query('level').optional().isString(),
     query('search').optional().isString(),
+    query('price').optional().isString(),
+    query('sort').optional().isString(),
   ],
   asyncHandler(GetAllCourses)
 );
@@ -263,8 +265,14 @@ router.get('/courses/:id', asyncHandler(GetCourseById));
 // Submit a course review
 router.post('/reviews', authMiddleware, asyncHandler(SubmitReview));
 
-// Get reviews for a course
-router.get('/reviews/course/:courseId', asyncHandler(GetCourseReviews));
+// Get reviews for a course (with pagination)
+router.get('/reviews/course/:courseId',
+  [
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 50 })
+  ],
+  asyncHandler(GetCourseReviews)
+);
 
 // Get user's review for a specific course
 router.get('/reviews/my-review/:courseId', authMiddleware, asyncHandler(GetMyReview));

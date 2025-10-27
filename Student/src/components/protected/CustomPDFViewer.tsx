@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
 
 interface CustomPDFViewerProps {
   src: string;
@@ -49,11 +51,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   // Initialize PDF.js worker and components on client side only
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      Promise.all([
-        import('react-pdf'),
-        import('react-pdf/dist/esm/Page/AnnotationLayer.css'),
-        import('react-pdf/dist/esm/Page/TextLayer.css'),
-      ]).then(([pdfModule]) => {
+      import('react-pdf').then((pdfModule) => {
         // Configure worker
         pdfModule.pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs`;
 
@@ -164,7 +162,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
             renderTextLayer={true}
             renderAnnotationLayer={true}
             className="shadow-lg !max-w-full"
-            canvasRef={(ref) => {
+            canvasRef={(ref: HTMLCanvasElement | null) => {
               if (ref) {
                 ref.oncontextmenu = (e) => {
                   e.preventDefault();

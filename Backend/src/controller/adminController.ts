@@ -5402,13 +5402,23 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
 
       // Calculate detailed progress for each enrollment
       for (const enrollment of student.enrollments) {
-        // Get completed materials for this specific course
+        // Get all existing materials for this course (to filter out deleted ones)
+        const existingMaterials = await prisma.material.findMany({
+          where: { courseId: enrollment.courseId },
+          select: { id: true }
+        });
+        const existingMaterialIds = existingMaterials.map(m => m.id);
+
+        // Get completed materials for this specific course (only for existing materials)
         const completedProgressData = await prisma.progress.findMany({
           where: {
             studentId: student.id,
             courseId: enrollment.courseId,
             isCompleted: true,
-            materialId: { not: null }
+            materialId: {
+              not: null,
+              in: existingMaterialIds // Only count progress for materials that still exist
+            }
           },
           orderBy: {
             lastAccessed: 'desc'
@@ -5435,7 +5445,7 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
         // Create a map for quick material lookup
         const materialMap = new Map(materials.map(m => [m.id, m]));
 
-        enrollment.completedMaterials = completedProgressData.length;
+        enrollment.completedMaterials = completedProgressData.length; // Now only counts existing materials
         enrollment.completedMaterialsList = completedProgressData.map(progress => {
           const material = materialMap.get(progress.materialId!);
           return {
@@ -5486,12 +5496,21 @@ export const GetAllStudents = async (req: AuthRequest, res: express.Response) =>
         }));
       }
 
-      // Calculate overall totals
+      // Calculate overall totals (only for materials that still exist)
+      // Get all existing material IDs across all enrolled courses
+      const allCourseIds = student.enrollments.map((e: any) => e.courseId);
+      const allExistingMaterials = await prisma.material.findMany({
+        where: { courseId: { in: allCourseIds } },
+        select: { id: true }
+      });
+      const allExistingMaterialIds = allExistingMaterials.map(m => m.id);
+
       const completedMaterials = await prisma.progress.count({
         where: {
           studentId: student.id,
-          courseId: { in: student.enrollments.map((e: any) => e.courseId) },
-          isCompleted: true
+          courseId: { in: allCourseIds },
+          isCompleted: true,
+          materialId: { in: allExistingMaterialIds } // Only count existing materials
         }
       });
 

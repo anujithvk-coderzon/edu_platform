@@ -23,13 +23,21 @@ export async function calculateCourseProgress(
   studentId: string,
   courseId: string
 ): Promise<ProgressStats> {
+  // First, get all existing material IDs to filter out deleted materials
+  const existingMaterials = await prisma.material.findMany({
+    where: { courseId },
+    select: { id: true }
+  });
+  const existingMaterialIds = existingMaterials.map(m => m.id);
+
   const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-    prisma.material.count({ where: { courseId } }),
+    Promise.resolve(existingMaterials.length), // Use the materials we already fetched
     prisma.progress.count({
       where: {
         studentId,
         courseId,
-        isCompleted: true
+        isCompleted: true,
+        materialId: { in: existingMaterialIds } // Only count progress for existing materials
       }
     }),
     prisma.assignment.count({ where: { courseId } }),

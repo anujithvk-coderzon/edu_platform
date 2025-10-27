@@ -860,27 +860,13 @@ export default function StudentsPage() {
                                 </div>
                               )}
                               {student.registeredAt && (
-                                <div className="flex justify-between items-center py-1 sm:py-1.5 border-b border-slate-100">
+                                <div className="flex justify-between items-center py-1 sm:py-1.5">
                                   <span className="text-[10px] sm:text-xs text-slate-500">Registered</span>
                                   <span className="text-[10px] sm:text-xs font-medium text-slate-900">
                                     {new Date(student.registeredAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                                   </span>
                                 </div>
                               )}
-                              <div className="flex justify-between items-center py-1 sm:py-1.5">
-                                <span className="text-[10px] sm:text-xs text-slate-500">Status</span>
-                                <div>
-                                  {student.isVerified ? (
-                                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-green-50 text-green-700 rounded-full font-semibold border border-green-200">
-                                      ✓ Verified
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full font-semibold border border-orange-200">
-                                      ⚠ Unverified
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
                             </div>
                           </div>
                         )}

@@ -157,12 +157,10 @@ export default function CourseDetailPage() {
               setProgress(progressResponse.data);
             }
           } catch (error) {
-            console.error('Error fetching progress:', error);
           }
         }
       }
     } catch (error) {
-      console.error('Error fetching course:', error);
       toast.error('Failed to load course details');
     } finally {
       setLoading(false);

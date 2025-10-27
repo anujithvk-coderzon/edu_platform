@@ -141,7 +141,6 @@ function CoursesContent() {
         setTotalCourses(total);
       }
     } catch (error) {
-      console.error('Error fetching courses:', error);
       toast.error('Failed to load courses');
     } finally {
       setLoading(false);

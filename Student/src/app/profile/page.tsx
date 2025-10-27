@@ -55,7 +55,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      console.log('User hasPassword value:', user.hasPassword);
       setProfileData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',

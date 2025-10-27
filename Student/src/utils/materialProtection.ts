@@ -127,7 +127,6 @@ export const detectScreenshotAttempt = (callback: () => void) => {
  */
 export const showProtectionWarning = () => {
   // You can integrate with your toast system
-  console.log('⚠️ Course materials are protected and cannot be downloaded');
 };
 
 /**

@@ -48,7 +48,6 @@ export const signInWithGoogle = async (): Promise<OAuthResult> => {
       },
     };
   } catch (error: any) {
-    console.error('Google sign-in error:', error);
 
     // Handle specific error codes
     if (error.code === 'auth/popup-closed-by-user') {
@@ -93,7 +92,6 @@ export const signInWithGithub = async (): Promise<OAuthResult> => {
       },
     };
   } catch (error: any) {
-    console.error('GitHub sign-in error:', error);
 
     // Handle specific error codes
     if (error.code === 'auth/popup-closed-by-user') {

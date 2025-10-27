@@ -97,7 +97,6 @@ export default function MyCoursesPage() {
         setTotalEnrollments(response.data.pagination?.total || 0);
       }
     } catch (error) {
-      console.error('Error fetching all enrollments for stats:', error);
     }
   };
 
@@ -132,7 +131,6 @@ export default function MyCoursesPage() {
         setTotalEnrollments(total);
       }
     } catch (error) {
-      console.error('Error fetching enrollments:', error);
       toast.error('Failed to load your courses');
     } finally {
       setLoading(false);
@@ -332,11 +330,8 @@ export default function MyCoursesPage() {
                         alt={enrollment.course.title}
                         className="w-full h-full object-cover"
                       onError={(e) => {
-                        console.error('Failed to load thumbnail in my-courses:', getImageUrl(enrollment.course.thumbnail));
-                        console.error('Original thumbnail value:', enrollment.course.thumbnail);
                       }}
                       onLoad={() => {
-                        console.log('Successfully loaded thumbnail in my-courses:', getImageUrl(enrollment.course.thumbnail));
                       }}
                       />
                     ) : (

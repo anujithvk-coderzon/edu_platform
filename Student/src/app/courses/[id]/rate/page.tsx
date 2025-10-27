@@ -88,7 +88,6 @@ export default function CourseRatingPage() {
       setCourse(courseResponse.data.course);
       setEnrollment(userEnrollment);
     } catch (error: any) {
-      console.error('Error fetching course data:', error);
       setError(error.message || 'Failed to load course data');
     } finally {
       setLoading(false);
@@ -184,11 +183,8 @@ export default function CourseRatingPage() {
                     alt={course.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      console.error('Failed to load thumbnail in rate page:', getImageUrl(course.thumbnail));
-                      console.error('Original thumbnail value:', course.thumbnail);
                     }}
                     onLoad={() => {
-                      console.log('Successfully loaded thumbnail in rate page:', getImageUrl(course.thumbnail));
                     }}
                   />
                 ) : (

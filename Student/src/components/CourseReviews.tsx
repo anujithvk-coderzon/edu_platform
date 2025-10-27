@@ -67,7 +67,6 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
         setHasMore(pageNum < totalPages);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);

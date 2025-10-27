@@ -20,7 +20,6 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('CourseReview: user=', user, 'courseId=', courseId);
     if (user && courseId) {
       fetchExistingReview();
     } else {
@@ -39,7 +38,6 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
         setComment(review.comment || '');
       }
     } catch (error) {
-      console.error('Error fetching existing review:', error);
     } finally {
       setLoading(false);
     }

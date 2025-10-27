@@ -365,12 +365,8 @@ export default function RegisterPage() {
   };
 
   const handleOAuthRegistration = async () => {
-    console.log('🎯 [OAuth Registration] Starting OAuth registration process...');
 
     if (!oauthData || !oauthProvider) {
-      console.error('❌ [OAuth Registration] Missing OAuth data or provider');
-      console.log('   - oauthData:', oauthData);
-      console.log('   - oauthProvider:', oauthProvider);
       toast.error('OAuth data not found. Please try again.');
       return;
     }
@@ -396,16 +392,7 @@ export default function RegisterPage() {
         ...(formData.company && { company: formData.company }),
       };
 
-      console.log('📦 [OAuth Registration] Registration data prepared:');
-      console.log('   - provider:', registrationData.provider);
-      console.log('   - email:', registrationData.email);
-      console.log('   - firstName:', registrationData.firstName);
-      console.log('   - lastName:', registrationData.lastName);
-      console.log('   - avatar:', registrationData.avatar);
-      console.log('   - phone:', registrationData.phone);
-      console.log('   - Full data:', registrationData);
 
-      console.log('📡 [OAuth Registration] Sending registration request to backend...');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-register`, {
         method: 'POST',
         headers: {
@@ -415,42 +402,28 @@ export default function RegisterPage() {
         body: JSON.stringify(registrationData),
       });
 
-      console.log('📡 [OAuth Registration] Response status:', response.status);
-      console.log('📡 [OAuth Registration] Response OK:', response.ok);
 
       const data = await response.json();
-      console.log('📡 [OAuth Registration] Response data:', data);
 
       if (!response.ok) {
-        console.error('❌ [OAuth Registration] Registration failed');
-        console.error('   - Status:', response.status);
-        console.error('   - Error message:', data.error?.message);
-        console.error('   - Full error:', data.error);
         throw new Error(data.error?.message || 'OAuth registration failed');
       }
 
       if (response.ok && data.success) {
-        console.log('✅ [OAuth Registration] Registration successful!');
-        console.log('📋 [OAuth Registration] Response data:', data.data);
         toast.success('Registration successful! Welcome aboard!');
 
         // Refresh auth context to get user data
-        console.log('🔄 [OAuth Registration] Refreshing user data...');
         await refreshUser();
 
         // Redirect to homepage
-        console.log('🏠 [OAuth Registration] Redirecting to homepage...');
         router.push('/');
       } else {
-        console.error('❌ [OAuth Registration] Unexpected response format');
         throw new Error(data.error?.message || 'Registration failed');
       }
     } catch (error: any) {
-      console.error('❌ [OAuth Registration] Error caught:', error);
       toast.error(error.message || 'Failed to complete registration. Please try again.');
     } finally {
       setIsLoading(false);
-      console.log('🏁 [OAuth Registration] Process completed');
     }
   };
 
@@ -462,15 +435,7 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
 
-      console.log('========================================');
-      console.log('📤 REGISTRATION - STAGE 1: Form Data');
-      console.log('========================================');
-      console.log('Full formData object:', formData);
-      console.log('');
 
-      console.log('========================================');
-      console.log('📦 REGISTRATION - STAGE 2: Building Request Data');
-      console.log('========================================');
 
       const requestData: any = {
         firstName: formData.firstName,
@@ -478,86 +443,55 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password
       };
-      console.log('Required fields added:', { firstName: formData.firstName, lastName: formData.lastName, email: formData.email, password: '***' });
 
       // Only add optional fields if they have values
-      console.log('\nChecking optional fields:');
 
       if (formData.phone && formData.phone.trim()) {
-        console.log('✅ Adding phone:', formData.phone);
         requestData.phone = formData.phone;
       } else {
-        console.log('❌ Skipping phone (empty or whitespace)');
       }
 
       if (formData.country && formData.country.trim()) {
-        console.log('✅ Adding country:', formData.country);
         requestData.country = formData.country;
       } else {
-        console.log('❌ Skipping country (empty or whitespace)');
       }
 
       if (formData.education && formData.education.trim()) {
-        console.log('✅ Adding education:', formData.education);
         requestData.education = formData.education;
       } else {
-        console.log('❌ Skipping education (empty or whitespace)');
       }
 
       if (formData.dateOfBirth && formData.dateOfBirth.trim()) {
-        console.log('✅ Adding dateOfBirth:', formData.dateOfBirth);
         requestData.dateOfBirth = formData.dateOfBirth;
       } else {
-        console.log('❌ Skipping dateOfBirth (empty or whitespace)');
       }
 
       if (formData.gender && formData.gender.trim()) {
-        console.log('✅ Adding gender:', formData.gender);
         requestData.gender = formData.gender;
       } else {
-        console.log('❌ Skipping gender (empty or whitespace)');
       }
 
       if (formData.city && formData.city.trim()) {
-        console.log('✅ Adding city:', formData.city);
         requestData.city = formData.city;
       } else {
-        console.log('❌ Skipping city (empty or whitespace)');
       }
 
       if (formData.institution && formData.institution.trim()) {
-        console.log('✅ Adding institution:', formData.institution);
         requestData.institution = formData.institution;
       } else {
-        console.log('❌ Skipping institution (empty or whitespace)');
       }
 
       if (formData.occupation && formData.occupation.trim()) {
-        console.log('✅ Adding occupation:', formData.occupation);
         requestData.occupation = formData.occupation;
       } else {
-        console.log('❌ Skipping occupation (empty or whitespace)');
       }
 
       if (formData.company && formData.company.trim()) {
-        console.log('✅ Adding company:', formData.company);
         requestData.company = formData.company;
       } else {
-        console.log('❌ Skipping company (empty or whitespace)');
       }
 
-      console.log('\n========================================');
-      console.log('📡 REGISTRATION - STAGE 3: Final Request Data');
-      console.log('========================================');
-      console.log('Request body (stringified):', JSON.stringify(requestData, null, 2));
-      console.log('');
 
-      console.log('========================================');
-      console.log('🌐 REGISTRATION - STAGE 4: Sending to Backend');
-      console.log('========================================');
-      console.log('URL:', `${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/register`);
-      console.log('Method: POST');
-      console.log('');
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/register`, {
         method: 'POST',
@@ -568,33 +502,14 @@ export default function RegisterPage() {
         body: JSON.stringify(requestData)
       });
 
-      console.log('========================================');
-      console.log('📥 REGISTRATION - STAGE 5: Backend Response');
-      console.log('========================================');
-      console.log('Response Status:', response.status);
-      console.log('Response OK:', response.ok);
 
       const data = await response.json();
-      console.log('Response Data:', JSON.stringify(data, null, 2));
-      console.log('');
 
       if (!response.ok) {
-        console.log('========================================');
-        console.log('❌ REGISTRATION - STAGE 6: ERROR');
-        console.log('========================================');
-        console.log('Error Message:', data.error?.message);
-        console.log('Error Details:', data.error?.details);
-        console.log('Full Error Object:', JSON.stringify(data.error, null, 2));
-        console.log('========================================');
         throw new Error(data.error?.message || 'Registration failed');
       }
 
       if (response.ok && data.success) {
-        console.log('========================================');
-        console.log('✅ REGISTRATION - STAGE 6: SUCCESS');
-        console.log('========================================');
-        console.log('Moving to OTP verification step (step 5)');
-        console.log('========================================');
         setStep(5); // Move to OTP verification step
         toast.success('OTP sent to your email. Please check your inbox.');
         startResendTimer();
@@ -602,12 +517,6 @@ export default function RegisterPage() {
         throw new Error(data.error?.message || 'Failed to send OTP');
       }
     } catch (error: any) {
-      console.error('========================================');
-      console.error('💥 REGISTRATION - EXCEPTION CAUGHT');
-      console.error('========================================');
-      console.error('Error:', error);
-      console.error('Error Message:', error.message);
-      console.error('========================================');
       toast.error(error.message || 'Failed to send OTP. Please try again.');
     } finally {
       setIsLoading(false);
@@ -684,10 +593,6 @@ export default function RegisterPage() {
 
       const data = await response.json();
 
-      console.log('📨 Backend response:');
-      console.log('   Status:', response.status);
-      console.log('   OK:', response.ok);
-      console.log('   Data:', data);
 
       if (response.ok && data.success) {
         toast.success('Email verified! Account created successfully.');
@@ -699,10 +604,6 @@ export default function RegisterPage() {
         // Redirect to homepage
         router.push('/');
       } else {
-        console.log('❌ Backend error response:');
-        console.log('   Full error object:', JSON.stringify(data, null, 2));
-        console.log('   Error message:', data.error?.message);
-        console.log('   Error details:', data.error?.details);
         throw new Error(data.error?.message || 'Invalid OTP');
       }
     } catch (error: any) {
@@ -727,17 +628,11 @@ export default function RegisterPage() {
     const result = await handleGoogleRegister();
 
     if (result.success && result.data) {
-      console.log('Google User Data:', result.data);
-      console.log('Google Avatar URL:', result.data.avatar);
 
       // Check if account already exists
       try {
-        console.log('📧 Checking email:', result.data.email);
-        console.log('📧 Email type:', typeof result.data.email);
-        console.log('📧 Email length:', result.data.email?.length);
 
         const requestBody = { email: result.data.email };
-        console.log('📦 Request body:', JSON.stringify(requestBody));
 
         const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/check-email`, {
           method: 'POST',
@@ -748,10 +643,8 @@ export default function RegisterPage() {
           body: JSON.stringify(requestBody)
         });
 
-        console.log('📡 Check email response status:', checkResponse.status);
 
         const checkData = await checkResponse.json();
-        console.log('📡 Check email response data:', checkData);
 
         // If email exists, log them in instead
         if (!checkResponse.ok && checkData.error?.message?.includes('already exists')) {
@@ -786,11 +679,6 @@ export default function RegisterPage() {
         }
 
         // Email doesn't exist, proceed with registration
-        console.log('🔧 [Google OAuth] About to set oauthData with:', result.data);
-        console.log('🔧 [Google OAuth] Avatar value:', result.data.avatar);
-        console.log('🔧 [Google OAuth] Avatar type:', typeof result.data.avatar);
-        console.log('🔧 [Google OAuth] Avatar length:', result.data.avatar?.length);
-        console.log('🔧 [Google OAuth] Avatar is truthy:', !!result.data.avatar);
 
         setOauthData(result.data);
         setOauthProvider('google');
@@ -809,13 +697,7 @@ export default function RegisterPage() {
 
         toast.success('Please complete your profile information');
       } catch (error) {
-        console.error('Email check error:', error);
         // If check fails, proceed with registration anyway
-        console.log('🔧 [Google OAuth - Catch] About to set oauthData with:', result.data);
-        console.log('🔧 [Google OAuth - Catch] Avatar value:', result.data.avatar);
-        console.log('🔧 [Google OAuth - Catch] Avatar type:', typeof result.data.avatar);
-        console.log('🔧 [Google OAuth - Catch] Avatar length:', result.data.avatar?.length);
-        console.log('🔧 [Google OAuth - Catch] Avatar is truthy:', !!result.data.avatar);
 
         setOauthData(result.data);
         setOauthProvider('google');
@@ -830,29 +712,19 @@ export default function RegisterPage() {
         toast.success('Please complete your profile information');
       }
     } else {
-      console.error('Google OAuth Error:', result.error);
       toast.error(result.error || 'Failed to sign up with Google');
     }
   };
 
   const onGithubRegisterClick = async () => {
-    console.log('🎯 [Register Page] GitHub Register button clicked');
 
     const result = await handleGithubRegister();
 
-    console.log('📬 [Register Page] handleGithubRegister result:', result);
 
     if (result.success && result.data) {
-      console.log('✅ [Register Page] GitHub OAuth successful');
-      console.log('📋 [Register Page] Received data:', result.data);
-      console.log('✉️ [Register Page] EMAIL FROM GITHUB:', result.data.email);
-      console.log('👤 [Register Page] Name:', result.data.firstName, result.data.lastName);
-      console.log('🖼️ [Register Page] Avatar:', result.data.avatar);
 
       // Check if account already exists
       try {
-        console.log('🔍 [Register Page] Checking if email exists...');
-        console.log('📧 [Register Page] Checking email:', result.data.email);
 
         const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/check-email`, {
           method: 'POST',
@@ -863,18 +735,13 @@ export default function RegisterPage() {
           body: JSON.stringify({ email: result.data.email })
         });
 
-        console.log('📡 [Register Page] Email check response status:', checkResponse.status);
         const checkData = await checkResponse.json();
-        console.log('📡 [Register Page] Email check response data:', checkData);
 
         // If email exists, log them in instead
         if (!checkResponse.ok && checkData.error?.message?.includes('already exists')) {
-          console.log('⚠️ [Register Page] Email already exists, attempting login...');
           toast.loading('Account exists. Logging you in...');
 
           // Attempt OAuth login
-          console.log('🔐 [Register Page] Sending OAuth login request...');
-          console.log('📧 [Register Page] Login email:', result.data.email);
 
           const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-login`, {
             method: 'POST',
@@ -889,18 +756,14 @@ export default function RegisterPage() {
             }),
           });
 
-          console.log('📡 [Register Page] OAuth login response status:', loginResponse.status);
           const loginData = await loginResponse.json();
-          console.log('📡 [Register Page] OAuth login response data:', loginData);
 
           if (loginResponse.ok && loginData.success) {
-            console.log('✅ [Register Page] Login successful');
             toast.dismiss();
             toast.success('Welcome back!');
             await refreshUser();
             router.push('/');
           } else {
-            console.log('❌ [Register Page] Login failed');
             toast.dismiss();
             toast.error('Failed to log in. Please use the login page.');
           }
@@ -908,16 +771,10 @@ export default function RegisterPage() {
         }
 
         // Email doesn't exist, proceed with registration
-        console.log('✅ [Register Page] Email available, proceeding with registration');
-        console.log('💾 [Register Page] Storing OAuth data:', result.data);
 
         setOauthData(result.data);
         setOauthProvider('github');
 
-        console.log('📝 [Register Page] Pre-filling form data with:');
-        console.log('   - email:', result.data.email);
-        console.log('   - firstName:', result.data.firstName);
-        console.log('   - lastName:', result.data.lastName);
 
         // Pre-fill form data with OAuth info
         setFormData(prev => ({
@@ -931,11 +788,8 @@ export default function RegisterPage() {
         setIsOAuthFlow(true);
         setStep(2); // Go to personal info step
 
-        console.log('🎉 [Register Page] Moved to step 2 for profile completion');
         toast.success('Please complete your profile information');
       } catch (error) {
-        console.error('❌ [Register Page] Email check error:', error);
-        console.log('⚠️ [Register Page] Proceeding with registration anyway');
 
         // If check fails, proceed with registration anyway
         setOauthData(result.data);
@@ -951,8 +805,6 @@ export default function RegisterPage() {
         toast.success('Please complete your profile information');
       }
     } else {
-      console.error('❌ [Register Page] GitHub OAuth failed');
-      console.error('❌ [Register Page] Error:', result.error);
       toast.error(result.error || 'Failed to sign up with GitHub');
     }
   };
@@ -1421,11 +1273,8 @@ export default function RegisterPage() {
                           className="w-10 h-10 sm:w-12 sm:h-12 rounded-full"
                           referrerPolicy="no-referrer"
                           onError={(e) => {
-                            console.error('🖼️ [Avatar] Image failed to load:', oauthData.avatar);
-                            console.error('🖼️ [Avatar] Error event:', e);
                           }}
                           onLoad={() => {
-                            console.log('✅ [Avatar] Image loaded successfully:', oauthData.avatar);
                           }}
                         />
                       ) : (

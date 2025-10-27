@@ -137,7 +137,6 @@ const authApi = {
       }
 
       if (!errorMessage.includes('401') && !errorMessage.includes('Access denied')) {
-        console.error('Error getting current user:', error);
       }
     }
     return null;
@@ -187,7 +186,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const currentUser = await authApi.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
-        console.error('Auth initialization error:', error);
         // No need to clear localStorage tokens since we use cookies now
       } finally {
         setLoading(false);
@@ -241,7 +239,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentUser = await authApi.getCurrentUser();
       setUser(currentUser);
     } catch (error) {
-      console.error('Error refreshing user:', error);
     }
   };
 

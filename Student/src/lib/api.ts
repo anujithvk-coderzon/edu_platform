@@ -81,7 +81,6 @@ class ApiClient {
       // For auth/me endpoint, don't log 401 errors as they're expected
       const errorMessage = error instanceof Error ? error.message : '';
       if (!(endpoint === '/auth/me' && errorMessage.includes('401'))) {
-        console.error(`API Error (${url}):`, error);
       }
       throw error;
     }
@@ -127,7 +126,6 @@ class ApiClient {
 
       return data;
     } catch (error) {
-      console.error(`Upload Error (${url}):`, error);
       throw error;
     }
   }

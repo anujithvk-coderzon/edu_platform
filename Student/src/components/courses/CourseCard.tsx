@@ -54,8 +54,6 @@ export default function CourseCard({ course }: CourseCardProps) {
   const thumbnailUrl = getImageUrl(course.thumbnail);
 
   // Debug logging
-  console.log('CourseCard - course.id:', course.id);
-  console.log('CourseCard - thumbnail URL:', thumbnailUrl);
 
   const getCourseButtonState = () => {
     if (!course.isEnrolled) {
@@ -104,8 +102,6 @@ export default function CourseCard({ course }: CourseCardProps) {
             alt={course.title}
             className="w-full h-full object-cover rounded-t-2xl sm:rounded-t-3xl group-hover:scale-105 sm:group-hover:scale-110 transition-transform duration-500"
             onError={(e) => {
-              console.error('Failed to load thumbnail:', thumbnailUrl);
-              console.error('Original thumbnail value:', course.thumbnail);
               // Hide the broken image and show fallback
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
@@ -115,7 +111,6 @@ export default function CourseCard({ course }: CourseCardProps) {
               }
             }}
             onLoad={() => {
-              console.log('Successfully loaded thumbnail:', thumbnailUrl);
             }}
           />
         ) : null}

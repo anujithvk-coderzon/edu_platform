@@ -172,7 +172,6 @@ export default function LoginPage() {
       const result = await handleGoogleLogin();
 
       if (result.success && result.data) {
-        console.log('Google Login Data:', result.data);
 
         // Attempt OAuth login with backend
         const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-login`, {
@@ -211,11 +210,9 @@ export default function LoginPage() {
           }
         }
       } else {
-        console.error('Google OAuth Error:', result.error);
         toast.error(result.error || 'Failed to sign in with Google');
       }
     } catch (error) {
-      console.error('Google login error:', error);
       toast.error('Failed to sign in with Google. Please try again.');
     }
   };
@@ -225,7 +222,6 @@ export default function LoginPage() {
       const result = await handleGithubLogin();
 
       if (result.success && result.data) {
-        console.log('GitHub Login Data:', result.data);
 
         // Attempt OAuth login with backend
         const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-login`, {
@@ -264,11 +260,9 @@ export default function LoginPage() {
           }
         }
       } else {
-        console.error('GitHub OAuth Error:', result.error);
         toast.error(result.error || 'Failed to sign in with GitHub');
       }
     } catch (error) {
-      console.error('GitHub login error:', error);
       toast.error('Failed to sign in with GitHub. Please try again.');
     }
   };

@@ -117,12 +117,10 @@ export default function Home() {
             }));
           }
         } catch (error) {
-          console.error('Error fetching enrollments:', error);
         }
       }
 
     } catch (error) {
-      console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -171,9 +169,6 @@ export default function Home() {
 
   const getEnrollmentButtonState = (enrollment: Enrollment) => {
     // Debug logging
-    console.log('Dashboard getEnrollmentButtonState - enrollment:', enrollment);
-    console.log('Dashboard getEnrollmentButtonState - courseId:', enrollment.courseId);
-    console.log('Dashboard getEnrollmentButtonState - course.id:', enrollment.course?.id);
 
     const isCompleted = enrollment.progressPercentage >= 100 || enrollment.status === 'COMPLETED';
     // Use course.id if available, fallback to courseId

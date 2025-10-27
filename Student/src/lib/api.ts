@@ -215,8 +215,8 @@ class ApiClient {
   reviews = {
     submit: (data: { courseId: string; rating: number; comment?: string }) =>
       this.post<ApiResponse>('/reviews', data),
-    getCourseReviews: (courseId: string) =>
-      this.get<ApiResponse>(`/reviews/course/${courseId}`),
+    getCourseReviews: (courseId: string, params?: any) =>
+      this.get<ApiResponse>(`/reviews/course/${courseId}?${new URLSearchParams(params || {})}`),
     getMyReview: (courseId: string) =>
       this.get<ApiResponse>(`/reviews/my-review/${courseId}`),
   };

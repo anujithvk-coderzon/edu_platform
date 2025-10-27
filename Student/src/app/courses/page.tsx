@@ -135,7 +135,7 @@ function CoursesContent() {
         }
 
         // Check if there are more courses to load
-        const totalPages = response.data.pagination?.pages || response.data.pagination?.totalPages || 1;
+        const totalPages = response.data.pagination?.pages || 1;
         const total = response.data.pagination?.total || 0;
         setHasMore(pageNum < totalPages);
         setTotalCourses(total);

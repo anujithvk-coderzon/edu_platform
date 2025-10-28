@@ -98,13 +98,16 @@ const VerifyOtpEmail = async (req, res) => {
 };
 exports.VerifyOtpEmail = VerifyOtpEmail;
 const RegisterStudent = async (req, res) => {
+    console.log('📥 RegisterStudent - Received request body:', JSON.stringify(req.body, null, 2));
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
+        console.log('❌ Validation errors:', JSON.stringify(errors.array(), null, 2));
         return res.status(400).json({
             success: false,
             error: { message: 'Validation failed', details: errors.array() }
         });
     }
+    console.log('✅ Validation passed, proceeding with registration...');
     const { email, password, firstName, lastName, phone, dateOfBirth, gender, country, city, education, institution, occupation, company } = req.body;
     const existingStudent = await DB_Config_1.default.student.findUnique({ where: { email } });
     if (existingStudent) {
@@ -380,7 +383,8 @@ const OAuthLogin = async (req, res) => {
                 occupation: student.occupation,
                 company: student.company,
                 isVerified: student.isVerified,
-                createdAt: student.createdAt
+                createdAt: student.createdAt,
+                hasPassword: !!student.password
             },
             token
         }
@@ -458,10 +462,16 @@ const LoginStudent = async (req, res) => {
         sameSite: isProduction ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    const { password: _, ...studentWithoutPassword } = student;
+    const { password: studentPassword, ...studentWithoutPassword } = student;
     res.json({
         success: true,
-        data: { user: studentWithoutPassword, token }
+        data: {
+            user: {
+                ...studentWithoutPassword,
+                hasPassword: !!studentPassword
+            },
+            token
+        }
     });
 };
 exports.LoginStudent = LoginStudent;
@@ -603,7 +613,8 @@ const GetCurrentUser = async (req, res) => {
                 city: true, education: true, institution: true,
                 occupation: true, company: true,
                 isVerified: true, createdAt: true, updatedAt: true,
-                activeSessionToken: true // Include for debugging
+                activeSessionToken: true, // Include for debugging
+                password: true // Need to check if password exists (for OAuth users)
             }
         });
         if (!student) {
@@ -625,8 +636,16 @@ const GetCurrentUser = async (req, res) => {
                 }
             });
         }
-        const { activeSessionToken, ...studentWithoutSession } = student;
-        res.json({ success: true, data: { user: studentWithoutSession } });
+        const { activeSessionToken, password, ...studentWithoutSession } = student;
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    ...studentWithoutSession,
+                    hasPassword: !!password // OAuth users have null password
+                }
+            }
+        });
     }
     catch (error) {
         return res.status(401).json({
@@ -703,10 +722,20 @@ const UpdateProfile = async (req, res) => {
                 institution: true,
                 occupation: true,
                 company: true,
-                updatedAt: true
+                updatedAt: true,
+                password: true
             }
         });
-        res.json({ success: true, data: { user: student } });
+        const { password, ...studentWithoutPassword } = student;
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    ...studentWithoutPassword,
+                    hasPassword: !!password
+                }
+            }
+        });
     }
     catch (error) {
         return res.status(401).json({
@@ -856,6 +885,8 @@ const GetAllCourses = async (req, res) => {
     const category = req.query.category;
     const level = req.query.level;
     const search = req.query.search;
+    const priceRange = req.query.price;
+    const sortBy = req.query.sort || 'newest';
     const skip = (page - 1) * limit;
     const where = { status: 'PUBLISHED', isPublic: true };
     if (category) {
@@ -870,6 +901,58 @@ const GetAllCourses = async (req, res) => {
             { description: { contains: search, mode: 'insensitive' } },
         ];
     }
+    if (priceRange) {
+        switch (priceRange) {
+            case 'free':
+                where.price = 0;
+                break;
+            case '0-50':
+                where.price = { gt: 0, lte: 50 };
+                break;
+            case '50-100':
+                where.price = { gt: 50, lte: 100 };
+                break;
+            case '100+':
+                where.price = { gt: 100 };
+                break;
+        }
+    }
+    // Determine sort order
+    let orderBy = { createdAt: 'desc' }; // default: newest
+    switch (sortBy) {
+        case 'price-asc':
+            orderBy = { price: 'asc' };
+            break;
+        case 'price-desc':
+            orderBy = { price: 'desc' };
+            break;
+        case 'rating':
+            // For rating sort, we'll handle this after fetching since it's computed
+            orderBy = { createdAt: 'desc' };
+            break;
+        case 'newest':
+        default:
+            orderBy = { createdAt: 'desc' };
+            break;
+    }
+    // Get user ID if authenticated
+    let studentId = null;
+    const token = req.cookies.student_token;
+    if (token) {
+        try {
+            const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+            if (decoded.type === 'student') {
+                studentId = decoded.id;
+            }
+        }
+        catch (error) {
+            // Token invalid or expired
+        }
+    }
+    // For rating sort, we need to fetch ALL courses, calculate ratings, sort, then paginate
+    // For other sorts, we can paginate at the database level
+    const shouldFetchAll = sortBy === 'rating';
+    // Fetch courses and total count
     const [courses, total] = await Promise.all([
         DB_Config_1.default.course.findMany({
             where,
@@ -883,43 +966,76 @@ const GetAllCourses = async (req, res) => {
                 tutor: {
                     select: { id: true, firstName: true, lastName: true, avatar: true }
                 },
+                category: {
+                    select: { id: true, name: true }
+                },
                 _count: {
                     select: { enrollments: true, reviews: true, materials: true }
                 }
             },
-            skip, take: limit,
-            orderBy: { createdAt: 'desc' }
+            skip: shouldFetchAll ? undefined : skip,
+            take: shouldFetchAll ? undefined : limit,
+            orderBy
         }),
         DB_Config_1.default.course.count({ where })
     ]);
-    const coursesWithAvgRating = await Promise.all(courses.map(async (course) => {
-        const avgRating = await DB_Config_1.default.review.aggregate({
-            where: { courseId: course.id },
-            _avg: { rating: true }
-        });
-        let isEnrolled = false;
-        const token = req.cookies.student_token;
-        if (token) {
-            try {
-                const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-                if (decoded.type === 'student') {
-                    const enrollment = await DB_Config_1.default.enrollment.findFirst({
-                        where: { studentId: decoded.id, courseId: course.id, status: 'ACTIVE' }
-                    });
-                    isEnrolled = !!enrollment;
+    const courseIds = courses.map(c => c.id);
+    // Batch fetch ratings for all courses in ONE query
+    const ratingsData = await DB_Config_1.default.review.groupBy({
+        by: ['courseId'],
+        where: { courseId: { in: courseIds } },
+        _avg: { rating: true }
+    });
+    const ratingsMap = new Map(ratingsData.map(r => [r.courseId, r._avg.rating || 0]));
+    // Batch fetch enrollments and reviews for this student (if logged in) - run in parallel
+    let enrollmentsMap = new Map();
+    let reviewsMap = new Map();
+    if (studentId) {
+        const [enrollments, reviews] = await Promise.all([
+            DB_Config_1.default.enrollment.findMany({
+                where: {
+                    studentId,
+                    courseId: { in: courseIds }
+                },
+                select: {
+                    courseId: true,
+                    status: true,
+                    progressPercentage: true,
+                    hasNewContent: true
                 }
-            }
-            catch (error) {
-                // Token invalid or expired, user not enrolled
-            }
-        }
+            }),
+            DB_Config_1.default.review.findMany({
+                where: {
+                    studentId,
+                    courseId: { in: courseIds }
+                },
+                select: {
+                    courseId: true
+                }
+            })
+        ]);
+        enrollmentsMap = new Map(enrollments.map(e => [e.courseId, e]));
+        reviewsMap = new Map(reviews.map(r => [r.courseId, true]));
+    }
+    // Combine all data efficiently
+    let coursesWithAvgRating = courses.map((course) => {
+        const enrollment = enrollmentsMap.get(course.id);
         return {
             ...course,
-            category: null,
-            averageRating: avgRating._avg.rating || 0,
-            isEnrolled
+            averageRating: ratingsMap.get(course.id) || 0,
+            isEnrolled: !!enrollment,
+            enrollmentStatus: enrollment?.status,
+            progressPercentage: enrollment?.progressPercentage || 0,
+            hasReviewed: reviewsMap.get(course.id) || false,
+            hasNewContent: enrollment?.hasNewContent || false
         };
-    }));
+    });
+    // Apply rating sort if requested (since it's a computed field)
+    if (sortBy === 'rating') {
+        coursesWithAvgRating.sort((a, b) => b.averageRating - a.averageRating);
+        // Apply pagination AFTER sorting
+        coursesWithAvgRating = coursesWithAvgRating.slice(skip, skip + limit);
+    }
     res.json({
         success: true,
         data: {
@@ -1058,10 +1174,18 @@ const GetMyEnrollments = async (req, res) => {
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+        const skip = (page - 1) * limit;
+        // Get total count
+        const totalEnrollments = await DB_Config_1.default.enrollment.count({
+            where: { studentId: userId }
+        });
         const enrollments = await DB_Config_1.default.enrollment.findMany({
             where: { studentId: userId },
             select: {
-                id: true, status: true, enrolledAt: true, completedAt: true, progressPercentage: true,
+                id: true, status: true, enrolledAt: true, completedAt: true, progressPercentage: true, hasNewContent: true,
                 course: {
                     select: {
                         id: true, title: true, description: true, thumbnail: true,
@@ -1075,7 +1199,9 @@ const GetMyEnrollments = async (req, res) => {
                     }
                 }
             },
-            orderBy: { enrolledAt: 'desc' }
+            orderBy: { enrolledAt: 'desc' },
+            skip,
+            take: limit
         });
         const enrichedEnrollments = await Promise.all(enrollments.map(async (enrollment) => {
             const avgRating = await DB_Config_1.default.review.aggregate({
@@ -1085,11 +1211,18 @@ const GetMyEnrollments = async (req, res) => {
             const userReview = await DB_Config_1.default.review.findUnique({
                 where: { courseId_studentId: { courseId: enrollment.course.id, studentId: userId } }
             });
+            // Get existing materials for this course
+            const existingMaterials = await DB_Config_1.default.material.findMany({
+                where: { courseId: enrollment.course.id },
+                select: { id: true }
+            });
+            const existingMaterialIds = new Set(existingMaterials.map(m => m.id));
             const progressRecords = await DB_Config_1.default.progress.findMany({
                 where: { studentId: userId, courseId: enrollment.course.id }
             });
             const totalTimeSpent = progressRecords.reduce((total, record) => total + (record.timeSpent || 0), 0);
-            const completedMaterials = progressRecords.filter(record => record.isCompleted).length;
+            // Only count progress for materials that still exist
+            const completedMaterials = progressRecords.filter(record => record.isCompleted && record.materialId !== null && existingMaterialIds.has(record.materialId)).length;
             const courseDurationMinutes = (enrollment.course?.duration || 10) * 60;
             const estimatedTimeSpent = totalTimeSpent > 0 ? totalTimeSpent :
                 (enrollment.progressPercentage > 0 ?
@@ -1107,7 +1240,15 @@ const GetMyEnrollments = async (req, res) => {
         }));
         res.json({
             success: true,
-            data: { enrollments: enrichedEnrollments }
+            data: {
+                enrollments: enrichedEnrollments,
+                pagination: {
+                    total: totalEnrollments,
+                    page,
+                    limit,
+                    pages: Math.ceil(totalEnrollments / limit)
+                }
+            }
         });
     }
     catch (error) {
@@ -1246,7 +1387,9 @@ const GetEnrollmentProgress = async (req, res) => {
             submission: submissionMap.get(assignment.id) || null
         }));
         const totalMaterials = materials.length;
-        const completedMaterials = progressRecords.filter(p => p.isCompleted).length;
+        // Only count completed materials that still exist (filter out deleted materials)
+        const existingMaterialIds = new Set(materials.map(m => m.id));
+        const completedMaterials = progressRecords.filter(p => p.isCompleted && existingMaterialIds.has(p.materialId)).length;
         const totalAssignments = assignments.length;
         const submittedAssignments = assignmentSubmissions.length;
         const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
@@ -1456,33 +1599,53 @@ const SubmitReview = async (req, res) => {
 exports.SubmitReview = SubmitReview;
 const GetCourseReviews = async (req, res) => {
     const { courseId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-        const reviews = await DB_Config_1.default.review.findMany({
+        // Fetch paginated reviews and total count in parallel
+        const [reviews, totalReviews] = await Promise.all([
+            DB_Config_1.default.review.findMany({
+                where: { courseId },
+                include: {
+                    student: {
+                        select: { firstName: true, lastName: true, avatar: true }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            DB_Config_1.default.review.count({ where: { courseId } })
+        ]);
+        // Calculate average rating and distribution from total reviews (not paginated)
+        const allReviews = await DB_Config_1.default.review.findMany({
             where: { courseId },
-            include: {
-                student: {
-                    select: { firstName: true, lastName: true, avatar: true }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
+            select: { rating: true }
         });
-        const averageRating = reviews.length > 0
-            ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        const averageRating = allReviews.length > 0
+            ? allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length
             : 0;
         const ratingDistribution = {
-            5: reviews.filter(r => r.rating === 5).length,
-            4: reviews.filter(r => r.rating === 4).length,
-            3: reviews.filter(r => r.rating === 3).length,
-            2: reviews.filter(r => r.rating === 2).length,
-            1: reviews.filter(r => r.rating === 1).length
+            5: allReviews.filter(r => r.rating === 5).length,
+            4: allReviews.filter(r => r.rating === 4).length,
+            3: allReviews.filter(r => r.rating === 3).length,
+            2: allReviews.filter(r => r.rating === 2).length,
+            1: allReviews.filter(r => r.rating === 1).length
         };
         res.json({
             success: true,
             data: {
                 reviews,
                 averageRating: Math.round(averageRating * 10) / 10,
-                totalReviews: reviews.length,
-                ratingDistribution
+                totalReviews,
+                ratingDistribution,
+                pagination: {
+                    page,
+                    limit,
+                    totalPages: Math.ceil(totalReviews / limit),
+                    hasMore: page < Math.ceil(totalReviews / limit)
+                }
             }
         });
     }
@@ -1636,9 +1799,22 @@ const SubmitAssignment = async (req, res) => {
                 }
             }
         });
+        // Get existing material IDs to filter out progress for deleted materials
+        const existingMaterials = await DB_Config_1.default.material.findMany({
+            where: { courseId: assignment.courseId },
+            select: { id: true }
+        });
+        const existingMaterialIds = existingMaterials.map(m => m.id);
         const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-            DB_Config_1.default.material.count({ where: { courseId: assignment.courseId } }),
-            DB_Config_1.default.progress.count({ where: { studentId: studentId, courseId: assignment.courseId, isCompleted: true } }),
+            Promise.resolve(existingMaterials.length),
+            DB_Config_1.default.progress.count({
+                where: {
+                    studentId: studentId,
+                    courseId: assignment.courseId,
+                    isCompleted: true,
+                    materialId: { in: existingMaterialIds } // Only count progress for existing materials
+                }
+            }),
             DB_Config_1.default.assignment.count({ where: { courseId: assignment.courseId } }),
             DB_Config_1.default.assignmentSubmission.count({ where: { studentId, assignment: { courseId: assignment.courseId } } })
         ]);

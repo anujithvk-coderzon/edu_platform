@@ -36,19 +36,39 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
     standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@4.4.168/standard_fonts/',
   }), []);
 
-  // Calculate responsive width
+  // Calculate responsive width with immediate initialization
   useEffect(() => {
     const updateWidth = () => {
       if (containerRef.current) {
-        const width = containerRef.current.clientWidth;
-        setPageWidth(Math.min(width - 40, 900));
+        const containerWidth = containerRef.current.clientWidth;
+        if (containerWidth > 0) {
+          // Set appropriate width based on screen size
+          // Mobile: full container width minus small padding
+          // Desktop: max 900px
+          const isMobile = window.innerWidth < 768;
+          const padding = isMobile ? 20 : 40;
+          const calculatedWidth = isMobile ? containerWidth - padding : Math.min(containerWidth - padding, 900);
+          setPageWidth(calculatedWidth);
+        }
       }
     };
 
+    // Immediate initial calculation
     updateWidth();
-    window.addEventListener('resize', updateWidth);
 
-    return () => window.removeEventListener('resize', updateWidth);
+    // Multiple delayed recalculations to ensure container is fully rendered
+    const timer1 = setTimeout(updateWidth, 100);
+    const timer2 = setTimeout(updateWidth, 300);
+
+    window.addEventListener('resize', updateWidth);
+    window.addEventListener('orientationchange', updateWidth);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener('resize', updateWidth);
+      window.removeEventListener('orientationchange', updateWidth);
+    };
   }, []);
 
   // Initialize PDF.js worker and components on client side only
@@ -120,10 +140,10 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   // Don't render until components are loaded
   if (!mounted || !pdfComponents) {
     return (
-      <div className="flex items-center justify-center h-96 bg-gray-100">
+      <div className="flex items-center justify-center h-96 bg-slate-50 rounded-lg border border-slate-200">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading PDF viewer...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-slate-600 text-sm">Loading PDF viewer...</p>
         </div>
       </div>
     );
@@ -145,10 +165,10 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
       style={{ userSelect: 'none' }}
     >
       {loading && (
-        <div className="flex items-center justify-center h-96 bg-gray-100">
+        <div className="flex items-center justify-center h-96 bg-slate-50 rounded-lg border border-slate-200">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading PDF...</p>
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
+            <p className="mt-4 text-slate-600 text-sm">Loading PDF...</p>
           </div>
         </div>
       )}
@@ -168,7 +188,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
             width={pageWidth || undefined}
             renderTextLayer={true}
             renderAnnotationLayer={true}
-            className="shadow-lg !max-w-full"
+            className="shadow-lg"
             canvasRef={(ref: HTMLCanvasElement | null) => {
               if (ref) {
                 ref.oncontextmenu = (e) => {
@@ -192,29 +212,29 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
 
       {/* Navigation Controls */}
       {numPages > 0 && (
-        <div className="flex items-center justify-center gap-2 sm:gap-4 mt-4 bg-white p-3 sm:p-4 rounded-lg shadow flex-wrap">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mt-4 bg-white p-2.5 sm:p-3 rounded-lg border border-slate-200 w-full max-w-full">
           <button
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition text-sm sm:text-base"
+            className="flex items-center justify-center gap-1.5 px-2.5 sm:px-4 py-2.5 bg-indigo-600 text-white rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition text-xs sm:text-sm font-medium min-h-[44px] min-w-[44px] flex-shrink-0"
           >
-            <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">Previous</span>
-            <span className="sm:hidden">Prev</span>
+            <ChevronLeftIcon className="w-5 h-5 flex-shrink-0" />
+            <span className="hidden sm:inline">Prev</span>
           </button>
 
-          <span className="text-gray-700 font-medium text-sm sm:text-base whitespace-nowrap">
-            Page {pageNumber} of {numPages}
-          </span>
+          <div className="flex items-center justify-center flex-1 min-w-0 px-1 sm:px-2">
+            <span className="text-slate-700 font-medium text-xs sm:text-sm whitespace-nowrap">
+              <span className="hidden sm:inline">Page </span>{pageNumber} <span className="hidden sm:inline">of</span><span className="sm:hidden">/</span> {numPages}
+            </span>
+          </div>
 
           <button
             onClick={goToNextPage}
             disabled={pageNumber >= numPages}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-blue-700 transition text-sm sm:text-base"
+            className="flex items-center justify-center gap-1.5 px-2.5 sm:px-4 py-2.5 bg-indigo-600 text-white rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-indigo-700 transition text-xs sm:text-sm font-medium min-h-[44px] min-w-[44px] flex-shrink-0"
           >
-            <span className="sm:hidden">Next</span>
             <span className="hidden sm:inline">Next</span>
-            <ChevronRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ChevronRightIcon className="w-5 h-5 flex-shrink-0" />
           </button>
         </div>
       )}
@@ -225,12 +245,17 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
           -webkit-user-select: none;
           -moz-user-select: none;
           -ms-user-select: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
 
         .react-pdf__Page__canvas {
           user-select: none !important;
           -webkit-user-select: none !important;
           pointer-events: auto !important;
+          max-width: 100% !important;
+          height: auto !important;
         }
 
         .react-pdf__Page__textContent {

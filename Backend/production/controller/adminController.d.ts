@@ -20,6 +20,7 @@ export declare const GetUserById: (req: AuthRequest, res: express.Response) => P
 export declare const UpdateUser: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const DeleteUser: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const GetUserStats: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
+export declare const GetStudentStats: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const GetPendingTutorRequestsCount: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const GetAllTutorRequests: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;
 export declare const AcceptTutorRequest: (req: AuthRequest, res: express.Response) => Promise<express.Response<any, Record<string, any>>>;

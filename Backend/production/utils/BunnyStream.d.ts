@@ -82,4 +82,11 @@ export declare const getVideoEmbedUrl: (guid: string) => string;
  * @returns The player URL
  */
 export declare const getVideoPlayerUrl: (guid: string) => string;
+/**
+ * Delete video from Bunny Stream
+ *
+ * @param guid - The video GUID to delete
+ * @returns True if deletion successful, false otherwise
+ */
+export declare const deleteVideoFromBunnyStream: (guid: string) => Promise<boolean>;
 export {};

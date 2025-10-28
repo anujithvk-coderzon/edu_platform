@@ -134,8 +134,9 @@ router.put('/students/:id', auth_1.authMiddleware, auth_1.adminOnly, [
 ], adminController_1.UpdateUser);
 // Delete student/user
 router.delete('/students/:id', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.DeleteUser);
-// Get user statistics
+// Get user statistics (more specific route first)
 router.get('/students/stats/overview', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.GetUserStats);
+router.get('/students/stats/detailed', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.GetStudentStats);
 // ===== TUTOR REQUEST MANAGEMENT ROUTES =====
 // Get pending tutor requests count
 router.get('/tutor-requests/count', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.GetPendingTutorRequestsCount);
@@ -158,7 +159,12 @@ router.get('/courses', auth_1.authMiddleware, [
     (0, express_validator_1.query)('status').optional().isIn(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
 ], adminController_1.GetAllCourses);
 // Get my courses
-router.get('/courses/my-courses', auth_1.authMiddleware, adminController_1.GetMyCourses);
+router.get('/courses/my-courses', auth_1.authMiddleware, [
+    (0, express_validator_1.query)('page').optional().isInt({ min: 1 }),
+    (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 100 }),
+    (0, express_validator_1.query)('search').optional().isString(),
+    (0, express_validator_1.query)('status').optional().isString()
+], adminController_1.GetMyCourses);
 // Get pending courses count (Admin only) - Must be before /courses/:id
 router.get('/courses/pending/count', auth_1.authMiddleware, auth_1.adminOnly, adminController_1.GetPendingCoursesCount);
 // Get all pending courses (Admin only) - Must be before /courses/:id

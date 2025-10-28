@@ -34,6 +34,7 @@ interface Course {
   hasReviewed?: boolean;
   enrollmentStatus?: string;
   progressPercentage?: number;
+  hasNewContent?: boolean;
   creator: {
     id: string;
     firstName: string;
@@ -186,19 +187,24 @@ function CoursesContent() {
 
   const getCourseButtonState = (course: Course) => {
     if (!course.isEnrolled) {
-      return { text: 'View Course', href: `/courses/${course.id}` };
+      return { text: 'View Course', href: `/courses/${course.id}`, type: 'view' };
     }
 
     const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
 
     if (isCompleted) {
-      if (course.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${course.id}` };
-      } else {
-        return { text: 'Rate Course', href: `/courses/${course.id}/rate` };
+      // If completed but has new content
+      if (course.hasNewContent) {
+        return { text: 'View New Content', href: `/learn/${course.id}`, type: 'new-content' };
       }
+      // If completed and reviewed
+      if (course.hasReviewed) {
+        return { text: 'Completed', href: `/courses/${course.id}`, type: 'completed' };
+      }
+      // If completed but not reviewed
+      return { text: 'Rate Course', href: `/courses/${course.id}/rate`, type: 'rate' };
     } else {
-      return { text: 'Continue Learning', href: `/learn/${course.id}` };
+      return { text: 'Continue Learning', href: `/learn/${course.id}`, type: 'continue' };
     }
   };
 
@@ -237,7 +243,7 @@ function CoursesContent() {
       </div>
 
       {/* Modern Search & Filters Bar */}
-      <div className="sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm">
+      <div className="sticky top-16 sm:top-18 md:top-20 lg:top-24 z-20 bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           {/* Search Bar - Always Visible */}
           <div className="relative mb-3">
@@ -515,14 +521,22 @@ function CoursesContent() {
                         <BookOpenIcon className="h-16 w-16 text-slate-300" />
                       </div>
                     )}
-                    {(() => {
-                      const badge = getCourseStatusBadge(course);
-                      return badge && (
-                        <div className={`absolute top-2 right-2 ${badge.color} px-2 py-1 rounded text-xs font-medium shadow-lg`} style={{ color: 'white' }}>
-                          {badge.text}
+                    {/* Status and New Content Badges */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                      {(() => {
+                        const badge = getCourseStatusBadge(course);
+                        return badge && (
+                          <div className={`${badge.color} px-2 py-1 rounded text-xs font-medium shadow-lg`} style={{ color: 'white' }}>
+                            {badge.text}
+                          </div>
+                        );
+                      })()}
+                      {course.hasNewContent && (
+                        <div className="bg-orange-500 px-2 py-1 rounded text-xs font-medium shadow-lg animate-pulse" style={{ color: 'white' }}>
+                          🆕 New Content Added
                         </div>
-                      );
-                    })()}
+                      )}
+                    </div>
                     {course.level && (
                       <div className="absolute top-2 left-2 bg-white/90 text-slate-700 px-2 py-1 rounded text-xs font-semibold border border-slate-200">
                         {course.level}
@@ -585,10 +599,12 @@ function CoursesContent() {
                         return (
                           <Link href={buttonState.href}>
                             <button className={`px-4 py-2 rounded-lg font-medium text-xs transition-colors ${
-                              buttonState.text === 'Completed'
+                              buttonState.type === 'completed'
                                 ? 'bg-green-600 text-white hover:bg-green-700'
-                                : buttonState.text === 'Rate Course'
+                                : buttonState.type === 'rate'
                                 ? 'bg-orange-500 text-white hover:bg-orange-600'
+                                : buttonState.type === 'new-content'
+                                ? 'bg-orange-600 text-white hover:bg-orange-700 animate-pulse'
                                 : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}>
                               {buttonState.text}

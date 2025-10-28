@@ -410,7 +410,7 @@ export default function CourseDetailPage() {
                         />
                       </div>
                       <div className="text-xs text-slate-600 mt-1.5 text-center sm:text-left">
-                        {progress.stats.completedMaterials}/{progress.stats.totalMaterials} completed
+                        {progress.materials.filter((m: any) => m.moduleId && m.progress?.isCompleted).length}/{progress.materials.filter((m: any) => m.moduleId).length} completed
                       </div>
                     </div>
                   )}

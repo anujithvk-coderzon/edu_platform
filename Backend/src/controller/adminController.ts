@@ -3578,17 +3578,27 @@ export const UpdateMaterial = async (req: AuthRequest, res: express.Response) =>
 };
 
 // Helper function to recalculate progress for all enrollments in a course
+// Preserves completed status - if a student completed the course, we don't reduce their progress
+// Instead, we flag that new content is available
 async function recalculateCourseEnrollments(courseId: string) {
   try {
-    // Get all enrollments for this course
+    // Get all enrollments for this course with full data
     const enrollments = await prisma.enrollment.findMany({
       where: { courseId },
-      select: { studentId: true }
+      select: {
+        studentId: true,
+        completedAt: true,
+        status: true,
+        progressPercentage: true
+      }
     });
 
     // Get existing materials and assignments for this course
     const [materials, assignments] = await Promise.all([
-      prisma.material.findMany({ where: { courseId }, select: { id: true } }),
+      prisma.material.findMany({
+        where: { courseId },
+        select: { id: true, createdAt: true }
+      }),
       prisma.assignment.findMany({ where: { courseId }, select: { id: true } })
     ]);
 
@@ -3599,13 +3609,22 @@ async function recalculateCourseEnrollments(courseId: string) {
 
     // Recalculate progress for each enrollment
     for (const enrollment of enrollments) {
+      const wasCompleted = !!enrollment.completedAt;
+
+      // Check if there are materials added after completion
+      let hasNewContent = false;
+      if (wasCompleted && enrollment.completedAt) {
+        const newMaterials = materials.filter(m => m.createdAt > enrollment.completedAt!);
+        hasNewContent = newMaterials.length > 0;
+      }
+
       const [completedMaterialsCount, submittedAssignmentsCount] = await Promise.all([
         prisma.progress.count({
           where: {
             studentId: enrollment.studentId,
             courseId,
             isCompleted: true,
-            materialId: { in: existingMaterialIds } // Only count existing materials
+            materialId: { in: existingMaterialIds }
           }
         }),
         prisma.assignmentSubmission.count({
@@ -3619,30 +3638,50 @@ async function recalculateCourseEnrollments(courseId: string) {
       const completedItems = completedMaterialsCount + submittedAssignmentsCount;
       const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-      // Update enrollment with new progress
-      // If progress < 100% and was COMPLETED, change back to ACTIVE
-      await prisma.enrollment.update({
-        where: {
-          studentId_courseId: {
-            studentId: enrollment.studentId,
-            courseId
-          }
-        },
-        data: {
-          progressPercentage,
-          ...(progressPercentage < 100 && {
-            status: 'ACTIVE',
-            completedAt: null
-          }),
-          ...(progressPercentage === 100 && {
-            status: 'COMPLETED',
-            completedAt: new Date()
-          })
-        }
-      });
-    }
+      // If student already completed the course, preserve that status
+      if (wasCompleted) {
+        // Check if they've now completed the new content too
+        const hasCompletedNewContent = progressPercentage === 100;
+        const finalHasNewContent = hasCompletedNewContent ? false : hasNewContent;
 
-    console.log(`✅ Recalculated progress for ${enrollments.length} enrollments in course ${courseId}`);
+        await prisma.enrollment.update({
+          where: {
+            studentId_courseId: {
+              studentId: enrollment.studentId,
+              courseId
+            }
+          },
+          data: {
+            completedMaterials: completedMaterialsCount, // Update count for display
+            hasNewContent: finalHasNewContent, // Clear flag if they completed new content
+            // Keep status as COMPLETED and progressPercentage at 100%
+          }
+        });
+      } else {
+        // For non-completed enrollments, calculate normally
+        await prisma.enrollment.update({
+          where: {
+            studentId_courseId: {
+              studentId: enrollment.studentId,
+              courseId
+            }
+          },
+          data: {
+            progressPercentage,
+            completedMaterials: completedMaterialsCount,
+            hasNewContent: false,
+            ...(progressPercentage === 100 && {
+              status: 'COMPLETED',
+              completedAt: new Date()
+            }),
+            ...(progressPercentage < 100 && enrollment.status === 'COMPLETED' && {
+              status: 'ACTIVE',
+              completedAt: null
+            })
+          }
+        });
+      }
+    }
   } catch (error) {
     console.error('Error recalculating course enrollments:', error);
   }
@@ -3896,6 +3935,7 @@ export const EnrollInCourse = async (req: AuthRequest, res: express.Response) =>
 export const GetMyEnrollments = async (req: AuthRequest, res: express.Response) => {
   try {
     const userId = req.user!.id;
+    console.log(`\n🔵 GetMyEnrollments called for user: ${userId}`);
 
     const enrollments = await prisma.enrollment.findMany({
       where: { studentId: userId },
@@ -3924,6 +3964,13 @@ export const GetMyEnrollments = async (req: AuthRequest, res: express.Response) 
 
     const enrollmentsWithProgress = await Promise.all(
       enrollments.map(async (enrollment) => {
+        // Get existing materials for this course
+        const existingMaterials = await prisma.material.findMany({
+          where: { courseId: enrollment.courseId },
+          select: { id: true }
+        });
+        const existingMaterialIds = new Set(existingMaterials.map(m => m.id));
+
         const progressRecords = await prisma.progress.findMany({
           where: {
             studentId: userId,
@@ -3931,8 +3978,18 @@ export const GetMyEnrollments = async (req: AuthRequest, res: express.Response) 
           }
         });
 
-        const completedCount = progressRecords.filter(p => p.isCompleted).length;
+        // Only count progress for materials that still exist (exclude null materialIds)
+        const completedCount = progressRecords.filter(p =>
+          p.isCompleted && p.materialId !== null && existingMaterialIds.has(p.materialId)
+        ).length;
         const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
+
+        console.log(`📊 GetMyEnrollments - Course: ${enrollment.course.title}`);
+        console.log(`   Total materials in course: ${existingMaterials.length}`);
+        console.log(`   Total progress records: ${progressRecords.length}`);
+        console.log(`   Progress records marked completed: ${progressRecords.filter(p => p.isCompleted).length}`);
+        console.log(`   Completed materials (filtered): ${completedCount}`);
+        console.log(`   Stored completedMaterials from DB: ${enrollment.completedMaterials}`);
 
         return {
           ...enrollment,
@@ -3941,6 +3998,11 @@ export const GetMyEnrollments = async (req: AuthRequest, res: express.Response) 
         };
       })
     );
+
+    console.log(`\n✅ GetMyEnrollments returning ${enrollmentsWithProgress.length} enrollments`);
+    enrollmentsWithProgress.forEach(e => {
+      console.log(`   Course: ${e.course.title} - Completed: ${e.completedMaterials}/${e.course._count.materials}`);
+    });
 
     return res.json({
       success: true,
@@ -3995,6 +4057,13 @@ export const GetCourseStudents = async (req: AuthRequest, res: express.Response)
       orderBy: { enrolledAt: 'desc' }
     });
 
+    // Get existing materials for this course once
+    const existingMaterials = await prisma.material.findMany({
+      where: { courseId },
+      select: { id: true }
+    });
+    const existingMaterialIds = new Set(existingMaterials.map(m => m.id));
+
     const studentsWithProgress = await Promise.all(
       enrollments.map(async (enrollment) => {
         const progressRecords = await prisma.progress.findMany({
@@ -4004,9 +4073,12 @@ export const GetCourseStudents = async (req: AuthRequest, res: express.Response)
           }
         });
 
-        const completedCount = progressRecords.filter(p => p.isCompleted).length;
+        // Only count progress for materials that still exist (exclude null materialIds)
+        const completedCount = progressRecords.filter(p =>
+          p.isCompleted && p.materialId !== null && existingMaterialIds.has(p.materialId)
+        ).length;
         const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
-        const lastAccessed = progressRecords.length > 0 
+        const lastAccessed = progressRecords.length > 0
           ? Math.max(...progressRecords.map(p => p.lastAccessed.getTime()))
           : null;
 

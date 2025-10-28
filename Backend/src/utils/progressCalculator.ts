@@ -108,7 +108,8 @@ export async function updateEnrollmentProgress(
       progressPercentage,
       ...(progressPercentage === 100 && {
         completedAt: new Date(),
-        status: 'COMPLETED'
+        status: 'COMPLETED',
+        hasNewContent: false // Clear flag when they complete everything
       })
     }
   });

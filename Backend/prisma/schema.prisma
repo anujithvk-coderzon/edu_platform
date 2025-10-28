@@ -180,6 +180,9 @@ model Enrollment {
   enrolledAt  DateTime         @default(now())
   completedAt DateTime?
   progressPercentage Float      @default(0) // percentage
+  completedMaterials Int         @default(0) // count of completed materials
+  totalTimeSpent     Int         @default(0) // total time spent in minutes
+  hasNewContent      Boolean     @default(false) // true when new materials added after completion
 
   student         Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   course          Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)

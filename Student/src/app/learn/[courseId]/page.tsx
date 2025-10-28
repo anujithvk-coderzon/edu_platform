@@ -67,6 +67,8 @@ interface Progress {
     id: string;
     progressPercentage: number;
     status: string;
+    hasNewContent?: boolean;
+    completedAt?: string;
   };
   materials: Material[];
   assignments?: Assignment[];
@@ -142,11 +144,14 @@ export default function LearnPage() {
   // Handle initial sidebar state based on screen size
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint - always show sidebar on large screens
         setShowSidebar(true);
       } else {
-        // On mobile, show sidebar initially so users can see the materials list
-        setShowSidebar(true);
+        // On mobile/tablet, only show sidebar if no material is selected
+        if (!currentMaterial) {
+          setShowSidebar(true);
+        }
       }
     };
 
@@ -157,13 +162,43 @@ export default function LearnPage() {
     window.addEventListener('resize', handleResize);
 
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [currentMaterial]);
 
   // Enable material protection (disable save shortcuts)
   useEffect(() => {
     const cleanup = disableSaveShortcuts();
     return () => cleanup();
   }, []);
+
+  // Prevent body scroll on mobile when material is selected
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile && currentMaterial && !showSidebar) {
+        // Disable body scroll
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+      } else {
+        // Re-enable body scroll
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+      }
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
+      }
+    };
+  }, [currentMaterial, showSidebar]);
 
 
 
@@ -247,14 +282,11 @@ export default function LearnPage() {
   const fetchAssignments = async () => {
     try {
       setLoadingAssignments(true);
-      console.log('Fetching assignments for course:', courseId);
       const response = await api.assignments.getByCourse(courseId);
-      console.log('Assignment API response:', response);
 
       if (response.success) {
         // Handle different possible response structures
         const assignmentData = response.data?.assignments || response.data || [];
-        console.log('Setting assignments:', assignmentData);
         setAssignments(Array.isArray(assignmentData) ? assignmentData : []);
 
         // Fetch submissions for each assignment
@@ -330,8 +362,8 @@ export default function LearnPage() {
 
   const handleMaterialSelect = (material: Material) => {
     setCurrentMaterial(material);
-    // Auto-close sidebar on mobile when material is selected
-    if (window.innerWidth < 768) {
+    // Auto-close sidebar on mobile/tablet when material is selected
+    if (window.innerWidth < 1024) {
       setShowSidebar(false);
     }
   };
@@ -474,7 +506,7 @@ export default function LearnPage() {
     switch (currentMaterial.type.toUpperCase()) {
       case 'VIDEO':
         return (
-          <div className="w-full max-w-5xl mx-auto">
+          <div className="w-full max-w-5xl mx-auto bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
             {currentMaterial.fileUrl ? (
               <ProtectedVideo
                 src={currentMaterial.fileUrl}
@@ -482,9 +514,9 @@ export default function LearnPage() {
                 watermarkText={user?.email || 'Protected Content'}
               />
             ) : (
-              <div className="bg-slate-100 text-slate-600 text-center p-6 md:p-12 rounded-lg border border-slate-200">
-                <VideoCameraIcon className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-sm md:text-base">Video content not available</p>
+              <div className="bg-slate-50 text-slate-600 text-center p-8 md:p-12">
+                <VideoCameraIcon className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 text-slate-400" />
+                <p className="text-sm">Video content not available</p>
               </div>
             )}
           </div>
@@ -492,7 +524,7 @@ export default function LearnPage() {
 
       case 'PDF':
         return (
-          <div className="bg-white border rounded-lg overflow-hidden p-4">
+          <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 shadow-sm">
             {currentMaterial.fileUrl ? (
               <div className="w-full max-w-4xl mx-auto">
                 <CustomPDFViewer
@@ -502,12 +534,12 @@ export default function LearnPage() {
               </div>
             ) : currentMaterial.content ? (
               <div className="prose max-w-none p-6 protected-content" onContextMenu={(e) => e.preventDefault()}>
-                <pre className="whitespace-pre-wrap font-sans">{currentMaterial.content}</pre>
+                <pre className="whitespace-pre-wrap font-sans text-sm">{currentMaterial.content}</pre>
               </div>
             ) : (
-              <div className="text-center text-slate-500 p-6">
-                <DocumentTextIcon className="h-16 w-16 mx-auto mb-4" />
-                <p>PDF content not available</p>
+              <div className="text-center text-slate-500 p-8 bg-slate-50 rounded-lg">
+                <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-slate-400" />
+                <p className="text-sm">PDF content not available</p>
               </div>
             )}
           </div>
@@ -516,16 +548,16 @@ export default function LearnPage() {
 
       case 'LINK':
         return (
-          <div className="bg-white border rounded-lg p-6">
+          <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
             {currentMaterial.fileUrl ? (
               <div className="text-center">
-                <LinkIcon className="h-16 w-16 mx-auto mb-4 text-indigo-500" />
-                <h3 className="text-lg font-medium mb-4 text-slate-900">External Resource</h3>
+                <LinkIcon className="h-12 w-12 mx-auto mb-3 text-indigo-600" />
+                <h3 className="text-base font-semibold mb-4 text-slate-900">External Resource</h3>
                 <a
                   href={getCdnUrl(currentMaterial.fileUrl) || ''}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-md"
                 >
                   <LinkIcon className="h-4 w-4 mr-2" />
                   Open Link
@@ -533,8 +565,8 @@ export default function LearnPage() {
               </div>
             ) : (
               <div className="text-center text-slate-500">
-                <LinkIcon className="h-16 w-16 mx-auto mb-4" />
-                <p>Link not available</p>
+                <LinkIcon className="h-12 w-12 mx-auto mb-3 text-slate-400" />
+                <p className="text-sm">Link not available</p>
               </div>
             )}
           </div>
@@ -542,9 +574,9 @@ export default function LearnPage() {
 
       default:
         return (
-          <div className="bg-white border rounded-lg p-6">
-            <div className="prose max-w-none">
-              {currentMaterial.content || 'Content not available'}
+          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+            <div className="prose prose-sm max-w-none text-slate-700">
+              {currentMaterial.content || <span className="text-slate-500 text-sm">Content not available</span>}
             </div>
           </div>
         );
@@ -570,103 +602,100 @@ export default function LearnPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-slate-600 text-sm">Loading course...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex flex-col lg:flex-row">
+    <div className="fixed inset-0 pt-16 sm:pt-18 md:pt-20 lg:pt-24 bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
       {/* Mobile Sidebar Backdrop */}
       {showSidebar && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-all duration-300"
-          onClick={() => setShowSidebar(false)}
+          className="fixed inset-0 pt-16 sm:pt-18 md:pt-20 lg:pt-24 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-all duration-300"
+          onClick={(e) => {
+            // Only close if clicking the backdrop itself, not its children
+            if (e.target === e.currentTarget) {
+              setShowSidebar(false);
+            }
+          }}
+          onTouchStart={(e) => {
+            // Only close on direct backdrop touch
+            if (e.target === e.currentTarget) {
+              e.stopPropagation();
+            }
+          }}
         />
       )}
 
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-full sm:w-96 lg:w-80 xl:w-96 bg-white border-r border-slate-200/80 overflow-hidden fixed lg:relative inset-0 z-50 lg:z-auto shadow-2xl lg:shadow-none transition-all duration-300">
-          <div className="p-4 sm:p-5 lg:p-6 border-b border-slate-200/80 bg-gradient-to-r from-white to-slate-50/50">
-            <div className="flex items-center justify-between mb-4 sm:mb-5">
-              <h2 className="font-bold text-slate-900 truncate text-base sm:text-lg lg:text-xl">{course?.title}</h2>
+        <div className="w-full sm:w-96 lg:w-80 xl:w-96 bg-white border-r border-slate-200 flex flex-col fixed lg:relative inset-0 z-50 lg:z-auto shadow-xl lg:shadow-none transition-all duration-300 overflow-hidden">
+          <div className="p-4 sm:p-5 lg:p-6 border-b border-slate-200 bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-slate-900 truncate text-base sm:text-lg pr-2">{course?.title}</h2>
               <button
                 onClick={() => setShowSidebar(false)}
-                className="p-2 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-all flex-shrink-0 lg:hidden"
+                className="p-2.5 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0 lg:hidden min-h-[44px] min-w-[44px]"
               >
                 <XMarkIcon className="h-5 w-5 text-slate-600" />
               </button>
             </div>
             {progress && (
-              <div className="space-y-4">
-                {/* Main Progress Card */}
-                <div className="bg-gradient-to-br from-white via-white to-blue-50/30 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-                      <div className="h-8 w-1 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
-                      Course Progress
-                    </h3>
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-md flex-shrink-0">
+              <div className="space-y-3">
+                {/* Simplified Progress Bar */}
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-slate-700">Progress</span>
+                    <span className="text-lg font-bold text-indigo-600">
                       {Math.min(100, Math.round(progress.stats.progressPercentage))}%
-                    </div>
+                    </span>
                   </div>
-
-                  <div className="relative w-full bg-slate-100 rounded-full h-3 overflow-hidden mb-4 shadow-inner">
+                  <div className="relative w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out shadow-lg"
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-500"
                       style={{ width: `${Math.min(100, progress.stats.progressPercentage)}%` }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent animate-pulse"></div>
-                    </div>
+                    />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-100/50 hover:shadow-md transition-all duration-300">
-                      <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{progress.stats.completedMaterials}</div>
-                      <div className="text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wide mt-1">Materials</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 border border-green-100/50 hover:shadow-md transition-all duration-300">
-                      <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{progress.stats.submittedAssignments || Object.keys(assignmentSubmissions).length}</div>
-                      <div className="text-[10px] sm:text-xs font-semibold text-slate-600 uppercase tracking-wide mt-1">Tasks</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-slate-500 text-center py-2 bg-slate-50/50 rounded-lg border border-slate-100">
-                    <span className="font-semibold text-slate-700">{(progress.stats.totalMaterials + (progress.stats.totalAssignments || assignments.length)) - progress.stats.completedMaterials - (progress.stats.submittedAssignments || Object.keys(assignmentSubmissions).length)}</span> items remaining
+                  <div className="flex items-center justify-between mt-3 text-xs text-slate-600">
+                    <span>{progress.materials.filter(m => m.moduleId && m.progress?.isCompleted).length} of {progress.materials.filter(m => m.moduleId).length} lessons</span>
+                    {(progress.stats.totalAssignments || assignments.length) > 0 && (
+                      <span>{progress.stats.submittedAssignments || Object.keys(assignmentSubmissions).length} of {progress.stats.totalAssignments || assignments.length} tasks</span>
+                    )}
                   </div>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="flex gap-2 bg-gradient-to-r from-slate-100 to-slate-50 p-1.5 rounded-xl border border-slate-200/50">
+                {/* Cleaner Tab Navigation */}
+                <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
                   <button
                     onClick={() => setActiveTab('materials')}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-h-[44px] ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
                       activeTab === 'materials'
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
-                        : 'bg-white text-slate-600 hover:text-indigo-600 hover:shadow-md border border-slate-200/50'
+                        ? 'bg-white text-indigo-600 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    <DocumentTextIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Materials</span>
-                    <span className="sm:hidden">Lessons</span>
+                    <DocumentTextIcon className="h-5 w-5" />
+                    <span>Lessons</span>
                   </button>
                   <button
                     onClick={() => {
                       setActiveTab('assignments');
                       fetchAssignments();
                     }}
-                    className={`flex-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 min-h-[44px] ${
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
                       activeTab === 'assignments'
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30'
-                        : 'bg-white text-slate-600 hover:text-indigo-600 hover:shadow-md border border-slate-200/50'
+                        ? 'bg-white text-indigo-600 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    <ClipboardDocumentListIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Assignments</span>
-                    <span className="sm:hidden">Tasks</span>
+                    <ClipboardDocumentListIcon className="h-5 w-5" />
+                    <span>Tasks</span>
                   </button>
                 </div>
-
               </div>
             )}
           </div>
@@ -674,17 +703,14 @@ export default function LearnPage() {
           <div className="overflow-y-auto h-full pb-20 px-3 sm:px-4">
             {activeTab === 'materials' ? (
               modules.map((module, moduleIndex) => (
-              <div key={module.id} className="mb-4 rounded-xl overflow-hidden border border-slate-200/50 shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="p-3 sm:p-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 border-b border-indigo-100/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                      <span className="text-white text-sm sm:text-base font-bold">{moduleIndex + 1}</span>
+              <div key={module.id} className="mb-3 rounded-lg overflow-hidden border border-indigo-200 bg-white">
+                <div className="p-3 sm:p-4 bg-indigo-600 border-b border-indigo-700">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-bold" style={{ color: 'white' }}>{moduleIndex + 1}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">{module.title}</h3>
-                      {module.description && (
-                        <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">{module.description}</p>
-                      )}
+                      <h3 className="font-semibold text-white text-sm sm:text-base truncate" style={{ color: 'white' }}>{module.title}</h3>
                     </div>
                   </div>
                 </div>
@@ -693,43 +719,45 @@ export default function LearnPage() {
                     <button
                       key={material.id}
                       onClick={() => handleMaterialSelect(material)}
-                      className={`w-full p-3 sm:p-4 text-left transition-all duration-300 border-b border-slate-100 last:border-b-0 min-h-[60px] hover:bg-slate-50 active:bg-slate-100 ${
+                      className={`w-full p-3 sm:p-4 text-left transition-all border-b border-slate-100 last:border-b-0 min-h-[60px] hover:bg-slate-50 active:bg-slate-100 ${
                         currentMaterial?.id === material.id
-                          ? 'bg-gradient-to-r from-indigo-50 via-purple-50/50 to-transparent border-l-4 !border-l-indigo-600 shadow-sm'
+                          ? 'bg-indigo-50 border-l-4 !border-l-indigo-600'
                           : ''
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-xl flex-shrink-0 transition-all duration-300 ${
+                        <div className={`p-2 rounded-lg flex-shrink-0 transition-all ${
                           material.progress?.isCompleted
-                            ? 'bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg shadow-green-500/30'
+                            ? 'bg-green-500'
                             : currentMaterial?.id === material.id
-                            ? 'bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/30'
-                            : 'bg-gradient-to-br from-slate-100 to-slate-200'
+                            ? 'bg-indigo-600'
+                            : 'bg-slate-200'
                         }`}>
                           {material.progress?.isCompleted ? (
                             <CheckCircleIconSolid className="h-5 w-5 text-white" />
                           ) : (
                             <div className={`h-5 w-5 ${
-                              currentMaterial?.id === material.id ? 'text-white' : 'text-slate-500'
+                              currentMaterial?.id === material.id ? 'text-white' : 'text-slate-600'
                             }`}>
                               {getMaterialIcon(material.type)}
                             </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className={`font-semibold truncate text-sm ${
+                          <h4 className={`font-medium truncate text-sm ${
                             currentMaterial?.id === material.id ? 'text-indigo-900' : 'text-slate-900'
                           }`}>
                             {material.title}
                           </h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-slate-500 capitalize font-medium">
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-xs capitalize ${
+                              currentMaterial?.id === material.id ? 'text-indigo-700' : 'text-slate-500'
+                            }`}>
                               {material.type.toLowerCase()}
                             </span>
                             {material.progress?.isCompleted && (
-                              <span className="text-xs bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-0.5 rounded-full font-semibold shadow-sm">
-                                ✓ Done
+                              <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-medium">
+                                ✓
                               </span>
                             )}
                           </div>
@@ -771,23 +799,23 @@ export default function LearnPage() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 p-3 sm:p-4 lg:p-5 shadow-sm sticky top-0 z-30">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+        {/* Cleaner Header */}
+        <div className="bg-white border-b border-slate-200 p-3 sm:p-4 z-30 flex-shrink-0">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center gap-2">
               {!showSidebar && (
                 <button
                   onClick={() => setShowSidebar(true)}
-                  className="p-2 sm:p-2.5 hover:bg-indigo-50 active:bg-indigo-100 rounded-xl transition-all duration-300 border border-slate-200 hover:border-indigo-300 shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  className="p-2.5 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
-                  <ListBulletIcon className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+                  <ListBulletIcon className="h-5 w-5 text-slate-700" />
                 </button>
               )}
               <Link href={`/courses/${courseId}`} className="hidden sm:block">
-                <button className="flex items-center gap-2 text-slate-700 hover:text-indigo-600 font-semibold transition-all duration-300 bg-white hover:bg-indigo-50 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md text-sm">
-                  <ArrowLeftIcon className="h-4 w-4 flex-shrink-0" />
-                  <span>Back to Course</span>
+                <button className="flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-all px-3 py-2 rounded-lg hover:bg-slate-100 text-sm">
+                  <ArrowLeftIcon className="h-4 w-4" />
+                  <span>Back</span>
                 </button>
               </Link>
             </div>
@@ -796,75 +824,79 @@ export default function LearnPage() {
               <button
                 onClick={handlePreviousMaterial}
                 disabled={!progress || progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial?.id) === 0}
-                className="p-2.5 bg-white hover:bg-indigo-50 active:bg-indigo-100 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md disabled:hover:bg-white disabled:hover:border-slate-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-2.5 hover:bg-slate-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-slate-200 disabled:hover:bg-white min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                <ArrowLeftIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-700" />
+                <ArrowLeftIcon className="h-5 w-5 text-slate-700" />
               </button>
               <button
                 onClick={handleNextMaterial}
                 disabled={!progress || progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial?.id) === progress.materials.filter(m => m.moduleId).length - 1}
-                className="p-2.5 bg-white hover:bg-indigo-50 active:bg-indigo-100 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow-md disabled:hover:bg-white disabled:hover:border-slate-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-2.5 hover:bg-slate-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-slate-200 disabled:hover:bg-white min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                <ArrowRightIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-700" />
+                <ArrowRightIcon className="h-5 w-5 text-slate-700" />
               </button>
             </div>
           </div>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8">
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+
           {currentMaterial && progress ? (
             <div className="max-w-6xl mx-auto">
-              {/* Material Header */}
-              <div className="mb-4 sm:mb-6 bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/80 p-4 sm:p-5 lg:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
-                <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                  <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex-shrink-0 shadow-lg shadow-indigo-500/30">
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 text-white">
+              {/* Simplified Material Header */}
+              <div className="mb-4 sm:mb-6 bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="p-2.5 bg-indigo-600 rounded-lg flex-shrink-0">
+                    <div className="w-5 h-5 text-white" style={{ color: 'white' }}>
                       {getMaterialIcon(currentMaterial.type)}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 mb-2 leading-tight">{currentMaterial.title}</h1>
+                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 leading-tight">{currentMaterial.title}</h1>
                     {currentMaterial.description && (
-                      <p className="text-slate-600 text-sm sm:text-base line-clamp-2">{currentMaterial.description}</p>
+                      <p className="text-slate-600 text-sm line-clamp-2">{currentMaterial.description}</p>
                     )}
                   </div>
                   {currentMaterial.progress?.isCompleted && (
-                    <div className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 sm:px-4 py-2 rounded-full flex-shrink-0 shadow-lg shadow-green-500/30">
-                      <CheckCircleIconSolid className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-xs sm:text-sm font-semibold hidden sm:inline">Completed</span>
+                    <div className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-full flex-shrink-0" style={{ color: 'white' }}>
+                      <CheckCircleIconSolid className="h-4 w-4" style={{ color: 'white' }} />
+                      <span className="text-xs font-medium hidden sm:inline" style={{ color: 'white' }}>Completed</span>
                     </div>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <span className="bg-gradient-to-r from-slate-100 to-slate-50 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-slate-700 border border-slate-200 shadow-sm">
-                    Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}
-                  </span>
-                  <span className="capitalize bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/30">{currentMaterial.type.toLowerCase()}</span>
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <span>Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}</span>
+                  <span>•</span>
+                  <span className="capitalize">{currentMaterial.type.toLowerCase()}</span>
                 </div>
               </div>
 
               {/* Material Content */}
-              <div className="mb-3 sm:mb-4 md:mb-6">
+              <div className="mb-4 sm:mb-6">
                 {renderMaterialContent()}
               </div>
 
-              {/* Action Button */}
+              {/* Cleaner Action Button */}
               {!currentMaterial.progress?.isCompleted && (
                 <div className="flex justify-center">
                   <button
                     onClick={handleMarkComplete}
                     disabled={markingComplete}
-                    className="group bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 text-sm sm:text-base font-semibold shadow-lg shadow-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/60 hover:scale-105 active:scale-95 min-h-[56px]"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 text-sm sm:text-base font-medium shadow-md hover:shadow-lg min-h-[50px]"
                   >
                     {markingComplete ? (
                       <>
-                        <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white border-t-transparent"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
                         <span>Marking Complete...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6 group-hover:scale-110 transition-transform" />
+                        <CheckCircleIcon className="h-5 w-5" />
                         <span>Mark as Complete</span>
                       </>
                     )}
@@ -874,22 +906,20 @@ export default function LearnPage() {
             </div>
           ) : (
             <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center px-4 py-12 bg-white rounded-3xl border border-slate-200 shadow-lg max-w-md">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur-3xl opacity-20"></div>
-                  <DocumentTextIcon className="relative h-16 w-16 sm:h-20 sm:w-20 text-indigo-600 mx-auto" />
-                </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No Lesson Selected</h3>
-                <p className="text-slate-600 text-sm sm:text-base mb-6">Choose a lesson from the sidebar to begin your learning journey.</p>
+              <div className="text-center px-6 py-10 bg-white rounded-xl border border-slate-200 shadow-sm max-w-md mx-4">
+                <DocumentTextIcon className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No Lesson Selected</h3>
+                <p className="text-slate-600 text-sm mb-6">Choose a lesson from the sidebar to begin learning.</p>
                 <button
                   onClick={() => setShowSidebar(true)}
-                  className="lg:hidden bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 min-h-[48px]"
+                  className="lg:hidden bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-sm font-medium shadow-md transition-all min-h-[48px]"
                 >
                   Browse Lessons
                 </button>
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
 
@@ -1062,8 +1092,6 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
     try {
       setLoading(true);
       const response = await api.assignments.getSubmission(assignment.id);
-      console.log('Submission response:', response);
-
       if (response.success) {
         if (response.data?.submission && response.data.submission !== null) {
           // Submission exists
@@ -1111,11 +1139,9 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
       // Upload file if selected
       if (submissionFile) {
         const uploadResponse = await api.assignments.uploadFile(submissionFile);
-        console.log('Upload response:', uploadResponse); // Debug log
         if (uploadResponse.success) {
           // Fix: Use fileUrl from the response, not url
           fileUrl = uploadResponse.data.fileUrl || uploadResponse.data.url;
-          console.log('File URL to be submitted:', fileUrl); // Debug log
         } else {
           toast.error('Failed to upload file. Please try again.');
           return;
@@ -1131,8 +1157,6 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
       if (fileUrl) {
         submissionData.fileUrl = fileUrl;
       }
-
-      console.log('Submitting assignment with data:', submissionData); // Debug log
 
       const response = await api.assignments.submit(assignment.id, submissionData);
 

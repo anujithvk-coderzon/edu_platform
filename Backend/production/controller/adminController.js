@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GetMaterialById = exports.GetCourseMaterials = exports.ReorderModule = exports.DeleteModule = exports.UpdateModule = exports.CreateModule = exports.GetModuleById = exports.GetCourseModules = exports.DeleteCategory = exports.UpdateCategory = exports.CreateCategory = exports.GetCategoryById = exports.GetAllCategories = exports.DeleteCourse = exports.GetPendingCourses = exports.GetPendingCoursesCount = exports.RejectCourse = exports.PublishCourse = exports.SubmitCourseForReview = exports.UpdateCourse = exports.CreateCourse = exports.GetCourseById = exports.ToggleTutorStatus = exports.GetAllTutors = exports.GetMyCourses = exports.GetAllCourses = exports.RejectTutorRequest = exports.AcceptTutorRequest = exports.GetAllTutorRequests = exports.GetPendingTutorRequestsCount = exports.GetUserStats = exports.DeleteUser = exports.UpdateUser = exports.GetUserById = exports.GetAllUsers = exports.ChangePassword = exports.UpdateProfile = exports.GetCurrentUser = exports.AdminResetPassword = exports.AdminVerifyForgotPasswordOtp = exports.AdminForgotPassword = exports.LogoutUser = exports.LoginUser = exports.RegisterTutorPublic = exports.VerifyTutorOTP = exports.SendTutorVerificationEmail = exports.CheckTutorEmail = exports.RegisterTutor = exports.RegisterUser = exports.BootstrapAdmin = void 0;
-exports.UnblockStudent = exports.BlockStudent = exports.CleanupOrphanedCourses = exports.UploadAdminAvatar = exports.GetAllStudents = exports.GetAllRegisteredStudents = exports.GetStudentsCount = exports.UploadAssignmentFile = exports.GetStudentSubmission = exports.SubmitAssignment = exports.GetStudentCourseAssignments = exports.GetCourseCompletion = exports.GetTutorAnalytics = exports.GetFileInfo = exports.DeleteUploadedFile = exports.UploadMaterial = exports.UploadCourseThumbnail = exports.UploadAvatar = exports.UploadMultipleFiles = exports.UploadSingleFile = exports.DeleteEnrollment = exports.GetEnrollmentProgress = exports.UpdateEnrollmentStatus = exports.GetCourseStudents = exports.GetMyEnrollments = exports.EnrollInCourse = exports.CompleteMaterial = exports.DeleteMaterial = exports.UpdateMaterial = exports.CreateMaterial = void 0;
+exports.GetCourseMaterials = exports.ReorderModule = exports.DeleteModule = exports.UpdateModule = exports.CreateModule = exports.GetModuleById = exports.GetCourseModules = exports.DeleteCategory = exports.UpdateCategory = exports.CreateCategory = exports.GetCategoryById = exports.GetAllCategories = exports.DeleteCourse = exports.GetPendingCourses = exports.GetPendingCoursesCount = exports.RejectCourse = exports.PublishCourse = exports.SubmitCourseForReview = exports.UpdateCourse = exports.CreateCourse = exports.GetCourseById = exports.ToggleTutorStatus = exports.GetAllTutors = exports.GetMyCourses = exports.GetAllCourses = exports.RejectTutorRequest = exports.AcceptTutorRequest = exports.GetAllTutorRequests = exports.GetPendingTutorRequestsCount = exports.GetStudentStats = exports.GetUserStats = exports.DeleteUser = exports.UpdateUser = exports.GetUserById = exports.GetAllUsers = exports.ChangePassword = exports.UpdateProfile = exports.GetCurrentUser = exports.AdminResetPassword = exports.AdminVerifyForgotPasswordOtp = exports.AdminForgotPassword = exports.LogoutUser = exports.LoginUser = exports.RegisterTutorPublic = exports.VerifyTutorOTP = exports.SendTutorVerificationEmail = exports.CheckTutorEmail = exports.RegisterTutor = exports.RegisterUser = exports.BootstrapAdmin = void 0;
+exports.UnblockStudent = exports.BlockStudent = exports.CleanupOrphanedCourses = exports.UploadAdminAvatar = exports.GetAllStudents = exports.GetAllRegisteredStudents = exports.GetStudentsCount = exports.UploadAssignmentFile = exports.GetStudentSubmission = exports.SubmitAssignment = exports.GetStudentCourseAssignments = exports.GetCourseCompletion = exports.GetTutorAnalytics = exports.GetFileInfo = exports.DeleteUploadedFile = exports.UploadMaterial = exports.UploadCourseThumbnail = exports.UploadAvatar = exports.UploadMultipleFiles = exports.UploadSingleFile = exports.DeleteEnrollment = exports.GetEnrollmentProgress = exports.UpdateEnrollmentStatus = exports.GetCourseStudents = exports.GetMyEnrollments = exports.EnrollInCourse = exports.CompleteMaterial = exports.DeleteMaterial = exports.UpdateMaterial = exports.CreateMaterial = exports.GetMaterialById = void 0;
 const express_validator_1 = require("express-validator");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -20,6 +20,7 @@ const EmailVerification_1 = require("../utils/EmailVerification");
 const CDN_management_1 = require("../utils/CDN_management");
 const CDN_streaming_1 = require("../utils/CDN_streaming");
 const localStorage_1 = require("../utils/localStorage");
+const BunnyStream_1 = require("../utils/BunnyStream");
 // ===== UTILITY FUNCTIONS =====
 const GenerateToken = (userId, type = 'admin') => {
     return jsonwebtoken_1.default.sign({ id: userId, type }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
@@ -47,12 +48,26 @@ const safeDeleteCourse = async (courseId, reason) => {
             console.log(`⚠️ Course ${courseId} has ${course.enrollments.length} enrollments, skipping deletion for safety`);
             return false;
         }
-        // Delete associated CDN files
+        // Delete associated CDN files and Bunny Stream videos
         for (const material of course.materials) {
-            if (material.fileUrl) {
+            if (material.fileUrl && material.type !== client_1.MaterialType.LINK) {
                 try {
-                    await (0, CDN_management_1.Delete_File)(material.fileUrl);
-                    console.log(`✅ Deleted material file: ${material.fileUrl}`);
+                    if (material.type === client_1.MaterialType.VIDEO) {
+                        // For VIDEO materials, delete from Bunny Stream
+                        const guid = material.fileUrl;
+                        const deleted = await (0, BunnyStream_1.deleteVideoFromBunnyStream)(guid);
+                        if (deleted) {
+                            console.log(`✅ Deleted video from Bunny Stream: ${guid}`);
+                        }
+                        else {
+                            console.error(`⚠️ Failed to delete video from Bunny Stream: ${guid}`);
+                        }
+                    }
+                    else {
+                        // For other materials, delete from Bunny Storage
+                        await (0, CDN_management_1.Delete_File)(material.fileUrl);
+                        console.log(`✅ Deleted material file from Bunny Storage: ${material.fileUrl}`);
+                    }
                 }
                 catch (error) {
                     console.error(`❌ Failed to delete material file ${material.fileUrl}:`, error);
@@ -957,7 +972,7 @@ const GetUserStats = async (req, res) => {
             DB_Config_1.default.admin.count(),
             DB_Config_1.default.admin.count({ where: { role: "Admin" } }),
             DB_Config_1.default.course.count(),
-            DB_Config_1.default.enrollment.count(),
+            DB_Config_1.default.enrollment.count(), // Count ALL enrollments
             DB_Config_1.default.admin.findMany({
                 take: 5,
                 orderBy: { createdAt: 'desc' },
@@ -993,6 +1008,67 @@ const GetUserStats = async (req, res) => {
     }
 };
 exports.GetUserStats = GetUserStats;
+const GetStudentStats = async (req, res) => {
+    try {
+        // Get current date for time-based calculations
+        const now = new Date();
+        const oneMonthAgo = new Date(now);
+        oneMonthAgo.setMonth(now.getMonth() - 1);
+        // Get accurate counts from database
+        const [totalStudents, activeEnrollments, newStudentsThisMonth, allEnrollments] = await Promise.all([
+            // Total students in database
+            DB_Config_1.default.student.count(),
+            // Students with at least one ACTIVE enrollment
+            DB_Config_1.default.student.count({
+                where: {
+                    enrollments: {
+                        some: {
+                            status: 'ACTIVE'
+                        }
+                    }
+                }
+            }),
+            // Students who registered in the last month
+            DB_Config_1.default.student.count({
+                where: {
+                    createdAt: {
+                        gte: oneMonthAgo
+                    }
+                }
+            }),
+            // Get all enrollments with progress for average calculation
+            DB_Config_1.default.enrollment.findMany({
+                select: {
+                    progressPercentage: true
+                }
+            })
+        ]);
+        // Calculate average progress across all enrollments
+        const averageProgress = allEnrollments.length > 0
+            ? allEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / allEnrollments.length
+            : 0;
+        return res.json({
+            success: true,
+            data: {
+                stats: {
+                    totalStudents, // Total students from Student table
+                    activeStudents: activeEnrollments, // Students with ACTIVE enrollments
+                    newThisMonth: newStudentsThisMonth, // New registrations this month
+                    averageProgress, // Average progress across all enrollments
+                    totalRevenue: 0 // No payment system yet
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error('GetStudentStats error:', error);
+        return res.status(500).json({
+            success: false,
+            error: { message: 'Internal server error' }
+        });
+    }
+};
+exports.GetStudentStats = GetStudentStats;
 // ===== TUTOR REQUEST CONTROLLERS =====
 const GetPendingTutorRequestsCount = async (req, res) => {
     try {
@@ -1272,6 +1348,13 @@ const GetMyCourses = async (req, res) => {
     try {
         const userId = req.user.id;
         const userRole = req.user.role; // This is the specific admin role (admin/tutor)
+        // Pagination parameters
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 8;
+        const skip = (page - 1) * limit;
+        // Search and filter parameters
+        const search = req.query.search;
+        const status = req.query.status;
         let whereClause = {};
         if (userRole === "Admin") {
             // Admin has complete access - can see ALL courses regardless of creator/tutor
@@ -1292,44 +1375,109 @@ const GetMyCourses = async (req, res) => {
             // Other roles (like students) can only see courses they created (if any)
             whereClause = { creatorId: userId };
         }
-        const courses = await DB_Config_1.default.course.findMany({
-            where: whereClause,
-            include: {
-                category: {
-                    select: {
-                        id: true,
-                        name: true
+        // Add search filter (ensure we preserve existing OR conditions for tutors)
+        if (search) {
+            const searchCondition = {
+                OR: [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } }
+                ]
+            };
+            // If there's already an OR condition (for tutors), combine them with AND
+            if (whereClause.OR) {
+                whereClause = {
+                    AND: [
+                        { OR: whereClause.OR },
+                        searchCondition
+                    ]
+                };
+            }
+            else {
+                whereClause = { ...whereClause, ...searchCondition };
+            }
+        }
+        // Add status filter
+        if (status && status !== 'ALL') {
+            whereClause.status = status;
+        }
+        // Get total count and courses with pagination
+        const [totalCourses, courses] = await Promise.all([
+            DB_Config_1.default.course.count({ where: whereClause }),
+            DB_Config_1.default.course.findMany({
+                where: whereClause,
+                include: {
+                    category: {
+                        select: {
+                            id: true,
+                            name: true
+                        }
+                    },
+                    creator: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    },
+                    tutor: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            enrollments: true,
+                            materials: true,
+                            reviews: true
+                        }
                     }
                 },
-                creator: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            })
+        ]);
+        // Calculate average rating and get accurate enrollment counts for each course
+        const coursesWithRatings = await Promise.all(courses.map(async (course) => {
+            const [avgRating, totalEnrollments] = await Promise.all([
+                DB_Config_1.default.review.aggregate({
+                    where: { courseId: course.id },
+                    _avg: { rating: true }
+                }),
+                // Get accurate count of ALL enrollments from database
+                DB_Config_1.default.enrollment.count({
+                    where: {
+                        courseId: course.id
                     }
-                },
-                tutor: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true
-                    }
-                },
+                })
+            ]);
+            return {
+                ...course,
+                averageRating: avgRating._avg.rating || null,
+                // Override the _count with accurate database count
                 _count: {
-                    select: {
-                        enrollments: true,
-                        materials: true,
-                        reviews: true
-                    }
+                    ...course._count,
+                    enrollments: totalEnrollments // All enrollments from DB
                 }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+            };
+        }));
+        const totalPages = Math.ceil(totalCourses / limit);
         return res.json({
             success: true,
-            data: { courses }
+            data: {
+                courses: coursesWithRatings,
+                pagination: {
+                    total: totalCourses,
+                    pages: totalPages,
+                    totalPages,
+                    currentPage: page,
+                    limit
+                }
+            }
         });
     }
     catch (error) {
@@ -2170,28 +2318,42 @@ const DeleteCourse = async (req, res) => {
                 error: { message: `Cannot delete course with ${activeEnrollments.length} active enrollment(s). Wait for students to complete the course or manually mark enrollments as completed.` }
             });
         }
-        // Delete all associated material files from CDN
-        const materialFileUrls = course.materials
-            .filter(material => material.fileUrl && material.type !== 'LINK')
-            .map(material => material.fileUrl);
+        // Delete all associated material files from CDN and Bunny Stream
+        const materials = course.materials.filter(material => material.fileUrl && material.type !== 'LINK');
         let deletedMaterialsCount = 0;
-        for (const fileUrl of materialFileUrls) {
+        for (const material of materials) {
             try {
-                // fileUrl should already be in format "folder/filename"
-                const deleted = await (0, CDN_management_1.Delete_File)(fileUrl);
-                if (deleted) {
-                    deletedMaterialsCount++;
-                    console.log(`✅ Deleted material: ${fileUrl}`);
+                if (material.type === client_1.MaterialType.VIDEO) {
+                    // For VIDEO materials, delete from Bunny Stream using GUID
+                    const guid = material.fileUrl;
+                    console.log(`🎬 Deleting video from Bunny Stream: ${guid}`);
+                    const deleted = await (0, BunnyStream_1.deleteVideoFromBunnyStream)(guid);
+                    if (deleted) {
+                        deletedMaterialsCount++;
+                        console.log(`✅ Deleted video from Bunny Stream: ${guid}`);
+                    }
+                    else {
+                        console.log(`⚠️ Failed to delete video from Bunny Stream: ${guid}`);
+                    }
                 }
                 else {
-                    console.log(`⚠️ Failed to delete material: ${fileUrl}`);
+                    // For other materials (PDF, DOCUMENT, IMAGE), delete from Bunny Storage
+                    const fileUrl = material.fileUrl;
+                    const deleted = await (0, CDN_management_1.Delete_File)(fileUrl);
+                    if (deleted) {
+                        deletedMaterialsCount++;
+                        console.log(`✅ Deleted material from Bunny Storage: ${fileUrl}`);
+                    }
+                    else {
+                        console.log(`⚠️ Failed to delete material from Bunny Storage: ${fileUrl}`);
+                    }
                 }
             }
             catch (err) {
-                console.error(`❌ Error deleting material file: ${fileUrl}`, err);
+                console.error(`❌ Error deleting material (${material.type}): ${material.fileUrl}`, err);
             }
         }
-        console.log(`🗑️ Deleted ${deletedMaterialsCount}/${materialFileUrls.length} material files for course: ${course.title}`);
+        console.log(`🗑️ Deleted ${deletedMaterialsCount}/${materials.length} material files for course: ${course.title}`);
         // Delete all assignment submission files from CDN
         let deletedSubmissionsCount = 0;
         let totalSubmissionFiles = 0;
@@ -2245,7 +2407,7 @@ const DeleteCourse = async (req, res) => {
         });
         const deletionSummary = {
             courseName: course.title,
-            deletedMaterials: `${deletedMaterialsCount}/${materialFileUrls.length}`,
+            deletedMaterials: `${deletedMaterialsCount}/${materials.length}`,
             deletedSubmissions: `${deletedSubmissionsCount}/${totalSubmissionFiles}`,
             thumbnailDeleted: course.thumbnail ? 'Yes' : 'N/A'
         };
@@ -2997,6 +3159,8 @@ const CreateMaterial = async (req, res) => {
                 }
             }
         });
+        // Recalculate progress for all enrollments in this course
+        await recalculateCourseEnrollments(courseId);
         return res.status(201).json({
             success: true,
             data: { material }
@@ -3066,6 +3230,32 @@ const UpdateMaterial = async (req, res) => {
                 });
             }
         }
+        // If fileUrl is being updated and old file exists, delete the old file
+        if (fileUrl !== undefined && existingMaterial.fileUrl && existingMaterial.fileUrl !== fileUrl && existingMaterial.type !== client_1.MaterialType.LINK) {
+            try {
+                if (existingMaterial.type === client_1.MaterialType.VIDEO) {
+                    // Delete old video from Bunny Stream
+                    const oldGuid = existingMaterial.fileUrl;
+                    console.log(`🎬 Deleting old video from Bunny Stream: ${oldGuid}`);
+                    const deleted = await (0, BunnyStream_1.deleteVideoFromBunnyStream)(oldGuid);
+                    if (deleted) {
+                        console.log(`✅ Deleted old video from Bunny Stream: ${oldGuid}`);
+                    }
+                    else {
+                        console.log(`⚠️ Failed to delete old video from Bunny Stream: ${oldGuid}`);
+                    }
+                }
+                else {
+                    // Delete old file from Bunny Storage
+                    await (0, CDN_management_1.Delete_File)(existingMaterial.fileUrl);
+                    console.log(`✅ Deleted old material from Bunny Storage: ${existingMaterial.fileUrl}`);
+                }
+            }
+            catch (error) {
+                console.error(`❌ Error deleting old material file: ${existingMaterial.fileUrl}`, error);
+                // Continue with update even if deletion fails
+            }
+        }
         const material = await DB_Config_1.default.material.update({
             where: { id },
             data: updates,
@@ -3100,6 +3290,109 @@ const UpdateMaterial = async (req, res) => {
     }
 };
 exports.UpdateMaterial = UpdateMaterial;
+// Helper function to recalculate progress for all enrollments in a course
+// Preserves completed status - if a student completed the course, we don't reduce their progress
+// Instead, we flag that new content is available
+async function recalculateCourseEnrollments(courseId) {
+    try {
+        // Get all enrollments for this course with full data
+        const enrollments = await DB_Config_1.default.enrollment.findMany({
+            where: { courseId },
+            select: {
+                studentId: true,
+                completedAt: true,
+                status: true,
+                progressPercentage: true
+            }
+        });
+        // Get existing materials and assignments for this course
+        const [materials, assignments] = await Promise.all([
+            DB_Config_1.default.material.findMany({
+                where: { courseId },
+                select: { id: true, createdAt: true }
+            }),
+            DB_Config_1.default.assignment.findMany({ where: { courseId }, select: { id: true } })
+        ]);
+        const existingMaterialIds = materials.map(m => m.id);
+        const totalMaterials = materials.length;
+        const totalAssignments = assignments.length;
+        const totalItems = totalMaterials + totalAssignments;
+        // Recalculate progress for each enrollment
+        for (const enrollment of enrollments) {
+            const wasCompleted = !!enrollment.completedAt;
+            // Check if there are materials added after completion
+            let hasNewContent = false;
+            if (wasCompleted && enrollment.completedAt) {
+                const newMaterials = materials.filter(m => m.createdAt > enrollment.completedAt);
+                hasNewContent = newMaterials.length > 0;
+            }
+            const [completedMaterialsCount, submittedAssignmentsCount] = await Promise.all([
+                DB_Config_1.default.progress.count({
+                    where: {
+                        studentId: enrollment.studentId,
+                        courseId,
+                        isCompleted: true,
+                        materialId: { in: existingMaterialIds }
+                    }
+                }),
+                DB_Config_1.default.assignmentSubmission.count({
+                    where: {
+                        studentId: enrollment.studentId,
+                        assignment: { courseId }
+                    }
+                })
+            ]);
+            const completedItems = completedMaterialsCount + submittedAssignmentsCount;
+            const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            // If student already completed the course, preserve that status
+            if (wasCompleted) {
+                // Check if they've now completed the new content too
+                const hasCompletedNewContent = progressPercentage === 100;
+                const finalHasNewContent = hasCompletedNewContent ? false : hasNewContent;
+                await DB_Config_1.default.enrollment.update({
+                    where: {
+                        studentId_courseId: {
+                            studentId: enrollment.studentId,
+                            courseId
+                        }
+                    },
+                    data: {
+                        completedMaterials: completedMaterialsCount, // Update count for display
+                        hasNewContent: finalHasNewContent, // Clear flag if they completed new content
+                        // Keep status as COMPLETED and progressPercentage at 100%
+                    }
+                });
+            }
+            else {
+                // For non-completed enrollments, calculate normally
+                await DB_Config_1.default.enrollment.update({
+                    where: {
+                        studentId_courseId: {
+                            studentId: enrollment.studentId,
+                            courseId
+                        }
+                    },
+                    data: {
+                        progressPercentage,
+                        completedMaterials: completedMaterialsCount,
+                        hasNewContent: false,
+                        ...(progressPercentage === 100 && {
+                            status: 'COMPLETED',
+                            completedAt: new Date()
+                        }),
+                        ...(progressPercentage < 100 && enrollment.status === 'COMPLETED' && {
+                            status: 'ACTIVE',
+                            completedAt: null
+                        })
+                    }
+                });
+            }
+        }
+    }
+    catch (error) {
+        console.error('Error recalculating course enrollments:', error);
+    }
+}
 const DeleteMaterial = async (req, res) => {
     try {
         const { id } = req.params;
@@ -3130,14 +3423,33 @@ const DeleteMaterial = async (req, res) => {
                 });
             }
         }
-        // Delete the file from CDN if it exists
+        // Delete the file from CDN or Bunny Stream if it exists
         if (material.fileUrl && material.type !== 'LINK') {
-            await (0, CDN_management_1.Delete_File)(material.fileUrl);
+            if (material.type === client_1.MaterialType.VIDEO) {
+                // For VIDEO materials, delete from Bunny Stream using GUID
+                const guid = material.fileUrl;
+                console.log(`🎬 Deleting video from Bunny Stream: ${guid}`);
+                const deleted = await (0, BunnyStream_1.deleteVideoFromBunnyStream)(guid);
+                if (deleted) {
+                    console.log(`✅ Deleted video from Bunny Stream: ${guid}`);
+                }
+                else {
+                    console.log(`⚠️ Failed to delete video from Bunny Stream: ${guid}`);
+                }
+            }
+            else {
+                // For other materials (PDF, DOCUMENT, IMAGE), delete from Bunny Storage
+                await (0, CDN_management_1.Delete_File)(material.fileUrl);
+                console.log(`✅ Deleted material from Bunny Storage: ${material.fileUrl}`);
+            }
         }
+        const courseId = material.courseId;
         // Delete the material from database
         await DB_Config_1.default.material.delete({
             where: { id }
         });
+        // Recalculate progress for all enrollments in this course
+        await recalculateCourseEnrollments(courseId);
         return res.json({
             success: true,
             message: 'Material and associated file deleted successfully'
@@ -3311,6 +3623,7 @@ exports.EnrollInCourse = EnrollInCourse;
 const GetMyEnrollments = async (req, res) => {
     try {
         const userId = req.user.id;
+        console.log(`\n🔵 GetMyEnrollments called for user: ${userId}`);
         const enrollments = await DB_Config_1.default.enrollment.findMany({
             where: { studentId: userId },
             include: {
@@ -3336,20 +3649,37 @@ const GetMyEnrollments = async (req, res) => {
             orderBy: { enrolledAt: 'desc' }
         });
         const enrollmentsWithProgress = await Promise.all(enrollments.map(async (enrollment) => {
+            // Get existing materials for this course
+            const existingMaterials = await DB_Config_1.default.material.findMany({
+                where: { courseId: enrollment.courseId },
+                select: { id: true }
+            });
+            const existingMaterialIds = new Set(existingMaterials.map(m => m.id));
             const progressRecords = await DB_Config_1.default.progress.findMany({
                 where: {
                     studentId: userId,
                     courseId: enrollment.courseId
                 }
             });
-            const completedCount = progressRecords.filter(p => p.isCompleted).length;
+            // Only count progress for materials that still exist (exclude null materialIds)
+            const completedCount = progressRecords.filter(p => p.isCompleted && p.materialId !== null && existingMaterialIds.has(p.materialId)).length;
             const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
+            console.log(`📊 GetMyEnrollments - Course: ${enrollment.course.title}`);
+            console.log(`   Total materials in course: ${existingMaterials.length}`);
+            console.log(`   Total progress records: ${progressRecords.length}`);
+            console.log(`   Progress records marked completed: ${progressRecords.filter(p => p.isCompleted).length}`);
+            console.log(`   Completed materials (filtered): ${completedCount}`);
+            console.log(`   Stored completedMaterials from DB: ${enrollment.completedMaterials}`);
             return {
                 ...enrollment,
                 completedMaterials: completedCount,
                 totalTimeSpent
             };
         }));
+        console.log(`\n✅ GetMyEnrollments returning ${enrollmentsWithProgress.length} enrollments`);
+        enrollmentsWithProgress.forEach(e => {
+            console.log(`   Course: ${e.course.title} - Completed: ${e.completedMaterials}/${e.course._count.materials}`);
+        });
         return res.json({
             success: true,
             data: { enrollments: enrollmentsWithProgress }
@@ -3399,6 +3729,12 @@ const GetCourseStudents = async (req, res) => {
             },
             orderBy: { enrolledAt: 'desc' }
         });
+        // Get existing materials for this course once
+        const existingMaterials = await DB_Config_1.default.material.findMany({
+            where: { courseId },
+            select: { id: true }
+        });
+        const existingMaterialIds = new Set(existingMaterials.map(m => m.id));
         const studentsWithProgress = await Promise.all(enrollments.map(async (enrollment) => {
             const progressRecords = await DB_Config_1.default.progress.findMany({
                 where: {
@@ -3406,7 +3742,8 @@ const GetCourseStudents = async (req, res) => {
                     courseId
                 }
             });
-            const completedCount = progressRecords.filter(p => p.isCompleted).length;
+            // Only count progress for materials that still exist (exclude null materialIds)
+            const completedCount = progressRecords.filter(p => p.isCompleted && p.materialId !== null && existingMaterialIds.has(p.materialId)).length;
             const totalTimeSpent = progressRecords.reduce((sum, p) => sum + p.timeSpent, 0);
             const lastAccessed = progressRecords.length > 0
                 ? Math.max(...progressRecords.map(p => p.lastAccessed.getTime()))
@@ -4036,29 +4373,47 @@ const GetTutorAnalytics = async (req, res) => {
                 }
             }
         });
+        // Get accurate counts from database
+        const [totalStudentsFromDB, totalEnrollmentsFromDB] = await Promise.all([
+            DB_Config_1.default.student.count(), // Total students in database
+            userRole === 'Admin'
+                ? DB_Config_1.default.enrollment.count() // Admin sees all enrollments
+                : DB_Config_1.default.enrollment.count({
+                    where: {
+                        course: {
+                            OR: [
+                                { creatorId: userId },
+                                { tutorId: userId }
+                            ]
+                        }
+                    }
+                })
+        ]);
         // Calculate completion rates based on actual progress data
         let totalMaterials = 0;
         let totalCompletedMaterials = 0;
-        let totalEnrollments = 0;
         let totalEarnings = 0;
         let totalReviews = 0;
         let weightedRating = 0;
         const uniqueStudentIds = new Set();
-        const courseAnalytics = courses.map(course => {
+        const courseAnalytics = await Promise.all(courses.map(async (course) => {
             const materialCount = course.materials.length;
-            const studentCount = course._count.enrollments;
             const reviewCount = course._count.reviews;
+            // Get accurate enrollment count for this specific course from database
+            const studentCount = await DB_Config_1.default.enrollment.count({
+                where: { courseId: course.id }
+            });
             // Track unique students across all courses
             course.enrollments.forEach(enrollment => {
                 uniqueStudentIds.add(enrollment.studentId);
             });
             // Calculate completion rate for this course based on progressPercentage
             let completionRate = 0;
-            if (studentCount > 0) {
+            if (course.enrollments.length > 0) {
                 const totalProgressPercentage = course.enrollments.reduce((sum, enrollment) => {
                     return sum + enrollment.progressPercentage;
                 }, 0);
-                completionRate = totalProgressPercentage / studentCount;
+                completionRate = totalProgressPercentage / course.enrollments.length;
             }
             // Calculate average rating for this course
             let courseRating = 0;
@@ -4072,7 +4427,6 @@ const GetTutorAnalytics = async (req, res) => {
                 return sum + Math.floor((enrollment.progressPercentage / 100) * materialCount);
             }, 0);
             totalCompletedMaterials += courseCompletedMaterials;
-            totalEnrollments += studentCount;
             // Since there's no payment system implemented yet, revenue should be 0
             // totalEarnings += studentCount * course.price;
             totalReviews += reviewCount;
@@ -4090,14 +4444,12 @@ const GetTutorAnalytics = async (req, res) => {
                     { date: '2024-03', count: Math.floor(studentCount * 0.5) }
                 ]
             };
-        });
+        }));
         // Calculate overall completion rate
         const overallCompletionRate = totalMaterials > 0 ? (totalCompletedMaterials / totalMaterials) * 100 : 0;
-        // Get unique student count
-        const totalStudents = uniqueStudentIds.size;
         // Calculate growth rates (would need historical data for real growth)
-        const thisMonthStudents = Math.floor(totalStudents * 0.2);
-        const lastMonthStudents = Math.floor(totalStudents * 0.18);
+        const thisMonthStudents = Math.floor(totalStudentsFromDB * 0.2);
+        const lastMonthStudents = Math.floor(totalStudentsFromDB * 0.18);
         const thisMonthRevenue = 0; // No payment system implemented yet
         const lastMonthRevenue = 0; // No payment system implemented yet
         const analytics = {
@@ -4108,8 +4460,8 @@ const GetTutorAnalytics = async (req, res) => {
                 growth: 0 // No payment system implemented yet
             },
             students: {
-                total: totalStudents, // Unique student count
-                enrollments: totalEnrollments, // Total enrollments count (can be more than students if they enroll in multiple courses)
+                total: totalStudentsFromDB, // Total students from database
+                enrollments: totalEnrollmentsFromDB, // Total enrollments from database
                 thisMonth: thisMonthStudents,
                 lastMonth: lastMonthStudents,
                 growth: lastMonthStudents > 0 ? ((thisMonthStudents - lastMonthStudents) / lastMonthStudents) * 100 : 0
@@ -4121,16 +4473,16 @@ const GetTutorAnalytics = async (req, res) => {
                 archived: courses.filter(c => c.status === client_1.CourseStatus.ARCHIVED).length
             },
             engagement: {
-                totalEnrollments: totalEnrollments, // Total enrollment count
+                totalEnrollments: totalEnrollmentsFromDB, // Total enrollment count from database
                 avgRating: totalReviews > 0 ? weightedRating / totalReviews : 0,
                 totalReviews: totalReviews,
                 completionRate: Math.round(overallCompletionRate * 100) / 100
             }
         };
         const revenueData = [
-            { date: '2024-01', revenue: 0, students: Math.floor(totalStudents * 0.2) }, // No payment system implemented yet
-            { date: '2024-02', revenue: 0, students: Math.floor(totalStudents * 0.3) }, // No payment system implemented yet
-            { date: '2024-03', revenue: 0, students: Math.floor(totalStudents * 0.5) } // No payment system implemented yet
+            { date: '2024-01', revenue: 0, students: Math.floor(totalStudentsFromDB * 0.2) }, // No payment system implemented yet
+            { date: '2024-02', revenue: 0, students: Math.floor(totalStudentsFromDB * 0.3) }, // No payment system implemented yet
+            { date: '2024-03', revenue: 0, students: Math.floor(totalStudentsFromDB * 0.5) } // No payment system implemented yet
         ];
         return res.json({
             success: true,
@@ -4691,13 +5043,22 @@ const GetAllStudents = async (req, res) => {
             student.completedCourses = student.enrollments.filter((e) => e.status === 'COMPLETED').length;
             // Calculate detailed progress for each enrollment
             for (const enrollment of student.enrollments) {
-                // Get completed materials for this specific course
+                // Get all existing materials for this course (to filter out deleted ones)
+                const existingMaterials = await DB_Config_1.default.material.findMany({
+                    where: { courseId: enrollment.courseId },
+                    select: { id: true }
+                });
+                const existingMaterialIds = existingMaterials.map(m => m.id);
+                // Get completed materials for this specific course (only for existing materials)
                 const completedProgressData = await DB_Config_1.default.progress.findMany({
                     where: {
                         studentId: student.id,
                         courseId: enrollment.courseId,
                         isCompleted: true,
-                        materialId: { not: null }
+                        materialId: {
+                            not: null,
+                            in: existingMaterialIds // Only count progress for materials that still exist
+                        }
                     },
                     orderBy: {
                         lastAccessed: 'desc'
@@ -4721,7 +5082,7 @@ const GetAllStudents = async (req, res) => {
                 });
                 // Create a map for quick material lookup
                 const materialMap = new Map(materials.map(m => [m.id, m]));
-                enrollment.completedMaterials = completedProgressData.length;
+                enrollment.completedMaterials = completedProgressData.length; // Now only counts existing materials
                 enrollment.completedMaterialsList = completedProgressData.map(progress => {
                     const material = materialMap.get(progress.materialId);
                     return {
@@ -4769,12 +5130,20 @@ const GetAllStudents = async (req, res) => {
                     maxScore: submission.assignment.maxScore
                 }));
             }
-            // Calculate overall totals
+            // Calculate overall totals (only for materials that still exist)
+            // Get all existing material IDs across all enrolled courses
+            const allCourseIds = student.enrollments.map((e) => e.courseId);
+            const allExistingMaterials = await DB_Config_1.default.material.findMany({
+                where: { courseId: { in: allCourseIds } },
+                select: { id: true }
+            });
+            const allExistingMaterialIds = allExistingMaterials.map(m => m.id);
             const completedMaterials = await DB_Config_1.default.progress.count({
                 where: {
                     studentId: student.id,
-                    courseId: { in: student.enrollments.map((e) => e.courseId) },
-                    isCompleted: true
+                    courseId: { in: allCourseIds },
+                    isCompleted: true,
+                    materialId: { in: allExistingMaterialIds } // Only count existing materials
                 }
             });
             const submittedAssignments = await DB_Config_1.default.assignmentSubmission.count({

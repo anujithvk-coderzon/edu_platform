@@ -114,6 +114,8 @@ router.get('/courses', [
     (0, express_validator_1.query)('category').optional().isString(),
     (0, express_validator_1.query)('level').optional().isString(),
     (0, express_validator_1.query)('search').optional().isString(),
+    (0, express_validator_1.query)('price').optional().isString(),
+    (0, express_validator_1.query)('sort').optional().isString(),
 ], (0, errorHandler_1.asyncHandler)(studentController_1.GetAllCourses));
 router.get('/courses/categories/all', (0, errorHandler_1.asyncHandler)(studentController_1.GetAllCategories));
 // ===== ENROLLMENT ROUTES =====
@@ -136,8 +138,11 @@ router.get('/courses/:id', (0, errorHandler_1.asyncHandler)(studentController_1.
 // ===== REVIEW ENDPOINTS =====
 // Submit a course review
 router.post('/reviews', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.SubmitReview));
-// Get reviews for a course
-router.get('/reviews/course/:courseId', (0, errorHandler_1.asyncHandler)(studentController_1.GetCourseReviews));
+// Get reviews for a course (with pagination)
+router.get('/reviews/course/:courseId', [
+    (0, express_validator_1.query)('page').optional().isInt({ min: 1 }),
+    (0, express_validator_1.query)('limit').optional().isInt({ min: 1, max: 50 })
+], (0, errorHandler_1.asyncHandler)(studentController_1.GetCourseReviews));
 // Get user's review for a specific course
 router.get('/reviews/my-review/:courseId', auth_1.authMiddleware, (0, errorHandler_1.asyncHandler)(studentController_1.GetMyReview));
 // ===== ASSIGNMENT ENDPOINTS =====
@@ -156,6 +161,13 @@ router.get('/platform/stats', (0, errorHandler_1.asyncHandler)(studentController
 // Check session token validity - helps debug multi-device login issues
 router.get('/debug/session', (0, errorHandler_1.asyncHandler)(studentController_1.DebugSessionInfo));
 // ===== PDF PROXY FOR CORS =====
+// Handle OPTIONS preflight request
+router.options('/proxy/pdf', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Range');
+    res.status(200).send();
+});
 // Proxy PDF files to avoid CORS issues with react-pdf
 router.get('/proxy/pdf', async (req, res) => {
     try {
@@ -163,23 +175,51 @@ router.get('/proxy/pdf', async (req, res) => {
         if (!url || typeof url !== 'string') {
             return res.status(400).json({ error: 'PDF URL is required' });
         }
-        // Fetch PDF from Bunny CDN
+        // Fetch PDF from Bunny CDN with authentication
         const axios = require('axios');
+        // Check if URL is from Bunny Storage (requires authentication)
+        const isBunnyStorage = url.includes('storage.bunnycdn.com') || url.includes('.b-cdn.net');
+        const headers = {
+            'Accept': 'application/pdf',
+        };
+        // Add authentication for Bunny Storage
+        if (isBunnyStorage) {
+            const accessKey = process.env.BUNNY_STORAGE_ACCESS_KEY;
+            if (accessKey) {
+                headers['AccessKey'] = accessKey;
+            }
+        }
         const response = await axios.get(url, {
             responseType: 'arraybuffer',
-            headers: {
-                'Accept': 'application/pdf',
-            }
+            headers,
+            timeout: 30000 // 30 second timeout
         });
         // Set CORS headers
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline');
+        res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
         res.send(response.data);
     }
     catch (error) {
-        console.error('PDF proxy error:', error);
-        res.status(500).json({ error: 'Failed to fetch PDF' });
+        console.error('PDF proxy error:', error.message);
+        console.error('Requested URL:', req.query.url);
+        if (error.response) {
+            console.error('Response status:', error.response.status);
+            console.error('Response headers:', error.response.headers);
+        }
+        if (error.code === 'ETIMEDOUT') {
+            return res.status(504).json({ error: 'PDF fetch timeout. Please try again.' });
+        }
+        if (error.code === 'ENOTFOUND') {
+            return res.status(404).json({ error: 'PDF not found at source URL' });
+        }
+        // Set CORS headers even for error responses
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.status(500).json({
+            error: 'Failed to fetch PDF',
+            details: error.message
+        });
     }
 });
 exports.default = router;

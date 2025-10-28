@@ -28,6 +28,7 @@ interface Enrollment {
   hasReviewed?: boolean;
   completedMaterials: number;
   totalTimeSpent: number;
+  hasNewContent?: boolean;
   course: {
     id: string;
     title: string;
@@ -144,13 +145,18 @@ export default function MyCoursesPage() {
     const courseId = enrollment.course?.id || enrollment.courseId;
 
     if (isCompleted) {
-      if (enrollment.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${courseId}` };
-      } else {
-        return { text: 'Rate Course', href: `/courses/${courseId}/rate` };
+      // If completed but has new content, show "View New Content"
+      if (enrollment.hasNewContent) {
+        return { text: 'View New Content', href: `/learn/${courseId}`, type: 'new-content' };
       }
+      // If completed and reviewed, show "Completed"
+      if (enrollment.hasReviewed) {
+        return { text: 'Completed', href: `/courses/${courseId}`, type: 'completed' };
+      }
+      // If completed but not reviewed, show "Rate Course"
+      return { text: 'Rate Course', href: `/courses/${courseId}/rate`, type: 'rate' };
     } else {
-      return { text: 'Continue Learning', href: `/learn/${courseId}` };
+      return { text: 'Continue Learning', href: `/learn/${courseId}`, type: 'continue' };
     }
   };
 
@@ -340,7 +346,7 @@ export default function MyCoursesPage() {
                   </div>
 
                   {/* Status Badge */}
-                  <div className="absolute top-2 right-2 z-10">
+                  <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
                     {enrollment.progressPercentage === 100 ? (
                       <div className="bg-green-600 px-2 py-1 rounded text-xs font-medium" style={{ color: 'white' }}>
                         Completed
@@ -348,6 +354,12 @@ export default function MyCoursesPage() {
                     ) : (
                       <div className="bg-indigo-600 px-2 py-1 rounded text-xs font-medium" style={{ color: 'white' }}>
                         {Math.min(100, Math.round(enrollment.progressPercentage))}%
+                      </div>
+                    )}
+                    {/* New Content Badge */}
+                    {enrollment.hasNewContent && (
+                      <div className="bg-orange-500 px-2 py-1 rounded text-xs font-medium animate-pulse" style={{ color: 'white' }}>
+                        🆕 New Content Added
                       </div>
                     )}
                   </div>
@@ -397,7 +409,7 @@ export default function MyCoursesPage() {
 
                   {/* Stats */}
                   <div className="flex justify-between text-xs text-slate-600 mb-3">
-                    <span>{enrollment.completedMaterials || 0} / {enrollment.course._count.materials} lessons</span>
+                    <span>{Math.min(enrollment.completedMaterials || 0, enrollment.course._count.materials)} / {enrollment.course._count.materials} lessons</span>
                     <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h</span>
                   </div>
 
@@ -407,13 +419,15 @@ export default function MyCoursesPage() {
                     return (
                       <Link href={buttonState.href}>
                         <button className={`w-full py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
-                          buttonState.text === 'Completed'
+                          buttonState.type === 'completed'
                             ? 'bg-green-600 text-white hover:bg-green-700'
-                            : buttonState.text === 'Rate Course'
+                            : buttonState.type === 'rate'
                             ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                            : buttonState.type === 'new-content'
+                            ? 'bg-orange-600 text-white hover:bg-orange-700 animate-pulse'
                             : 'bg-slate-900 text-white hover:bg-slate-800'
                         }`}>
-                          {buttonState.text === 'Rate Course' && <StarIcon className="h-3.5 w-3.5" />}
+                          {buttonState.type === 'rate' && <StarIcon className="h-3.5 w-3.5" />}
                           <span>{buttonState.text}</span>
                         </button>
                       </Link>

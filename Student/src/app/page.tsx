@@ -60,6 +60,7 @@ interface Enrollment {
   hasReviewed?: boolean;
   completedMaterials: number;
   totalTimeSpent: number;
+  hasNewContent?: boolean;
   course: Course;
 }
 
@@ -168,20 +169,22 @@ export default function Home() {
   };
 
   const getEnrollmentButtonState = (enrollment: Enrollment) => {
-    // Debug logging
-
     const isCompleted = enrollment.progressPercentage >= 100 || enrollment.status === 'COMPLETED';
-    // Use course.id if available, fallback to courseId
     const courseId = enrollment.course?.id || enrollment.courseId;
 
     if (isCompleted) {
-      if (enrollment.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${courseId}` };
-      } else {
-        return { text: 'Rate Course', href: `/courses/${courseId}` };
+      // If completed but has new content, show "View New Content"
+      if (enrollment.hasNewContent) {
+        return { text: 'View New Content', href: `/learn/${courseId}`, type: 'new-content' };
       }
+      // If completed and reviewed, show "Completed"
+      if (enrollment.hasReviewed) {
+        return { text: 'Completed', href: `/courses/${courseId}`, type: 'completed' };
+      }
+      // If completed but not reviewed, show "Rate Course"
+      return { text: 'Rate Course', href: `/courses/${courseId}/rate`, type: 'rate' };
     } else {
-      return { text: 'Continue Learning', href: `/learn/${courseId}` };
+      return { text: 'Continue Learning', href: `/learn/${courseId}`, type: 'continue' };
     }
   };
 
@@ -295,50 +298,50 @@ export default function Home() {
                 <span className="text-xs font-medium text-green-700">Active</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 hover:shadow-md transition-all">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <BookOpenIcon className="h-6 w-6 text-white" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-5 border border-blue-100 hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-3 text-center sm:text-left">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mb-1.5 sm:mb-0">
+                    <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-2xl font-bold text-slate-900">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
-                    <p className="text-xs text-slate-600 font-medium">Active</p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-100 hover:shadow-md transition-all">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <CheckCircleIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-2xl font-bold text-slate-900">{stats.completedCourses}</div>
-                    <p className="text-xs text-slate-600 font-medium">Completed</p>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
+                    <p className="text-xs text-slate-600 font-medium whitespace-nowrap">Active</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-4 border border-purple-100 hover:shadow-md transition-all">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <ClockIcon className="h-6 w-6 text-white" />
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-5 border border-green-100 hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-3 text-center sm:text-left">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mb-1.5 sm:mb-0">
+                    <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-2xl font-bold text-slate-900">{stats.totalHours}h</div>
-                    <p className="text-xs text-slate-600 font-medium">Studied</p>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">{stats.completedCourses}</div>
+                    <p className="text-xs text-slate-600 font-medium whitespace-nowrap">Completed</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100 hover:shadow-md transition-all">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                    <ChartBarIcon className="h-6 w-6 text-white" />
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-3 sm:p-5 border border-purple-100 hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-3 text-center sm:text-left">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mb-1.5 sm:mb-0">
+                    <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-2xl font-bold text-slate-900">
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">{stats.totalHours}h</div>
+                    <p className="text-xs text-slate-600 font-medium whitespace-nowrap">Studied</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3 sm:p-5 border border-amber-100 hover:shadow-md transition-all">
+                <div className="flex flex-col sm:flex-row items-center sm:space-x-3 text-center sm:text-left">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg mb-1.5 sm:mb-0">
+                    <ChartBarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">
                       {myEnrollments.length > 0 ? Math.round(myEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / myEnrollments.length) : 0}%
                     </div>
-                    <p className="text-xs text-slate-600 font-medium">Progress</p>
+                    <p className="text-xs text-slate-600 font-medium whitespace-nowrap">Progress</p>
                   </div>
                 </div>
               </div>
@@ -363,7 +366,12 @@ export default function Home() {
                 <div key={enrollment.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg hover:border-indigo-200 transition-all group">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-slate-900 line-clamp-2 text-sm pr-2 group-hover:text-indigo-600 transition-colors">{enrollment.course?.title}</h3>
-                    <span className="text-sm font-bold flex-shrink-0 bg-indigo-600 px-2 py-1 rounded-lg shadow-sm" style={{ color: 'white' }}>{Math.round(enrollment.progressPercentage)}%</span>
+                    <div className="flex flex-col gap-1 items-end flex-shrink-0">
+                      <span className="text-sm font-bold bg-indigo-600 px-2 py-1 rounded-lg shadow-sm" style={{ color: 'white' }}>{Math.round(enrollment.progressPercentage)}%</span>
+                      {enrollment.hasNewContent && (
+                        <span className="text-[10px] font-medium bg-orange-500 px-1.5 py-0.5 rounded animate-pulse" style={{ color: 'white' }}>🆕 New Content</span>
+                      )}
+                    </div>
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-2 mb-4 overflow-hidden">
                     <div
@@ -381,13 +389,18 @@ export default function Home() {
                       <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h</span>
                     </div>
                   </div>
+
                   {(() => {
                     const buttonState = getEnrollmentButtonState(enrollment);
                     return (
                       <Link href={buttonState.href}>
                         <button className={`w-full py-2.5 rounded-lg transition-all text-sm font-semibold flex items-center justify-center gap-2 ${
-                          buttonState.text === 'Completed'
+                          buttonState.type === 'completed'
                             ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-600/30'
+                            : buttonState.type === 'rate'
+                            ? 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg shadow-yellow-500/30'
+                            : buttonState.type === 'new-content'
+                            ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/30 animate-pulse'
                             : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/30'
                         }`}>
                           <PlayIcon className="h-4 w-4" />

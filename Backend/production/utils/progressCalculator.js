@@ -13,13 +13,20 @@ const DB_Config_1 = __importDefault(require("../DB/DB_Config"));
  * Progress = (completed materials + submitted assignments) / (total materials + total assignments) * 100
  */
 async function calculateCourseProgress(studentId, courseId) {
+    // First, get all existing material IDs to filter out deleted materials
+    const existingMaterials = await DB_Config_1.default.material.findMany({
+        where: { courseId },
+        select: { id: true }
+    });
+    const existingMaterialIds = existingMaterials.map(m => m.id);
     const [totalMaterials, completedMaterials, totalAssignments, submittedAssignments] = await Promise.all([
-        DB_Config_1.default.material.count({ where: { courseId } }),
+        Promise.resolve(existingMaterials.length), // Use the materials we already fetched
         DB_Config_1.default.progress.count({
             where: {
                 studentId,
                 courseId,
-                isCompleted: true
+                isCompleted: true,
+                materialId: { in: existingMaterialIds } // Only count progress for existing materials
             }
         }),
         DB_Config_1.default.assignment.count({ where: { courseId } }),
@@ -76,7 +83,8 @@ async function updateEnrollmentProgress(studentId, courseId, progressPercentage)
             progressPercentage,
             ...(progressPercentage === 100 && {
                 completedAt: new Date(),
-                status: 'COMPLETED'
+                status: 'COMPLETED',
+                hasNewContent: false // Clear flag when they complete everything
             })
         }
     });

@@ -1073,6 +1073,10 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
     }
   }
 
+  // For rating sort, we need to fetch ALL courses, calculate ratings, sort, then paginate
+  // For other sorts, we can paginate at the database level
+  const shouldFetchAll = sortBy === 'rating';
+
   // Fetch courses and total count
   const [courses, total] = await Promise.all([
     prisma.course.findMany({
@@ -1094,7 +1098,8 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
           select: { enrollments: true, reviews: true, materials: true }
         }
       },
-      skip, take: limit,
+      skip: shouldFetchAll ? undefined : skip,
+      take: shouldFetchAll ? undefined : limit,
       orderBy
     }),
     prisma.course.count({ where })
@@ -1124,7 +1129,8 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
         select: {
           courseId: true,
           status: true,
-          progressPercentage: true
+          progressPercentage: true,
+          hasNewContent: true
         }
       }),
       prisma.review.findMany({
@@ -1151,13 +1157,16 @@ export const GetAllCourses = async (req: express.Request, res: express.Response)
       isEnrolled: !!enrollment,
       enrollmentStatus: enrollment?.status,
       progressPercentage: enrollment?.progressPercentage || 0,
-      hasReviewed: reviewsMap.get(course.id) || false
+      hasReviewed: reviewsMap.get(course.id) || false,
+      hasNewContent: enrollment?.hasNewContent || false
     };
   });
 
   // Apply rating sort if requested (since it's a computed field)
   if (sortBy === 'rating') {
     coursesWithAvgRating.sort((a, b) => b.averageRating - a.averageRating);
+    // Apply pagination AFTER sorting
+    coursesWithAvgRating = coursesWithAvgRating.slice(skip, skip + limit);
   }
 
   res.json({
@@ -1325,7 +1334,7 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
     const enrollments = await prisma.enrollment.findMany({
       where: { studentId: userId },
       select: {
-        id: true, status: true, enrolledAt: true, completedAt: true, progressPercentage: true,
+        id: true, status: true, enrolledAt: true, completedAt: true, progressPercentage: true, hasNewContent: true,
         course: {
           select: {
             id: true, title: true, description: true, thumbnail: true,
@@ -1355,12 +1364,22 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
           where: { courseId_studentId: { courseId: enrollment.course.id, studentId: userId } }
         });
 
+        // Get existing materials for this course
+        const existingMaterials = await prisma.material.findMany({
+          where: { courseId: enrollment.course.id },
+          select: { id: true }
+        });
+        const existingMaterialIds = new Set(existingMaterials.map(m => m.id));
+
         const progressRecords = await prisma.progress.findMany({
           where: { studentId: userId, courseId: enrollment.course.id }
         });
 
         const totalTimeSpent = progressRecords.reduce((total, record) => total + (record.timeSpent || 0), 0);
-        const completedMaterials = progressRecords.filter(record => record.isCompleted).length;
+        // Only count progress for materials that still exist
+        const completedMaterials = progressRecords.filter(record =>
+          record.isCompleted && record.materialId !== null && existingMaterialIds.has(record.materialId)
+        ).length;
 
         const courseDurationMinutes = (enrollment.course?.duration || 10) * 60;
         const estimatedTimeSpent = totalTimeSpent > 0 ? totalTimeSpent :

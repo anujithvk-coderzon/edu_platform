@@ -64,7 +64,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
     if (isCompleted) {
       if (course.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${course.id}` };
+        return { text: 'View Contents', href: `/courses/${course.id}` };
       } else {
         return { text: 'Rate Course', href: `/courses/${course.id}` };
       }
@@ -79,11 +79,7 @@ export default function CourseCard({ course }: CourseCardProps) {
     const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
 
     if (isCompleted) {
-      if (course.hasReviewed) {
-        return { text: 'Completed', color: 'bg-green-500' };
-      } else {
-        return { text: 'Rate Course', color: 'bg-orange-500' };
-      }
+      return { text: 'Completed', color: 'bg-green-500' };
     } else {
       return { text: `${Math.min(100, Math.round(course.progressPercentage || 0))}%`, color: 'bg-indigo-600' };
     }
@@ -184,7 +180,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
         <Link href={buttonState.href}>
           <button className={`w-full py-3 sm:py-3.5 md:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 font-bold text-sm sm:text-base md:text-lg shadow-md hover:shadow-lg sm:hover:shadow-xl hover:scale-[1.02] sm:hover:scale-105 ${
-            buttonState.text === 'Completed'
+            buttonState.text === 'View Contents'
               ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
               : buttonState.text === 'Rate Course'
               ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700'
@@ -192,7 +188,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           }`}>
             {buttonState.text === 'Continue Learning' ? '🚀 Continue Learning' :
              buttonState.text === 'Rate Course' ? '⭐ Rate Course' :
-             buttonState.text === 'Completed' ? '✅ Completed' :
+             buttonState.text === 'View Contents' ? '📖 View Contents' :
              '👁️ View Course'}
           </button>
         </Link>

@@ -143,7 +143,7 @@ export default function Home() {
 
     if (isCompleted) {
       if (course.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${course.id}` };
+        return { text: 'View Contents', href: `/courses/${course.id}` };
       } else {
         return { text: 'Rate Course', href: `/courses/${course.id}/rate` };
       }
@@ -158,11 +158,7 @@ export default function Home() {
     const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
 
     if (isCompleted) {
-      if (course.hasReviewed) {
-        return { text: 'Completed', color: 'bg-green-500' };
-      } else {
-        return { text: 'Rate Course', color: 'bg-orange-500' };
-      }
+      return { text: 'Completed', color: 'bg-green-500' };
     } else {
       return { text: `${Math.round(course.progressPercentage || 0)}%`, color: 'bg-indigo-600' };
     }
@@ -177,9 +173,9 @@ export default function Home() {
       if (enrollment.hasNewContent) {
         return { text: 'View New Content', href: `/learn/${courseId}`, type: 'new-content' };
       }
-      // If completed and reviewed, show "Completed"
+      // If completed and reviewed, show "View Contents"
       if (enrollment.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${courseId}`, type: 'completed' };
+        return { text: 'View Contents', href: `/courses/${courseId}`, type: 'completed' };
       }
       // If completed but not reviewed, show "Rate Course"
       return { text: 'Rate Course', href: `/courses/${courseId}/rate`, type: 'rate' };
@@ -527,7 +523,7 @@ export default function Home() {
                           return (
                             <Link href={buttonState.href}>
                               <button className={`px-4 py-2 rounded-lg font-semibold text-xs transition-all ${
-                                buttonState.text === 'Completed'
+                                buttonState.text === 'View Contents'
                                   ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-600/30'
                                   : buttonState.text === 'Rate Course'
                                   ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30'

@@ -149,9 +149,9 @@ export default function MyCoursesPage() {
       if (enrollment.hasNewContent) {
         return { text: 'View New Content', href: `/learn/${courseId}`, type: 'new-content' };
       }
-      // If completed and reviewed, show "Completed"
+      // If completed and reviewed, show "View Contents"
       if (enrollment.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${courseId}`, type: 'completed' };
+        return { text: 'View Contents', href: `/courses/${courseId}`, type: 'completed' };
       }
       // If completed but not reviewed, show "Rate Course"
       return { text: 'Rate Course', href: `/courses/${courseId}/rate`, type: 'rate' };

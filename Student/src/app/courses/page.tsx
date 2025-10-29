@@ -199,7 +199,7 @@ function CoursesContent() {
       }
       // If completed and reviewed
       if (course.hasReviewed) {
-        return { text: 'Completed', href: `/courses/${course.id}`, type: 'completed' };
+        return { text: 'View Contents', href: `/courses/${course.id}`, type: 'completed' };
       }
       // If completed but not reviewed
       return { text: 'Rate Course', href: `/courses/${course.id}/rate`, type: 'rate' };
@@ -214,11 +214,7 @@ function CoursesContent() {
     const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
 
     if (isCompleted) {
-      if (course.hasReviewed) {
-        return { text: 'Completed', color: 'bg-green-500' };
-      } else {
-        return { text: 'Rate Course', color: 'bg-orange-500' };
-      }
+      return { text: 'Completed', color: 'bg-green-500' };
     } else {
       return { text: `${Math.min(100, Math.round(course.progressPercentage || 0))}%`, color: 'bg-indigo-600' };
     }

@@ -30,6 +30,7 @@ import { getCdnUrl } from '@/utils/cdn';
 import ProtectedVideo from '@/components/protected/ProtectedVideo';
 import CustomPDFViewer from '@/components/protected/CustomPDFViewer';
 import ProtectedImage from '@/components/protected/ProtectedImage';
+import EmbedViewer from '@/components/EmbedViewer';
 import { disableSaveShortcuts } from '@/utils/materialProtection';
 
 interface Material {
@@ -548,25 +549,18 @@ export default function LearnPage() {
 
       case 'LINK':
         return (
-          <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
+          <div className="w-full max-w-5xl mx-auto">
             {currentMaterial.fileUrl ? (
-              <div className="text-center">
-                <LinkIcon className="h-12 w-12 mx-auto mb-3 text-indigo-600" />
-                <h3 className="text-base font-semibold mb-4 text-slate-900">External Resource</h3>
-                <a
-                  href={getCdnUrl(currentMaterial.fileUrl) || ''}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-md"
-                >
-                  <LinkIcon className="h-4 w-4 mr-2" />
-                  Open Link
-                </a>
-              </div>
+              <EmbedViewer
+                url={getCdnUrl(currentMaterial.fileUrl) || currentMaterial.fileUrl}
+                title={currentMaterial.title}
+              />
             ) : (
-              <div className="text-center text-slate-500">
-                <LinkIcon className="h-12 w-12 mx-auto mb-3 text-slate-400" />
-                <p className="text-sm">Link not available</p>
+              <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
+                <div className="text-center text-slate-500">
+                  <LinkIcon className="h-12 w-12 mx-auto mb-3 text-slate-400" />
+                  <p className="text-sm">Link not available</p>
+                </div>
               </div>
             )}
           </div>

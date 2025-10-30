@@ -1331,7 +1331,8 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
       where: { studentId: userId }
     });
 
-    const enrollments = await prisma.enrollment.findMany({
+    // Fetch all enrollments to properly sort them (active courses first)
+    const allEnrollments = await prisma.enrollment.findMany({
       where: { studentId: userId },
       select: {
         id: true, status: true, enrolledAt: true, completedAt: true, progressPercentage: true, hasNewContent: true,
@@ -1347,11 +1348,24 @@ export const GetMyEnrollments = async (req: express.Request, res: express.Respon
             }
           }
         }
-      },
-      orderBy: { enrolledAt: 'desc' },
-      skip,
-      take: limit
+      }
     });
+
+    // Sort: Active courses first (status !== 'COMPLETED' and progress < 100), then completed courses
+    const sortedEnrollments = allEnrollments.sort((a, b) => {
+      const aIsActive = a.status !== 'COMPLETED' && (a.progressPercentage ?? 0) < 100;
+      const bIsActive = b.status !== 'COMPLETED' && (b.progressPercentage ?? 0) < 100;
+
+      // Active courses come first
+      if (aIsActive && !bIsActive) return -1;
+      if (!aIsActive && bIsActive) return 1;
+
+      // Within the same group (both active or both completed), sort by enrolledAt desc
+      return new Date(b.enrolledAt).getTime() - new Date(a.enrolledAt).getTime();
+    });
+
+    // Apply pagination after sorting
+    const enrollments = sortedEnrollments.slice(skip, skip + limit);
 
     const enrichedEnrollments = await Promise.all(
       enrollments.map(async (enrollment) => {

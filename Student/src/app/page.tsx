@@ -33,6 +33,7 @@ interface Course {
   hasReviewed?: boolean;
   enrollmentStatus?: string;
   progressPercentage?: number;
+  hasNewContent?: boolean;
   creator: {
     id: string;
     firstName: string;
@@ -76,6 +77,7 @@ export default function Home() {
   });
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
   const [myEnrollments, setMyEnrollments] = useState<Enrollment[]>([]);
+  const [allEnrollments, setAllEnrollments] = useState<Enrollment[]>([]); // For stats calculation
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -107,15 +109,23 @@ export default function Home() {
       // If user is logged in, get their enrollments
       if (user) {
         try {
-          const enrollmentsResponse = await api.enrollments.getMy();
+          // Fetch ALL enrollments for accurate stats calculation
+          const allEnrollmentsResponse = await api.enrollments.getMy({ limit: 1000 });
+          if (allEnrollmentsResponse.success) {
+            const allEnrolls = allEnrollmentsResponse.data.enrollments || [];
+            setAllEnrollments(allEnrolls);
+            setStats(prev => ({
+              ...prev,
+              completedCourses: allEnrolls.filter((e: any) => e.status === 'COMPLETED' || (e.progressPercentage ?? 0) >= 100).length,
+              totalHours: Math.round(allEnrolls.reduce((total: number, e: any) => total + (e.totalTimeSpent || 0), 0) / 60)
+            }));
+          }
+
+          // Fetch paginated enrollments (8) for Continue Learning widget display
+          const enrollmentsResponse = await api.enrollments.getMy({ limit: 8 });
           if (enrollmentsResponse.success) {
             const enrollments = enrollmentsResponse.data.enrollments || [];
             setMyEnrollments(enrollments);
-            setStats(prev => ({
-              ...prev,
-              completedCourses: enrollments.filter((e: any) => e.status === 'COMPLETED' || e.progressPercentage >= 100).length,
-              totalHours: Math.round(enrollments.reduce((total: number, e: any) => total + (e.totalTimeSpent || 0), 0) / 60)
-            }));
           }
         } catch (error) {
         }
@@ -142,11 +152,16 @@ export default function Home() {
     const isCompleted = course.enrollmentStatus === 'COMPLETED' || (course.progressPercentage && course.progressPercentage >= 100);
 
     if (isCompleted) {
+      // If completed but has new content, show "View New Content"
+      if (course.hasNewContent) {
+        return { text: 'View New Content', href: `/learn/${course.id}` };
+      }
+      // If completed and reviewed, show "View Contents"
       if (course.hasReviewed) {
         return { text: 'View Contents', href: `/courses/${course.id}` };
-      } else {
-        return { text: 'Rate Course', href: `/courses/${course.id}/rate` };
       }
+      // If completed but not reviewed, show "Rate Course"
+      return { text: 'Rate Course', href: `/courses/${course.id}/rate` };
     } else {
       return { text: 'Continue Learning', href: `/learn/${course.id}` };
     }
@@ -165,7 +180,7 @@ export default function Home() {
   };
 
   const getEnrollmentButtonState = (enrollment: Enrollment) => {
-    const isCompleted = enrollment.progressPercentage >= 100 || enrollment.status === 'COMPLETED';
+    const isCompleted = (enrollment.progressPercentage ?? 0) >= 100 || enrollment.status === 'COMPLETED';
     const courseId = enrollment.course?.id || enrollment.courseId;
 
     if (isCompleted) {
@@ -301,7 +316,7 @@ export default function Home() {
                     <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">{myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">{allEnrollments.filter(e => e.status !== 'COMPLETED' && (e.progressPercentage ?? 0) < 100).length}</div>
                     <p className="text-xs text-slate-600 font-medium whitespace-nowrap">Active</p>
                   </div>
                 </div>
@@ -335,7 +350,7 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="text-xl sm:text-2xl font-bold text-slate-900 whitespace-nowrap">
-                      {myEnrollments.length > 0 ? Math.round(myEnrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / myEnrollments.length) : 0}%
+                      {allEnrollments.length > 0 ? Math.round(allEnrollments.reduce((sum, e) => sum + (e.progressPercentage ?? 0), 0) / allEnrollments.length) : 0}%
                     </div>
                     <p className="text-xs text-slate-600 font-medium whitespace-nowrap">Progress</p>
                   </div>
@@ -346,7 +361,7 @@ export default function Home() {
         )}
 
         {/* Continue Learning Section */}
-        {user && myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).length > 0 && (
+        {user && myEnrollments.filter(e => e.status !== 'COMPLETED' && (e.progressPercentage ?? 0) < 100).length > 0 && (
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Continue Learning</h2>
@@ -358,21 +373,18 @@ export default function Home() {
               </Link>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myEnrollments.filter(e => e.status !== 'COMPLETED' && e.progressPercentage < 100).slice(0, 3).map((enrollment) => (
+              {myEnrollments.filter(e => e.status !== 'COMPLETED' && (e.progressPercentage ?? 0) < 100).slice(0, 3).map((enrollment) => (
                 <div key={enrollment.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg hover:border-indigo-200 transition-all group">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-slate-900 line-clamp-2 text-sm pr-2 group-hover:text-indigo-600 transition-colors">{enrollment.course?.title}</h3>
                     <div className="flex flex-col gap-1 items-end flex-shrink-0">
-                      <span className="text-sm font-bold bg-indigo-600 px-2 py-1 rounded-lg shadow-sm" style={{ color: 'white' }}>{Math.round(enrollment.progressPercentage)}%</span>
-                      {enrollment.hasNewContent && (
-                        <span className="text-[10px] font-medium bg-orange-500 px-1.5 py-0.5 rounded animate-pulse" style={{ color: 'white' }}>🆕 New Content</span>
-                      )}
+                      <span className="text-sm font-bold bg-indigo-600 px-2 py-1 rounded-lg shadow-sm" style={{ color: 'white' }}>{Math.round(enrollment.progressPercentage ?? 0)}%</span>
                     </div>
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-2 mb-4 overflow-hidden">
                     <div
                       className="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${enrollment.progressPercentage}%` }}
+                      style={{ width: `${enrollment.progressPercentage ?? 0}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-600 mb-4 pb-4 border-b border-slate-100">
@@ -463,6 +475,12 @@ export default function Home() {
                           </div>
                         );
                       })()}
+                      {/* New Content Badge */}
+                      {course.hasNewContent && (
+                        <div className="absolute top-12 right-2 bg-orange-500 px-2 py-1 rounded-lg text-xs font-semibold shadow-lg z-10 animate-pulse" style={{ color: 'white' }}>
+                          🆕 New Content
+                        </div>
+                      )}
                       {course.level && (
                         <div className="absolute top-2 left-2 bg-white/95 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 backdrop-blur-sm z-10">
                           {course.level}
@@ -527,6 +545,8 @@ export default function Home() {
                                   ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-600/30'
                                   : buttonState.text === 'Rate Course'
                                   ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30'
+                                  : buttonState.text === 'View New Content'
+                                  ? 'bg-orange-600 text-white hover:bg-orange-700 shadow-lg shadow-orange-600/30 animate-pulse'
                                   : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-600/30'
                               }`}>
                                 {buttonState.text}

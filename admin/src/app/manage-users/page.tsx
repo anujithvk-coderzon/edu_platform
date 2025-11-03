@@ -34,29 +34,61 @@ interface Tutor {
 export default function ManageUsersPage() {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
-    fetchTutors();
-  }, []);
+    fetchTutors(true);
+  }, [searchQuery, filterStatus]);
 
-  const fetchTutors = async () => {
+  const fetchTutors = async (reset: boolean = false) => {
     try {
-      setLoading(true);
-      const response = await api.tutors.getAll();
+      if (reset) {
+        setLoading(true);
+        setPage(1);
+      } else {
+        setLoadingMore(true);
+      }
+
+      const currentPage = reset ? 1 : page;
+      const limit = reset ? 5 : 10; // First load: 5, subsequent loads: 10
+
+      const response = await api.tutors.getAll({
+        page: currentPage,
+        limit,
+        search: searchQuery || undefined,
+        status: filterStatus
+      });
+
       if (response.success) {
-        setTutors(response.data.tutors || []);
+        const newTutors = response.data.tutors || [];
+        if (reset) {
+          setTutors(newTutors);
+        } else {
+          setTutors(prev => [...prev, ...newTutors]);
+        }
+        setHasMore(response.data.pagination?.hasMore || false);
+        if (!reset) {
+          setPage(currentPage + 1);
+        }
       }
     } catch (error: any) {
       console.error('Error fetching tutors:', error);
       toast.error('Failed to load tutors');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    fetchTutors(false);
   };
 
   const toggleTutorStatus = async (tutorId: string, currentStatus: boolean) => {
@@ -99,25 +131,6 @@ export default function ManageUsersPage() {
       setDeletingId(null);
     }
   };
-
-  // Filter tutors based on search and status
-  const filteredTutors = tutors.filter(tutor => {
-    // Handle search filter
-    const trimmedQuery = searchQuery.trim().toLowerCase();
-    const matchesSearch = trimmedQuery === '' ||
-      (tutor.firstName?.toLowerCase() || '').includes(trimmedQuery) ||
-      (tutor.lastName?.toLowerCase() || '').includes(trimmedQuery) ||
-      (tutor.email?.toLowerCase() || '').includes(trimmedQuery) ||
-      `${tutor.firstName} ${tutor.lastName}`.toLowerCase().includes(trimmedQuery);
-
-    // Handle status filter
-    const matchesStatus =
-      filterStatus === 'all' ||
-      (filterStatus === 'active' && tutor.isActive) ||
-      (filterStatus === 'inactive' && !tutor.isActive);
-
-    return matchesSearch && matchesStatus;
-  });
 
   const stats = {
     total: tutors.length,
@@ -242,11 +255,11 @@ export default function ManageUsersPage() {
           <div className="px-4 sm:px-6 py-4 border-b border-slate-200">
             <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
               <UserGroupIcon className="h-5 w-5 text-slate-600" />
-              All Tutors ({filteredTutors.length})
+              All Tutors ({tutors.length})
             </h2>
           </div>
 
-          {filteredTutors.length === 0 ? (
+          {tutors.length === 0 && !loading ? (
             <div className="p-8 sm:p-12 text-center">
               <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <UserIcon className="w-8 h-8 text-slate-400" />
@@ -281,7 +294,7 @@ export default function ManageUsersPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-slate-100">
-                    {filteredTutors.map((tutor) => (
+                    {tutors.map((tutor) => (
                       <tr key={tutor.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -415,7 +428,7 @@ export default function ManageUsersPage() {
 
               {/* Mobile Card View */}
               <div className="lg:hidden p-4 space-y-3">
-                {filteredTutors.map((tutor) => (
+                {tutors.map((tutor) => (
                   <div key={tutor.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all">
                     {/* Card Header */}
                     <div className="p-4 border-b border-slate-100">
@@ -574,6 +587,29 @@ export default function ManageUsersPage() {
                 ))}
               </div>
             </>
+          )}
+
+          {/* Load More Button */}
+          {hasMore && tutors.length > 0 && (
+            <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50">
+              <Button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors disabled:bg-blue-400"
+              >
+                {loadingMore ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Loading...</span>
+                  </div>
+                ) : (
+                  'Load More'
+                )}
+              </Button>
+            </div>
           )}
         </div>
       </div>

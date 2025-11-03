@@ -1645,14 +1645,38 @@ export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
       });
     }
 
-    // Support optional filtering for active tutors only
-    const activeOnly = req.query.activeOnly === 'true';
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
 
+    // Search and filter parameters
+    const search = (req.query.search as string) || '';
+    const status = (req.query.status as string) || 'all'; // all, active, inactive
+
+    // Build where clause
     const whereClause: any = { role: "Tutor" };
-    if (activeOnly) {
+
+    // Add status filter
+    if (status === 'active') {
       whereClause.isActive = true;
+    } else if (status === 'inactive') {
+      whereClause.isActive = false;
     }
 
+    // Add search filter
+    if (search) {
+      whereClause.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    // Get total count for pagination
+    const total = await prisma.admin.count({ where: whereClause });
+
+    // Get tutors with pagination
     const tutors = await prisma.admin.findMany({
       where: whereClause,
       select: {
@@ -1670,7 +1694,9 @@ export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
           select: { id: true }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit
     });
 
     // Count unique courses (avoid double counting when tutor is both creator and assigned)
@@ -1695,7 +1721,16 @@ export const GetAllTutors = async (req: AuthRequest, res: express.Response) => {
 
     return res.json({
       success: true,
-      data: { tutors: tutorsWithTotalCourses }
+      data: {
+        tutors: tutorsWithTotalCourses,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasMore: page * limit < total
+        }
+      }
     });
   } catch (error) {
     console.error('GetAllTutors error:', error);
@@ -5248,8 +5283,41 @@ export const GetStudentsCount = async (req: AuthRequest, res: express.Response) 
 
 export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Response) => {
   try {
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Search and filter parameters
+    const search = (req.query.search as string) || '';
+    const status = (req.query.status as string) || 'all'; // all, active, blocked
+
+    // Build where clause
+    const whereClause: any = {};
+
+    // Add status filter
+    if (status === 'active') {
+      whereClause.isActive = true;
+      whereClause.blocked = false;
+    } else if (status === 'blocked') {
+      whereClause.blocked = true;
+    }
+
+    // Add search filter
+    if (search) {
+      whereClause.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    // Get total count for pagination
+    const total = await prisma.student.count({ where: whereClause });
+
     // Get all students directly from Student table with complete registration details, sorted by registration date (newest first)
     const students = await prisma.student.findMany({
+      where: whereClause,
       select: {
         id: true,
         firstName: true,
@@ -5273,7 +5341,9 @@ export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Re
       },
       orderBy: {
         createdAt: 'desc'
-      }
+      },
+      skip,
+      take: limit
     });
 
     // Map to consistent format with all registration details (excluding password)
@@ -5302,7 +5372,14 @@ export const GetAllRegisteredStudents = async (req: AuthRequest, res: express.Re
     return res.status(200).json({
       success: true,
       data: {
-        students: formattedStudents
+        students: formattedStudents,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasMore: page * limit < total
+        }
       }
     });
   } catch (error) {

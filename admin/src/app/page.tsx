@@ -496,7 +496,7 @@ const Page = () => {
             {/* View All Button */}
             {filteredStudents.length > 0 && (
               <div className="mt-6 text-center">
-                <Link href="/registrations">
+                <Link href="/students">
                   <Button
                     variant="outline"
                     className="w-full sm:w-auto bg-white hover:bg-blue-50 text-blue-600 border-blue-300 hover:border-blue-400"

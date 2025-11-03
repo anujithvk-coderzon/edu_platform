@@ -179,7 +179,6 @@ const getMaterialIcon = (type: string) => {
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [stats, setStats] = useState<StudentsStats>({
     totalStudents: 0,
@@ -189,12 +188,15 @@ export default function StudentsPage() {
     totalRevenue: 0
   });
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState('enrolled');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedEnrollmentIndex, setSelectedEnrollmentIndex] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   const handleSendMessage = (studentEmail: string) => {
     // Open Gmail with the student's email as recipient
@@ -250,8 +252,8 @@ export default function StudentsPage() {
   };
 
   useEffect(() => {
-    fetchStudentsData();
-  }, []);
+    fetchStudentsData(true);
+  }, [searchTerm, filterBy]);
 
   // Adjust sort order based on sort field
   useEffect(() => {
@@ -262,20 +264,39 @@ export default function StudentsPage() {
     }
   }, [sortBy]);
 
-  useEffect(() => {
-    filterAndSortStudents();
-  }, [students, searchTerm, filterBy, sortBy, sortOrder]);
-
-  const fetchStudentsData = async () => {
+  const fetchStudentsData = async (reset: boolean = false) => {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+        setPage(1);
+      } else {
+        setLoadingMore(true);
+      }
 
-      // Fetch all registered students with full details
-      let allRegisteredStudents: RegisteredStudent[] = [];
+      const currentPage = reset ? 1 : page;
+      const limit = reset ? 5 : 10; // First load: 5, subsequent loads: 10
+
+      // Determine status filter based on filterBy
+      let status: string | undefined = undefined;
+      if (filterBy === 'blocked') {
+        status = 'blocked';
+      } else if (filterBy === 'all') {
+        status = 'all';
+      }
+
+      // Fetch paginated registered students with full details
+      let paginatedRegisteredStudents: RegisteredStudent[] = [];
+      let paginationData: any = null;
       try {
-        const registeredResponse = await api.admin.getAllRegisteredStudents();
+        const registeredResponse = await api.admin.getAllRegisteredStudents({
+          page: currentPage,
+          limit,
+          search: searchTerm || undefined,
+          status
+        });
         if (registeredResponse.success) {
-          allRegisteredStudents = registeredResponse.data.students || [];
+          paginatedRegisteredStudents = registeredResponse.data.students || [];
+          paginationData = registeredResponse.data.pagination;
         }
       } catch (error) {
         console.error('Error fetching registered students:', error);
@@ -287,7 +308,7 @@ export default function StudentsPage() {
         const enrolledStudents = studentsResponse.data.students || [];
 
         // Merge enrolled students data with registered students data
-        const mergedStudents = allRegisteredStudents.map((regStudent) => {
+        const mergedStudents = paginatedRegisteredStudents.map((regStudent) => {
           const enrolledData = enrolledStudents.find((es: Student) => es.id === regStudent.id);
 
           if (enrolledData) {
@@ -322,162 +343,88 @@ export default function StudentsPage() {
           }
         });
 
-        // Get accurate stats from database
-        let realStats = {
+        // Apply frontend filtering based on filterBy for enrollment-specific filters
+        let filteredMergedStudents = mergedStudents;
+        if (filterBy === 'enrolled') {
+          filteredMergedStudents = mergedStudents.filter(s => s.enrollments && s.enrollments.length > 0);
+        } else if (filterBy === 'completed') {
+          filteredMergedStudents = mergedStudents.filter(s => s.completedCourses > 0);
+        } else if (filterBy === 'new') {
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+          filteredMergedStudents = mergedStudents.filter(s => new Date(s.joinedAt) > oneMonthAgo);
+        }
+
+        // Update students list
+        if (reset) {
+          setStudents(filteredMergedStudents);
+        } else {
+          setStudents(prev => [...prev, ...filteredMergedStudents]);
+        }
+
+        // Update pagination state
+        setHasMore(paginationData?.hasMore || false);
+        if (!reset) {
+          setPage(currentPage + 1);
+        }
+
+        // Get accurate stats from database (only on first load)
+        if (reset) {
+          let realStats = {
+            totalStudents: 0,
+            activeStudents: 0,
+            newThisMonth: 0,
+            averageProgress: 0,
+            totalRevenue: 0
+          };
+
+          try {
+            const statsResponse = await api.admin.getStudentStats();
+            if (statsResponse.success && statsResponse.data?.stats) {
+              realStats = statsResponse.data.stats;
+              console.log('✅ Successfully fetched student stats from database:', realStats);
+            }
+          } catch (error) {
+            console.error('❌ Error fetching student stats, using fallback:', error);
+          }
+
+          setStats(realStats);
+        }
+      }
+
+      // Also get tutor's courses for reference (only on first load)
+      if (reset) {
+        const coursesResponse = await api.courses.getMyCourses();
+        if (coursesResponse.success) {
+          const tutorCourses = coursesResponse.data.courses || [];
+          setCourses(tutorCourses);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching students data:', error);
+      toast.error('Failed to load students');
+      // Fall back to empty data on reset
+      if (reset) {
+        setStudents([]);
+        setStats({
           totalStudents: 0,
           activeStudents: 0,
           newThisMonth: 0,
           averageProgress: 0,
           totalRevenue: 0
-        };
-
-        try {
-          const statsResponse = await api.admin.getStudentStats();
-          if (statsResponse.success && statsResponse.data?.stats) {
-            realStats = statsResponse.data.stats;
-            console.log('✅ Successfully fetched student stats from database:', realStats);
-          }
-        } catch (error) {
-          console.error('❌ Error fetching student stats, using fallback:', error);
-          // Fallback to frontend calculation if backend fails
-          const activeStudents = mergedStudents.filter((s: Student) => s.enrollments.some((e: Student['enrollments'][0]) => e.status === 'ACTIVE')).length;
-          const oneMonthAgo = new Date();
-          oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-          const newThisMonth = mergedStudents.filter((s: Student) => new Date(s.joinedAt) > oneMonthAgo).length;
-
-          const totalProgress = mergedStudents.reduce((sum: number, s: Student) => {
-            const avgProgress = s.enrollments.length > 0
-              ? s.enrollments.reduce((eSum: number, e: Student['enrollments'][0]) => eSum + e.progressPercentage, 0) / s.enrollments.length
-              : 0;
-            return sum + avgProgress;
-          }, 0);
-          const averageProgress = mergedStudents.length > 0 ? totalProgress / mergedStudents.length : 0;
-
-          realStats = {
-            totalStudents: allRegisteredStudents.length,
-            activeStudents: activeStudents,
-            newThisMonth: newThisMonth,
-            averageProgress: averageProgress,
-            totalRevenue: 0
-          };
-        }
-
-        setStudents(mergedStudents);
-        setStats(realStats);
+        });
       }
-
-      // Also get tutor's courses for reference
-      const coursesResponse = await api.courses.getMyCourses();
-      if (coursesResponse.success) {
-        const tutorCourses = coursesResponse.data.courses || [];
-        setCourses(tutorCourses);
-      }
-    } catch (error: any) {
-      console.error('Error fetching students data:', error);
-      // Fall back to empty data
-      setStudents([]);
-      setStats({
-        totalStudents: 0,
-        activeStudents: 0,
-        newThisMonth: 0,
-        averageProgress: 0,
-        totalRevenue: 0
-      });
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
-
-  const filterAndSortStudents = () => {
-    let filtered = [...students];
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(student =>
-        student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply category filter
-    switch (filterBy) {
-      case 'enrolled':
-        filtered = filtered.filter(s => s.enrollments && s.enrollments.length > 0);
-        break;
-      case 'completed':
-        filtered = filtered.filter(s => s.completedCourses > 0);
-        break;
-      case 'new':
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        filtered = filtered.filter(s => new Date(s.joinedAt) > oneMonthAgo);
-        break;
-      case 'blocked':
-        filtered = filtered.filter(s => s.blocked === true);
-        break;
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      let valueA: string | number | Date;
-      let valueB: string | number | Date;
-
-      switch (sortBy) {
-        case 'name':
-          valueA = `${a.firstName} ${a.lastName}`;
-          valueB = `${b.firstName} ${b.lastName}`;
-          break;
-        case 'joinedAt':
-          valueA = new Date(a.joinedAt);
-          valueB = new Date(b.joinedAt);
-          break;
-        case 'progress':
-          valueA = a.enrollments.length > 0
-            ? a.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / a.enrollments.length
-            : 0;
-          valueB = b.enrollments.length > 0
-            ? b.enrollments.reduce((sum, e) => sum + e.progressPercentage, 0) / b.enrollments.length
-            : 0;
-          break;
-        case 'courses':
-          valueA = a.totalCourses;
-          valueB = b.totalCourses;
-          break;
-        case 'lastActive':
-          valueA = new Date(a.lastActive);
-          valueB = new Date(b.lastActive);
-          break;
-        default:
-          valueA = a.firstName;
-          valueB = b.firstName;
-      }
-
-      // Handle comparison for different types
-      if (valueA instanceof Date && valueB instanceof Date) {
-        return sortOrder === 'asc'
-          ? valueA.getTime() - valueB.getTime()
-          : valueB.getTime() - valueA.getTime();
-      }
-
-      if (typeof valueA === 'number' && typeof valueB === 'number') {
-        return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
-      }
-
-      // String comparison
-      const strA = String(valueA).toLowerCase();
-      const strB = String(valueB).toLowerCase();
-
-      if (sortOrder === 'asc') {
-        return strA > strB ? 1 : strA < strB ? -1 : 0;
-      } else {
-        return strB > strA ? 1 : strB < strA ? -1 : 0;
-      }
-    });
-
-    setFilteredStudents(filtered);
+  const handleLoadMore = () => {
+    fetchStudentsData(false);
   };
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -634,14 +581,15 @@ export default function StudentsPage() {
             <div className="flex items-center gap-2">
               <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               <h3 className="text-sm sm:text-lg font-semibold text-slate-900">
-                Students ({filteredStudents.length})
+                Students ({students.length})
               </h3>
             </div>
           </div>
           <div className="p-2 sm:p-6">
-            {filteredStudents.length > 0 ? (
-              <div className="space-y-2 sm:space-y-3">
-                {filteredStudents.map((student) => (
+            {students.length > 0 ? (
+              <>
+                <div className="space-y-2 sm:space-y-3">
+                  {students.map((student) => (
                   <div
                     key={student.id}
                     className="bg-white border border-slate-200 rounded-lg sm:rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200"
@@ -1245,8 +1193,32 @@ export default function StudentsPage() {
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+
+                {/* Load More Button */}
+                {hasMore && students.length > 0 && (
+                  <div className="mt-4 sm:mt-6">
+                    <Button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors disabled:bg-blue-400"
+                    >
+                      {loadingMore ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Loading...</span>
+                        </div>
+                      ) : (
+                        'Load More'
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-8 sm:py-12 md:py-16 px-4">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-sm">

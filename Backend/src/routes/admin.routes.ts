@@ -280,7 +280,15 @@ router.put('/auth/change-password', authMiddleware,
 router.get('/students/count', authMiddleware, adminOnly, GetStudentsCount);
 
 // Get all registered students (from Student table directly)
-router.get('/students/registered', authMiddleware, adminOnly, GetAllRegisteredStudents);
+router.get('/students/registered', authMiddleware, adminOnly,
+  [
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 100 }),
+    query('search').optional().isString(),
+    query('status').optional().isIn(['all', 'active', 'blocked'])
+  ],
+  GetAllRegisteredStudents
+);
 
 // Get all students
 router.get('/students', authMiddleware, adminOnly,
@@ -373,7 +381,15 @@ router.get('/courses/pending/count', authMiddleware, adminOnly, GetPendingCourse
 router.get('/courses/pending', authMiddleware, adminOnly, GetPendingCourses);
 
 // Get all tutors
-router.get('/tutors', authMiddleware, adminOnly, GetAllTutors);
+router.get('/tutors', authMiddleware, adminOnly,
+  [
+    query('page').optional().isInt({ min: 1 }),
+    query('limit').optional().isInt({ min: 1, max: 100 }),
+    query('search').optional().isString(),
+    query('status').optional().isIn(['all', 'active', 'inactive'])
+  ],
+  GetAllTutors
+);
 
 // Toggle tutor status
 router.put('/admin/tutors/:id/status', authMiddleware, adminOnly,

@@ -17,7 +17,8 @@ import {
   CheckCircleIcon,
   ClipboardDocumentListIcon,
   XCircleIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Link from 'next/link';
@@ -527,12 +528,13 @@ const Page = () => {
                   </div>
 
                   {/* Rejection Reason */}
-                  {course.status === 'REJECTED' && course.rejectionReason && (
+                  {/* Rejection Reason - Only show to Tutors who need to fix it */}
+                  {course.status === 'REJECTED' && course.rejectionReason && user?.role?.toLowerCase() === 'tutor' && (
                     <div className="bg-red-50 border border-red-200 rounded-md p-2 mb-3">
                       <div className="flex items-start gap-1.5">
                         <XCircleIcon className="w-3.5 h-3.5 text-red-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-[10px] font-semibold text-red-800 mb-0.5">Rejected:</div>
+                          <div className="text-[10px] font-semibold text-red-800 mb-0.5">Rejection Reason:</div>
                           <div className="text-[10px] text-red-700 line-clamp-2">{course.rejectionReason}</div>
                         </div>
                       </div>
@@ -619,13 +621,25 @@ const Page = () => {
                         )}
                       </Button>
                     )}
-                    {course.status === 'REJECTED' && (
+                    {/* Fix & Resubmit - Only for Tutors on their rejected courses */}
+                    {course.status === 'REJECTED' && user?.role?.toLowerCase() === 'tutor' && (
                       <Link href={`/courses/${course.id}/edit`}>
                         <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 text-white text-xs py-2">
                           <PencilIcon className="w-3.5 h-3.5 mr-1.5" />
                           Fix & Resubmit
                         </Button>
                       </Link>
+                    )}
+
+                    {/* Pending Review - Show status for Tutors */}
+                    {course.status === 'PENDING_REVIEW' && user?.role?.toLowerCase() === 'tutor' && (
+                      <div className="w-full bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <ClockIcon className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="text-xs text-blue-700 font-medium">Under Review</span>
+                        </div>
+                        <p className="text-[10px] text-blue-600 mt-1">Your course is being reviewed</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>

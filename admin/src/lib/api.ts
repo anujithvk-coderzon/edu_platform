@@ -294,7 +294,15 @@ class ApiClient {
 
   // Tutors endpoints
   tutors = {
-    getAll: (activeOnly?: boolean) => this.get<ApiResponse>(`/tutors${activeOnly ? '?activeOnly=true' : ''}`),
+    getAll: (params?: { page?: number; limit?: number; search?: string; status?: string }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.status) queryParams.append('status', params.status);
+      const queryString = queryParams.toString();
+      return this.get<ApiResponse>(`/tutors${queryString ? `?${queryString}` : ''}`);
+    },
   };
 
   // Assignment endpoints
@@ -331,7 +339,15 @@ class ApiClient {
   // Admin endpoints
   admin = {
     getStudentsCount: () => this.get<ApiResponse>('/students/count'),
-    getAllRegisteredStudents: () => this.get<ApiResponse>('/students/registered'),
+    getAllRegisteredStudents: (params?: { page?: number; limit?: number; search?: string; status?: string }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.search) queryParams.append('search', params.search);
+      if (params?.status) queryParams.append('status', params.status);
+      const queryString = queryParams.toString();
+      return this.get<ApiResponse>(`/students/registered${queryString ? `?${queryString}` : ''}`);
+    },
     getStatsOverview: () => this.get<ApiResponse>('/students/stats/overview'),
     getStudentStats: () => this.get<ApiResponse>('/students/stats/detailed'),
     toggleTutorStatus: (tutorId: string, isActive: boolean) =>

@@ -525,14 +525,12 @@ export default function LearnPage() {
 
       case 'PDF':
         return (
-          <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 shadow-sm">
+          <div className={`bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden ${currentMaterial.fileUrl ? 'h-full flex flex-col min-h-0' : 'p-3 sm:p-4'}`}>
             {currentMaterial.fileUrl ? (
-              <div className="w-full max-w-4xl mx-auto">
-                <CustomPDFViewer
-                  src={getCdnUrl(currentMaterial.fileUrl) || ''}
-                  className="w-full"
-                />
-              </div>
+              <CustomPDFViewer
+                src={getCdnUrl(currentMaterial.fileUrl) || ''}
+                className="flex-1 min-h-0"
+              />
             ) : currentMaterial.content ? (
               <div className="prose max-w-none p-6 protected-content" onContextMenu={(e) => e.preventDefault()}>
                 <pre className="whitespace-pre-wrap font-sans text-sm">{currentMaterial.content}</pre>
@@ -603,6 +601,11 @@ export default function LearnPage() {
       </div>
     );
   }
+
+  // PDF lessons fill the available height instead of scrolling the whole page,
+  // so the viewer's own toolbar stays on screen.
+  const isPdfLesson =
+    currentMaterial?.type?.toUpperCase() === 'PDF' && !!currentMaterial?.fileUrl;
 
   return (
     <div className="fixed inset-0 pt-16 sm:pt-18 md:pt-20 lg:pt-24 bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
@@ -835,53 +838,60 @@ export default function LearnPage() {
 
         {/* Content Area */}
         <div
-          className="flex-1 overflow-y-auto overflow-x-hidden"
+          className={`flex-1 min-h-0 ${isPdfLesson ? 'overflow-hidden flex flex-col' : 'overflow-y-auto overflow-x-hidden'}`}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+          <div className={`max-w-7xl mx-auto w-full ${isPdfLesson ? 'flex-1 min-h-0 flex flex-col p-2 sm:p-3 lg:p-4' : 'p-3 sm:p-4 md:p-6 lg:p-8'}`}>
 
           {currentMaterial && progress ? (
-            <div className="max-w-6xl mx-auto">
+            <div className={`max-w-6xl mx-auto w-full ${isPdfLesson ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
               {/* Simplified Material Header */}
-              <div className="mb-4 sm:mb-6 bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-sm">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="p-2.5 bg-indigo-600 rounded-lg flex-shrink-0">
+              <div className={`bg-white rounded-xl border border-slate-200 shadow-sm ${isPdfLesson ? 'flex-shrink-0 mb-2 px-3 py-2' : 'mb-4 sm:mb-6 p-4 sm:p-5'}`}>
+                <div className={`flex gap-3 ${isPdfLesson ? 'items-center' : 'items-start mb-3'}`}>
+                  <div className={`bg-indigo-600 rounded-lg flex-shrink-0 ${isPdfLesson ? 'p-1.5' : 'p-2.5'}`}>
                     <div className="w-5 h-5 text-white" style={{ color: 'white' }}>
                       {getMaterialIcon(currentMaterial.type)}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 mb-1 leading-tight">{currentMaterial.title}</h1>
-                    {currentMaterial.description && (
+                    <h1 className={`font-bold text-slate-900 leading-tight ${isPdfLesson ? 'text-sm sm:text-base truncate' : 'text-lg sm:text-xl mb-1'}`}>{currentMaterial.title}</h1>
+                    {currentMaterial.description && !isPdfLesson && (
                       <p className="text-slate-600 text-sm line-clamp-2">{currentMaterial.description}</p>
                     )}
                   </div>
+                  {isPdfLesson && (
+                    <span className="text-xs text-slate-600 whitespace-nowrap hidden sm:inline flex-shrink-0">
+                      Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}
+                    </span>
+                  )}
                   {currentMaterial.progress?.isCompleted && (
-                    <div className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-1.5 rounded-full flex-shrink-0" style={{ color: 'white' }}>
+                    <div className={`flex items-center gap-1.5 bg-green-500 text-white rounded-full flex-shrink-0 ${isPdfLesson ? 'px-2.5 py-1' : 'px-3 py-1.5'}`} style={{ color: 'white' }}>
                       <CheckCircleIconSolid className="h-4 w-4" style={{ color: 'white' }} />
                       <span className="text-xs font-medium hidden sm:inline" style={{ color: 'white' }}>Completed</span>
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <span>Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}</span>
-                  <span>•</span>
-                  <span className="capitalize">{currentMaterial.type.toLowerCase()}</span>
-                </div>
+                {!isPdfLesson && (
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <span>Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}</span>
+                    <span>•</span>
+                    <span className="capitalize">{currentMaterial.type.toLowerCase()}</span>
+                  </div>
+                )}
               </div>
 
               {/* Material Content */}
-              <div className="mb-4 sm:mb-6">
+              <div className={isPdfLesson ? 'flex-1 min-h-0 mb-2' : 'mb-4 sm:mb-6'}>
                 {renderMaterialContent()}
               </div>
 
               {/* Cleaner Action Button */}
               {!currentMaterial.progress?.isCompleted && (
-                <div className="flex justify-center">
+                <div className={`flex justify-center ${isPdfLesson ? 'flex-shrink-0' : ''}`}>
                   <button
                     onClick={handleMarkComplete}
                     disabled={markingComplete}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 text-sm sm:text-base font-medium shadow-md hover:shadow-lg min-h-[50px]"
+                    className={`bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 font-medium shadow-md hover:shadow-lg ${isPdfLesson ? 'px-5 py-2 text-sm min-h-[40px]' : 'px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base min-h-[50px]'}`}
                   >
                     {markingComplete ? (
                       <>

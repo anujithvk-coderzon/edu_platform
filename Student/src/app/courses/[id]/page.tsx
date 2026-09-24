@@ -29,8 +29,6 @@ import toast from 'react-hot-toast';
 import StarRating from '@/components/ui/StarRating';
 import CourseReview from '@/components/CourseReview';
 import CourseReviews from '@/components/CourseReviews';
-import { getImageUrl } from '@/utils/imageUtils';
-import { getCdnUrl } from '@/utils/cdn';
 
 interface Course {
   id: string;
@@ -338,7 +336,7 @@ export default function CourseDetailPage() {
               <div className="flex items-center gap-3 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
                 {(course.tutor?.avatar || course.creator.avatar) ? (
                   <img
-                    src={getCdnUrl(course.tutor?.avatar || course.creator.avatar) || ''}
+                    src={course.tutor?.avatar || course.creator.avatar || ''}
                     alt="Instructor"
                     className="h-10 w-10 sm:h-12 sm:w-12 rounded-full border-2 border-white shadow-sm object-cover flex-shrink-0"
                     referrerPolicy="no-referrer"
@@ -366,9 +364,9 @@ export default function CourseDetailPage() {
               <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden lg:sticky lg:top-20">
                 {/* Compact Thumbnail */}
                 <div className="relative aspect-video bg-slate-100">
-                  {course.thumbnail && getImageUrl(course.thumbnail) ? (
+                  {course.thumbnail && course.thumbnail ? (
                     <img
-                      src={getImageUrl(course.thumbnail)!}
+                      src={course.thumbnail!}
                       alt={course.title}
                       className="w-full h-full object-cover"
                     />

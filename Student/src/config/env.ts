@@ -3,16 +3,12 @@ interface EnvConfig {
   API_BASE_URL: string;
   STUDENT_API_URL: string;
   BACKEND_URL: string;
-  CDN_HOST: string;
-  BUNNY_STREAM_LIBRARY_ID: string;
 }
 
 function validateEnv(): EnvConfig {
   const requiredVars = {
     API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL,
-    CDN_HOST: process.env.NEXT_PUBLIC_BUNNY_PULL_ZONE_HOST,
-    BUNNY_STREAM_LIBRARY_ID: process.env.NEXT_PUBLIC_BUNNY_STREAM_LIBRARY_ID,
   };
 
   const missing = Object.entries(requiredVars)
@@ -30,8 +26,6 @@ function validateEnv(): EnvConfig {
     API_BASE_URL: requiredVars.API_BASE_URL!,
     STUDENT_API_URL: `${requiredVars.API_BASE_URL!}/student`,
     BACKEND_URL: requiredVars.BACKEND_URL!,
-    CDN_HOST: requiredVars.CDN_HOST!,
-    BUNNY_STREAM_LIBRARY_ID: requiredVars.BUNNY_STREAM_LIBRARY_ID!,
   };
 }
 

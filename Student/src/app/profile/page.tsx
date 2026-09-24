@@ -21,7 +21,6 @@ import {
   XCircleIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { getCdnUrl } from '@/utils/cdn';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -260,7 +259,7 @@ export default function ProfilePage() {
                     />
                   ) : profileData.avatar ? (
                     <img
-                      src={getCdnUrl(profileData.avatar) || ''}
+                      src={profileData.avatar || ''}
                       alt="Avatar"
                       className="h-full w-full object-cover"
                       referrerPolicy="no-referrer"

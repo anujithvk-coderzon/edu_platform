@@ -15,7 +15,6 @@ import {
   EnvelopeIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
-import { getCdnUrl } from '../../utils/cdn';
 import toast from 'react-hot-toast';
 
 interface Tutor {
@@ -302,7 +301,7 @@ export default function ManageUsersPage() {
                               {tutor.avatar ? (
                                 <img
                                   className="h-10 w-10 rounded-lg object-cover border border-slate-200"
-                                  src={getCdnUrl(tutor.avatar) || ''}
+                                  src={tutor.avatar || ''}
                                   alt={`${tutor.firstName} ${tutor.lastName}`}
                                   referrerPolicy="no-referrer"
                                 />
@@ -438,7 +437,7 @@ export default function ManageUsersPage() {
                           {tutor.avatar ? (
                             <img
                               className="h-12 w-12 rounded-lg object-cover border border-slate-200"
-                              src={getCdnUrl(tutor.avatar) || ''}
+                              src={tutor.avatar || ''}
                               alt={`${tutor.firstName} ${tutor.lastName}`}
                               referrerPolicy="no-referrer"
                             />

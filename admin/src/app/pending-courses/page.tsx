@@ -15,7 +15,6 @@ import {
   UserIcon,
   BookOpenIcon
 } from '@heroicons/react/24/outline';
-import { getCdnUrl } from '../../utils/cdn';
 
 interface PendingCourse {
   id: string;
@@ -189,7 +188,7 @@ export default function PendingCoursesPage() {
                   <div className="flex-shrink-0">
                     {course.thumbnail ? (
                       <img
-                        src={getCdnUrl(course.thumbnail) || ''}
+                        src={course.thumbnail || ''}
                         alt={course.title}
                         className="w-full md:w-48 h-32 object-cover rounded-lg"
                       />

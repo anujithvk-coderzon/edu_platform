@@ -6,7 +6,6 @@ import {
   UsersIcon
 } from '@heroicons/react/24/outline';
 import StarRating from '../ui/StarRating';
-import { getImageUrl } from '../../utils/imageUtils';
 
 interface Course {
   id: string;
@@ -51,7 +50,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   // Process thumbnail URL to handle both relative paths and CDN URLs
-  const thumbnailUrl = getImageUrl(course.thumbnail);
+  const thumbnailUrl = course.thumbnail;
 
   // Debug logging
 

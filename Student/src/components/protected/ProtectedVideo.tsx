@@ -2,29 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { disableVideoDownload, showProtectionWarning } from '../../utils/materialProtection';
-import { env } from '../../config/env';
-import { getCdnUrl } from '../../utils/cdn';
 import '../../styles/materialProtection.css';
 
 interface ProtectedVideoProps {
   src: string;
+  /** Bunny Stream embed URL, supplied by the API for VIDEO materials. */
+  embedUrl?: string;
   poster?: string;
   className?: string;
   watermarkText?: string;
   onEnded?: () => void;
 }
 
-/**
- * Check if the src is a Bunny Stream GUID (format: 8-4-4-4-12 hex characters)
- */
-const isBunnyStreamGuid = (src: string): boolean => {
-  if (!src) return false;
-  const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return guidPattern.test(src);
-};
-
 export default function ProtectedVideo({
   src,
+  embedUrl,
   poster,
   className = '',
   watermarkText,
@@ -34,12 +26,10 @@ export default function ProtectedVideo({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showWarning, setShowWarning] = useState(false);
-  const [isStreamVideo, setIsStreamVideo] = useState(false);
 
-  useEffect(() => {
-    // Check if the src is a Bunny Stream GUID
-    setIsStreamVideo(isBunnyStreamGuid(src));
-  }, [src]);
+  // The API resolves VIDEO materials to a Stream embed URL; its presence is
+  // what distinguishes a streamed video from a plain uploaded file.
+  const isStreamVideo = Boolean(embedUrl);
 
   useEffect(() => {
     // Only apply video protection for non-stream videos (regular video tag)
@@ -96,7 +86,7 @@ export default function ProtectedVideo({
         <div className="relative w-full rounded-lg overflow-hidden bg-black" style={{ paddingBottom: '56.25%' }}>
           <iframe
             ref={iframeRef}
-            src={`https://iframe.mediadelivery.net/embed/${env.BUNNY_STREAM_LIBRARY_ID}/${src}`}
+            src={embedUrl}
             loading="lazy"
             style={{
               position: 'absolute',
@@ -134,9 +124,9 @@ export default function ProtectedVideo({
           }}
           onEnded={onEnded}
         >
-          <source src={getCdnUrl(src) || src} type="video/mp4" />
-          <source src={getCdnUrl(src) || src} type="video/webm" />
-          <source src={getCdnUrl(src) || src} type="video/ogg" />
+          <source src={src} type="video/mp4" />
+          <source src={src} type="video/webm" />
+          <source src={src} type="video/ogg" />
           Your browser does not support the video tag.
         </video>
       )}

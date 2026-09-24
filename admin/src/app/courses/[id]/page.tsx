@@ -22,17 +22,6 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
-import { getCdnUrl } from '../../../utils/cdn';
-import { BUNNY_STREAM_LIBRARY_ID } from '../../../config/env';
-
-/**
- * Check if the src is a Bunny Stream GUID (format: 8-4-4-4-12 hex characters)
- */
-const isBunnyStreamGuid = (src: string): boolean => {
-  if (!src) return false;
-  const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return guidPattern.test(src);
-};
 
 interface Material {
   id: string;
@@ -40,6 +29,8 @@ interface Material {
   description?: string;
   type: 'PDF' | 'VIDEO' | 'AUDIO' | 'IMAGE' | 'DOCUMENT' | 'LINK';
   fileUrl?: string;
+  /** Bunny Stream embed URL, resolved by the API for VIDEO materials. */
+  embedUrl?: string;
   content?: string;
   orderIndex: number;
 }
@@ -449,7 +440,7 @@ export default function CourseViewPage() {
                           <div className="space-y-3">
                             {module.materials.map((material) => {
                               const MaterialIcon = getMaterialIcon(material.type);
-                              const materialUrl = getCdnUrl(material.fileUrl) || '';
+                              const materialUrl = material.fileUrl || '';
                               return (
                                 <div key={material.id} className="p-3 bg-white rounded-lg border border-slate-200">
                                   <div className="flex items-center">
@@ -483,10 +474,10 @@ export default function CourseViewPage() {
                                   {material.fileUrl && expandedMaterials.has(material.id) && (
                                     <div className="mt-4">
                                       {material.type === 'VIDEO' && (
-                                        isBunnyStreamGuid(material.fileUrl) ? (
+                                        material.embedUrl ? (
                                           /* Bunny Stream iframe embed */
                                           <iframe
-                                            src={`https://iframe.mediadelivery.net/embed/${BUNNY_STREAM_LIBRARY_ID}/${material.fileUrl}`}
+                                            src={material.embedUrl}
                                             loading="lazy"
                                             style={{ border: 0, width: '100%', aspectRatio: '16/9', maxWidth: '28rem' }}
                                             className="rounded-lg bg-black"

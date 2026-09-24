@@ -32,7 +32,6 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../../../../contexts/AuthContext';
-import { getImageUrl } from '../../../../utils/imageUtils';
 
 interface Material {
   id: string;
@@ -1013,10 +1012,7 @@ export default function CourseEditPage() {
                       <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                         <div className="relative flex-shrink-0">
                           <img
-                            src={course.thumbnail?.startsWith('blob:')
-                              ? course.thumbnail
-                              : getImageUrl(course.thumbnail || '') || course.thumbnail || ''
-                            }
+                            src={course.thumbnail || ''}
                             alt="Course thumbnail"
                             className="w-full sm:w-48 h-auto aspect-video object-cover rounded-lg border-2 border-slate-200 shadow-sm"
                             onError={(e) => {
@@ -2114,7 +2110,7 @@ export default function CourseEditPage() {
                                 <div className="flex">
                                   <a
                                     href={(() => {
-                                      const fullUrl = getImageUrl(submission.fileUrl) || submission.fileUrl;
+                                      const fullUrl = submission.fileUrl || submission.fileUrl;
                                       console.log('Opening document with URL:', fullUrl);
                                       return fullUrl;
                                     })()}

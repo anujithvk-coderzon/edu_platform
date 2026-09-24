@@ -16,7 +16,6 @@ import {
   StarIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { getImageUrl } from '@/utils/imageUtils';
 
 interface Enrollment {
   id: string;
@@ -330,9 +329,9 @@ export default function MyCoursesPage() {
               <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-200 overflow-hidden">
                 <div className="relative w-full rounded-t-lg" style={{ height: '208px' }}>
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg overflow-hidden">
-                    {enrollment.course.thumbnail && getImageUrl(enrollment.course.thumbnail) ? (
+                    {enrollment.course.thumbnail && enrollment.course.thumbnail ? (
                       <img
-                        src={getImageUrl(enrollment.course.thumbnail)!}
+                        src={enrollment.course.thumbnail!}
                         alt={enrollment.course.title}
                         className="w-full h-full object-cover"
                       onError={(e) => {

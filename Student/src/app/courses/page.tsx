@@ -18,7 +18,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
-import { getImageUrl } from '@/utils/imageUtils';
 
 interface Course {
   id: string;
@@ -506,9 +505,9 @@ function CoursesContent() {
                 >
                   {/* Thumbnail */}
                   <div className="relative h-48 bg-slate-100 overflow-hidden flex-shrink-0">
-                    {course.thumbnail && getImageUrl(course.thumbnail) ? (
+                    {course.thumbnail && course.thumbnail ? (
                       <img
-                        src={getImageUrl(course.thumbnail)!}
+                        src={course.thumbnail!}
                         alt={course.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

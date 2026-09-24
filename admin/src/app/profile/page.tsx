@@ -22,7 +22,6 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Link from 'next/link';
 import { api } from '../../lib/api';
 import { User, Course } from '../../types/api';
-import { getCdnUrl } from '../../utils/cdn';
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
@@ -235,7 +234,7 @@ export default function ProfilePage() {
                         />
                       ) : user?.avatar ? (
                         <img
-                          src={getCdnUrl(user.avatar) || ''}
+                          src={user.avatar || ''}
                           alt="Profile"
                           className="h-full w-full object-cover"
                           referrerPolicy="no-referrer"

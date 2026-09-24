@@ -25,7 +25,6 @@ import Link from 'next/link';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { getImageUrl } from '../../utils/imageUtils';
 import './animations.css';
 
 interface Course {
@@ -454,7 +453,7 @@ const Page = () => {
                   <div className="absolute inset-0 bg-slate-100 overflow-hidden">
                     {course.thumbnail ? (
                       <img
-                        src={getImageUrl(course.thumbnail) || course.thumbnail}
+                        src={course.thumbnail || course.thumbnail}
                         alt={course.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

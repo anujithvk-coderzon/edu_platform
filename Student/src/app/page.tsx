@@ -17,7 +17,6 @@ import {
   PlayIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
-import { getImageUrl } from '@/utils/imageUtils';
 
 interface Course {
   id: string;
@@ -456,9 +455,9 @@ export default function Home() {
                   <div key={course.id} className="group bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-slate-300 transition-all duration-300 overflow-hidden flex flex-col h-full">
                     {/* Thumbnail */}
                     <div className="relative h-48 bg-slate-100 overflow-hidden flex-shrink-0">
-                      {course.thumbnail && getImageUrl(course.thumbnail) ? (
+                      {course.thumbnail && course.thumbnail ? (
                         <img
-                          src={getImageUrl(course.thumbnail)!}
+                          src={course.thumbnail!}
                           alt={course.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />

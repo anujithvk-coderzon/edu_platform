@@ -7,7 +7,6 @@ import { api } from '@/lib/api';
 import CourseReview from '@/components/CourseReview';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { getImageUrl } from '@/utils/imageUtils';
 import {
   BookOpenIcon,
   ArrowLeftIcon,
@@ -177,9 +176,9 @@ export default function CourseRatingPage() {
             {/* Course Thumbnail */}
             <div className="flex-shrink-0">
               <div className="w-24 h-16 sm:w-32 sm:h-20 md:w-40 md:h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
-                {course?.thumbnail && getImageUrl(course.thumbnail) ? (
+                {course?.thumbnail && course.thumbnail ? (
                   <img
-                    src={getImageUrl(course.thumbnail)!}
+                    src={course.thumbnail!}
                     alt={course.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {

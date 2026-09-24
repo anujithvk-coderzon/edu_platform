@@ -6,6 +6,7 @@ import adminRoutes from "./routes/admin.routes";
 import cors from 'cors'
 import path from 'path'
 import cookieParser from 'cookie-parser'
+import { normalizeMediaPaths, resolveMediaUrls } from './middleware/mediaUrls'
 const port = process.env.PORT || 4000;
 const app = express()
 
@@ -86,6 +87,11 @@ app.use("/uploads", (req, res, next) => {
 app.use(express.json({ limit: '200mb' }))
 app.use(express.urlencoded({ extended: true, limit: '200mb' }))
 app.use(cookieParser())
+
+// Media paths are stored relative and served absolute; translate at the boundary
+// so controllers never deal with CDN hosts and clients never need CDN config.
+app.use(normalizeMediaPaths)
+app.use(resolveMediaUrls)
 
 // Increase server timeout for large file uploads (5 minutes)
 app.use((req: Request, res: Response, next: NextFunction) => {

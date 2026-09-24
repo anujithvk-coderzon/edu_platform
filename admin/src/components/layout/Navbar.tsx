@@ -7,7 +7,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '../ui/Button';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../contexts/AuthContext';
-import { getCdnUrl } from '../../utils/cdn';
 import { api } from '../../lib/api';
 import {
   BookOpenIcon,
@@ -292,7 +291,7 @@ const Navbar = () => {
                     {user?.avatar ? (
                       <img
                         className="h-8 w-8 rounded-lg object-cover"
-                        src={getCdnUrl(user.avatar) || ''}
+                        src={user.avatar || ''}
                         alt={`${user.firstName} ${user.lastName}`}
                         referrerPolicy="no-referrer"
                       />
@@ -435,7 +434,7 @@ const Navbar = () => {
                       {user.avatar ? (
                         <img
                           className="h-12 w-12 rounded-xl object-cover"
-                          src={getCdnUrl(user.avatar) || ''}
+                          src={user.avatar || ''}
                           alt={`${user.firstName} ${user.lastName}`}
                           referrerPolicy="no-referrer"
                         />

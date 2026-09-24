@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '../../utils/cn';
-import { getCdnUrl } from '@/utils/cdn';
 import {
   BookOpenIcon,
   HomeIcon,
@@ -131,7 +130,7 @@ export default function Navbar() {
                       {user.avatar ? (
                         <img
                           className="h-8 w-8 rounded-lg object-cover"
-                          src={getCdnUrl(user.avatar) || ''}
+                          src={user.avatar || ''}
                           alt={`${user.firstName} ${user.lastName}`}
                           referrerPolicy="no-referrer"
                         />
@@ -247,7 +246,7 @@ export default function Navbar() {
                       {user.avatar ? (
                         <img
                           className="h-12 w-12 rounded-xl object-cover"
-                          src={getCdnUrl(user.avatar) || ''}
+                          src={user.avatar || ''}
                           alt={`${user.firstName} ${user.lastName}`}
                           referrerPolicy="no-referrer"
                         />

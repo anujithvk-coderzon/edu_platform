@@ -25,8 +25,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
-import { getImageUrl } from '@/utils/imageUtils';
-import { getCdnUrl } from '@/utils/cdn';
 import ProtectedVideo from '@/components/protected/ProtectedVideo';
 import CustomPDFViewer from '@/components/protected/CustomPDFViewer';
 import ProtectedImage from '@/components/protected/ProtectedImage';
@@ -39,6 +37,8 @@ interface Material {
   description: string;
   type: string;
   fileUrl: string;
+  /** Bunny Stream embed URL, resolved by the API for VIDEO materials. */
+  embedUrl?: string;
   content: string;
   orderIndex: number;
   moduleId: string;
@@ -511,6 +511,7 @@ export default function LearnPage() {
             {currentMaterial.fileUrl ? (
               <ProtectedVideo
                 src={currentMaterial.fileUrl}
+                embedUrl={currentMaterial.embedUrl}
                 className="w-full"
                 watermarkText={user?.email || 'Protected Content'}
               />
@@ -528,7 +529,7 @@ export default function LearnPage() {
           <div className={`bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden ${currentMaterial.fileUrl ? 'h-full flex flex-col min-h-0' : 'p-3 sm:p-4'}`}>
             {currentMaterial.fileUrl ? (
               <CustomPDFViewer
-                src={getCdnUrl(currentMaterial.fileUrl) || ''}
+                src={currentMaterial.fileUrl || ''}
                 className="flex-1 min-h-0"
               />
             ) : currentMaterial.content ? (
@@ -550,7 +551,7 @@ export default function LearnPage() {
           <div className="w-full max-w-5xl mx-auto">
             {currentMaterial.fileUrl ? (
               <EmbedViewer
-                url={getCdnUrl(currentMaterial.fileUrl) || currentMaterial.fileUrl}
+                url={currentMaterial.fileUrl || currentMaterial.fileUrl}
                 title={currentMaterial.title}
               />
             ) : (
@@ -1257,7 +1258,7 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
                 <div>
                   <h4 className="font-medium text-slate-900 mb-2">File Submission</h4>
                   <a
-                    href={getCdnUrl(submission.fileUrl) || submission.fileUrl}
+                    href={submission.fileUrl || submission.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"

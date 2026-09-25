@@ -31,6 +31,10 @@ export const authMiddleware = async (
     const headerToken = req.header('Authorization')?.replace('Bearer ', '');
 
     const token = adminToken || studentToken || headerToken;
+    // iOS Safari blocks third-party cookies, so requests from iPhone arrive with
+    // the Authorization header and no cookie at all. The cookie/user-type check
+    // below only makes sense when a cookie was actually used to authenticate.
+    const authenticatedViaCookie = Boolean(adminToken || studentToken);
 
     if (!token) {
       return res.status(401).json({
@@ -147,9 +151,11 @@ export const authMiddleware = async (
       console.log('✅ Session ACCEPTED for:', user.email, '- Session tokens match');
     }
 
-    // Validate that the token cookie matches the user type
-    // Allow if the correct cookie exists for the determined user type
-    if ((userType === 'admin' && !adminToken) || (userType === 'student' && !studentToken)) {
+    // Validate that the token cookie matches the user type, so an admin cookie
+    // cannot be used as a student (or vice versa). Skipped for header-only
+    // requests, where the JWT's own `type` claim is the authority.
+    if (authenticatedViaCookie &&
+        ((userType === 'admin' && !adminToken) || (userType === 'student' && !studentToken))) {
       return res.status(401).json({
         success: false,
         error: { message: 'Invalid token for user type.' }

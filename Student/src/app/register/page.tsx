@@ -24,6 +24,7 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { studentStorage } from '@/utils/storage';
 import { handleGoogleRegister } from '@/Oauth/google';
 import { handleGithubRegister } from '@/Oauth/github';
 
@@ -405,6 +406,10 @@ export default function RegisterPage() {
 
       const data = await response.json();
 
+      // OAuth bypasses the API client, so capture the token here too —
+      // without this, Gmail sign-up still fails on iOS.
+      if (data?.data?.token) studentStorage.setToken(data.data.token);
+
       if (!response.ok) {
         throw new Error(data.error?.message || 'OAuth registration failed');
       }
@@ -666,6 +671,10 @@ export default function RegisterPage() {
 
           const loginData = await loginResponse.json();
 
+          // OAuth bypasses the API client, so capture the token here too —
+          // without this, Gmail sign-in still fails on iOS.
+          if (loginData?.data?.token) studentStorage.setToken(loginData.data.token);
+
           if (loginResponse.ok && loginData.success) {
             toast.dismiss();
             toast.success('Welcome back!');
@@ -757,6 +766,10 @@ export default function RegisterPage() {
           });
 
           const loginData = await loginResponse.json();
+
+          // OAuth bypasses the API client, so capture the token here too —
+          // without this, Gmail sign-in still fails on iOS.
+          if (loginData?.data?.token) studentStorage.setToken(loginData.data.token);
 
           if (loginResponse.ok && loginData.success) {
             toast.dismiss();

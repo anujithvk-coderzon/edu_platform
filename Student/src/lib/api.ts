@@ -11,17 +11,20 @@ class ApiClient {
     this.baseURL = baseURL;
   }
 
+  // iOS Safari blocks third-party cookies outright, so the session cookie never
+  // survives on iPhone. The backend also accepts `Authorization: Bearer`, so the
+  // token is kept client-side and sent as a header; the cookie still rides along
+  // for browsers that allow it.
   private getToken(): string | null {
-    // No longer needed since we use cookies
-    return null;
+    return studentStorage.getToken();
   }
 
   private setToken(token: string): void {
-    // No longer needed since backend sets cookies
+    studentStorage.setToken(token);
   }
 
   private removeToken(): void {
-    // No longer needed since backend clears cookies
+    studentStorage.removeToken();
   }
 
   private async request<T = any>(
@@ -29,12 +32,14 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
 
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      // Use cookies for authentication (student_token cookie)
+      // Cookie for browsers that permit it; the header is what works on iOS.
       credentials: 'include',
     };
 
@@ -110,12 +115,15 @@ class ApiClient {
 
   async uploadFile(endpoint: string, formData: FormData): Promise<ApiResponse> {
     const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
 
     try {
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
         credentials: 'include',
+        // No Content-Type: FormData must set its own multipart boundary.
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
       const data = await response.json();
@@ -133,19 +141,22 @@ class ApiClient {
   // Auth endpoints
   auth = {
     register: async (userData: any) => {
-      // Backend now sets role-specific cookie automatically
       const response = await this.post('/auth/register', userData);
+      if (response?.data?.token) this.setToken(response.data.token);
       return response;
     },
     login: async (credentials: any) => {
-      // Backend now sets role-specific cookie automatically
       const response = await this.post('/auth/login', credentials);
+      if (response?.data?.token) this.setToken(response.data.token);
       return response;
     },
     logout: async () => {
-      // Backend now clears role-specific cookie automatically
-      const response = await this.post('/auth/logout');
-      return response;
+      try {
+        return await this.post('/auth/logout');
+      } finally {
+        // Drop the local token even if the network call fails.
+        this.removeToken();
+      }
     },
     getMe: () => this.get('/auth/me'),
     updateProfile: (data: any) => this.put('/auth/profile', data),

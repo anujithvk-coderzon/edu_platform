@@ -16,6 +16,7 @@ import {
   BookOpenIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { studentStorage } from '@/utils/storage';
 import './animations.css';
 import { handleGoogleLogin } from '@/Oauth/google';
 import { handleGithubLogin } from '@/Oauth/github';
@@ -189,6 +190,10 @@ export default function LoginPage() {
 
         const loginData = await loginResponse.json();
 
+        // OAuth bypasses the API client, so capture the token here too —
+        // without this, Gmail sign-in still fails on iOS.
+        if (loginData?.data?.token) studentStorage.setToken(loginData.data.token);
+
         if (loginResponse.ok && loginData.success) {
           toast.success('Welcome back!');
           await refreshUser();
@@ -238,6 +243,10 @@ export default function LoginPage() {
         });
 
         const loginData = await loginResponse.json();
+
+        // OAuth bypasses the API client, so capture the token here too —
+        // without this, Gmail sign-in still fails on iOS.
+        if (loginData?.data?.token) studentStorage.setToken(loginData.data.token);
 
         if (loginResponse.ok && loginData.success) {
           toast.success('Welcome back!');

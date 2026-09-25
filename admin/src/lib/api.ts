@@ -1,5 +1,6 @@
 import { ApiResponse, PaginatedResponse } from '../types/api';
 import { env } from '../config/env';
+import { adminStorage } from '../utils/storage';
 
 interface RequestConfig {
   method?: string;
@@ -28,16 +29,35 @@ class ApiClient {
     this.baseURL = baseURL;
   }
 
+  // iOS Safari blocks third-party cookies outright, so the session cookie never
+  // survives on iPhone. The backend also accepts `Authorization: Bearer`, so the
+  // token is kept client-side and sent as a header; the cookie still rides along
+  // for browsers that allow it.
+  private getToken(): string | null {
+    return adminStorage.getToken();
+  }
+
+  private setToken(token: string): void {
+    adminStorage.setToken(token);
+  }
+
+  private removeToken(): void {
+    adminStorage.removeToken();
+  }
+
   private async request<T = any>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const token = this.getToken();
 
     const defaultOptions: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      // Cookie for browsers that permit it; the header is what works on iOS.
       credentials: 'include',
     };
 
@@ -138,6 +158,7 @@ class ApiClient {
 
   async uploadFile(endpoint: string, formData: FormData): Promise<ApiResponse> {
     const url = `${this.baseURL}${endpoint}`;
+    const uploadToken = this.getToken();
 
     try {
       // Create AbortController for timeout handling
@@ -151,6 +172,8 @@ class ApiClient {
         body: formData,
         credentials: 'include',
         signal: controller.signal,
+        // No Content-Type: FormData must set its own multipart boundary.
+        headers: uploadToken ? { Authorization: `Bearer ${uploadToken}` } : undefined,
       });
 
       clearTimeout(timeoutId);
@@ -177,8 +200,19 @@ class ApiClient {
   // Auth endpoints
   auth = {
     register: (userData: any) => this.post('/auth/register', userData),
-    login: (credentials: any) => this.post('/auth/login', credentials),
-    logout: () => this.post('/auth/logout'),
+    login: async (credentials: any) => {
+      const response = await this.post('/auth/login', credentials);
+      if (response?.data?.token) this.setToken(response.data.token);
+      return response;
+    },
+    logout: async () => {
+      try {
+        return await this.post('/auth/logout');
+      } finally {
+        // Drop the local token even if the network call fails.
+        this.removeToken();
+      }
+    },
     getMe: () => this.get('/auth/me'),
     updateProfile: (data: any) => this.put('/auth/profile', data),
     changePassword: (data: any) => this.put('/auth/change-password', data),

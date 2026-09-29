@@ -46,6 +46,15 @@ interface RegisterData {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // API functions using the backend
+/** Did the server actually say we are unauthenticated, as opposed to the
+ *  request simply not completing? Only the former should end a session. */
+const isAuthFailure = (message: string): boolean =>
+  message.includes('401') ||
+  message.includes('Access denied') ||
+  message.includes('Session expired') ||
+  message.includes('Invalid session') ||
+  message.includes('logged in from another device');
+
 const authApi = {
   login: async (email: string, password: string): Promise<User> => {
     const response = await api.auth.login({ email, password });
@@ -136,8 +145,14 @@ const authApi = {
         return null;
       }
 
-      if (!errorMessage.includes('401') && !errorMessage.includes('Access denied')) {
-      }
+      // A real "you are not logged in" answer from the server.
+      if (isAuthFailure(errorMessage)) return null;
+
+      // Anything else -- a network blip, a 5xx, or a request iOS Safari aborted
+      // because the page navigated away -- is not evidence the session died.
+      // Returning null here made every such hiccup look like a logout, which is
+      // why iPhone showed "session expired" immediately after signing in.
+      throw error;
     }
     return null;
   },
@@ -206,18 +221,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const currentUser = await authApi.getCurrentUser();
         if (!currentUser) {
-          // Session is invalid, log out
-          setUser(null);
-          window.location.href = '/login?session_expired=true';
-        }
-      } catch (error) {
-        // Session check failed, likely logged out from another device
-        const errorMessage = error instanceof Error ? error.message : '';
-        if (errorMessage.includes('logged in from another device') || errorMessage.includes('Session expired')) {
+          // The server answered, and the answer was "not logged in".
           setUser(null);
           studentStorage.clearStudentData();
           window.location.href = '/login?session_expired=true';
         }
+      } catch {
+        // The check itself did not complete. Leave the session alone instead of
+        // bouncing the user to the login page over a transient failure.
       }
     };
 

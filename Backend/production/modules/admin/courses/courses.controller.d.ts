@@ -1,0 +1,16 @@
+import type { Response } from "express";
+import type { AuthRequest } from "../../../middlewares/auth";
+export declare const GetAllCourses: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const GetMyCourses: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const GetAllTutors: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const ToggleTutorStatus: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const GetCourseById: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const CreateCourse: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const UpdateCourse: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const SubmitCourseForReview: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const PublishCourse: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const RejectCourse: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const GetPendingCoursesCount: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const GetPendingCourses: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const DeleteCourse: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const CleanupOrphanedCourses: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;

@@ -1,0 +1,18 @@
+import type { Request, Response } from "express";
+import type { AuthRequest } from "../../../middlewares/auth";
+export declare const checkEmail: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const verifyEmail: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const verifyOtpEmail: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const register: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const verifyOtp: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const resendOtp: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const oauthRegister: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const oauthLogin: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const login: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const logout: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const forgotPassword: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const verifyForgotPasswordOtp: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const resetPassword: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getCurrentUser: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const updateProfile: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const changePassword: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;

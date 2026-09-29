@@ -1,0 +1,17 @@
+import type { Request, Response } from "express";
+import type { AuthRequest } from "../../../middlewares/auth";
+export declare const bootstrapAdmin: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const registerUser: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const registerTutor: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const checkTutorEmail: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const sendTutorVerification: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const verifyTutorOtp: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const registerTutorPublic: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const login: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const logout: (_req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const forgotPassword: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const verifyForgotPasswordOtp: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const resetPassword: (req: Request, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getCurrentUser: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const updateProfile: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const changePassword: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;

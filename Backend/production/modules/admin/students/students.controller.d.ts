@@ -1,0 +1,12 @@
+import type { Response } from "express";
+import type { AuthRequest } from "../../../middlewares/auth";
+export declare const getStudentsCount: (_req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getAllRegisteredStudents: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getUserStats: (_req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getStudentStats: (_req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getAllStudents: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const getUserById: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const blockStudent: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const unblockStudent: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const updateUser: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;
+export declare const deleteUser: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>>>;

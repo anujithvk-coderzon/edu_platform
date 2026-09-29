@@ -64,7 +64,7 @@ export default function ProtectedImage({
     >
       {/* Warning message */}
       {showWarning && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm whitespace-nowrap">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-[#F04438] text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm whitespace-nowrap">
           ⚠️ Images are protected
         </div>
       )}

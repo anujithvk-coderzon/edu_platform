@@ -202,7 +202,7 @@ export default function Home() {
 
       {/* ---------------------------------------------------------------- hero */}
       <section className="border-b border-[#DDE3EA] bg-white">
-        <div className="mx-auto max-w-6xl px-5 sm:px-8 py-12 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
             <div>
               {user ? (
@@ -240,6 +240,11 @@ export default function Home() {
                   <input
                     id="course-search"
                     type="text"
+                    // An input defaults to size=20, an intrinsic width of roughly
+                    // 200px that min-w-0 does not remove. It inflated this flex
+                    // row's min-content to 326px, which forced the hero grid
+                    // column wider than a 320px viewport.
+                    size={1}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Python, React, data structures…"
@@ -307,7 +312,7 @@ export default function Home() {
 
       {/* the one bold thing: the exact place to restart */}
       {user && resumePoint && (
-        <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mt-8 rounded-[6px] border border-[#DDE3EA] border-l-[3px] border-l-[#1D4ED8] bg-[#F6F8FA] p-5 sm:p-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
@@ -345,7 +350,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* ------------------------------------------------------ continue */}
         {user && myEnrollments.length > 0 && (
           <section className="pt-14 sm:pt-16">

@@ -77,9 +77,9 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
     return (
       <div className="bg-white rounded-lg border p-6">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-4 bg-[#DDE3EA] rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-[#DDE3EA] rounded w-full mb-2"></div>
+          <div className="h-4 bg-[#DDE3EA] rounded w-3/4"></div>
         </div>
       </div>
     );
@@ -87,13 +87,13 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
 
   return (
     <div className="bg-white rounded-lg border p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <h3 className="text-lg font-semibold text-[#0F172A] mb-4">
         {existingReview ? 'Update Your Review' : 'Rate This Course'}
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-[#334155] mb-2">
             Your Rating *
           </label>
           <StarRating
@@ -104,19 +104,19 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
         </div>
 
         <div>
-          <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="comment" className="block text-sm font-medium text-[#334155] mb-2">
             Your Review (Optional)
           </label>
           <textarea
             id="comment"
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            className="w-full px-3 py-2 border border-[#C7D2DE] rounded-md focus:ring-[#1D4ED8] focus:border-[#1D4ED8] text-[#0F172A]"
             placeholder="Share your experience with this course..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             maxLength={500}
           />
-          <div className="text-right text-xs text-gray-500 mt-1">
+          <div className="text-right text-xs text-[#64748B] mt-1">
             {comment.length}/500
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function CourseReview({ courseId, onReviewSubmitted }: CourseRevi
         <button
           type="submit"
           disabled={submitting || rating === 0}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-[#1D4ED8] text-white py-2 px-4 rounded-md hover:bg-[#1E40AF] focus:ring-2 focus:ring-[#1D4ED8] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? 'Submitting...' : existingReview ? 'Update Review' : 'Submit Review'}
         </button>

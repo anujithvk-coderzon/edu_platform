@@ -231,10 +231,10 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   // Don't render until components are loaded
   if (!mounted || !pdfComponents) {
     return (
-      <div className={`flex items-center justify-center h-full min-h-[320px] bg-slate-50 rounded-lg border border-slate-200 ${className}`}>
+      <div className={`flex items-center justify-center h-full min-h-[320px] bg-[#F6F8FA] rounded-lg border border-[#DDE3EA] ${className}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-slate-600 text-sm">Loading PDF viewer...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1D4ED8] border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-[#475569] text-sm">Loading PDF viewer...</p>
         </div>
       </div>
     );
@@ -243,13 +243,13 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
   const { Document, Page } = pdfComponents;
 
   const toolbarButton =
-    'flex items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition h-10 w-10 flex-shrink-0';
+    'flex items-center justify-center rounded-lg border border-[#DDE3EA] text-[#334155] hover:bg-[#E9EEF4] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition h-10 w-10 flex-shrink-0';
 
   return (
     <div
       ref={rootRef}
       tabIndex={-1}
-      className={`protected-content flex flex-col min-h-0 bg-slate-100 outline-none ${isFullscreen ? 'h-screen' : ''} ${className}`}
+      className={`protected-content flex flex-col min-h-0 bg-[#E9EEF4] outline-none ${isFullscreen ? 'h-screen' : ''} ${className}`}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -260,7 +260,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
       style={{ userSelect: 'none' }}
     >
       {/* Sticky toolbar — stays reachable no matter how tall the page renders */}
-      <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-white border-b border-slate-200 px-2 sm:px-3 py-2">
+      <div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-white border-b border-[#DDE3EA] px-2 sm:px-3 py-2">
         <button
           onClick={goToPrevPage}
           disabled={pageNumber <= 1}
@@ -270,7 +270,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
 
-        <span className="text-slate-700 font-medium text-xs sm:text-sm whitespace-nowrap tabular-nums px-1">
+        <span className="text-[#334155] font-medium text-xs sm:text-sm whitespace-nowrap tabular-nums px-1">
           {numPages ? (
             <>
               <span className="hidden sm:inline">Page </span>
@@ -299,7 +299,7 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
           <MagnifyingGlassMinusIcon className="w-5 h-5" />
         </button>
 
-        <span className="hidden sm:inline text-xs text-slate-600 font-medium tabular-nums w-11 text-center">
+        <span className="hidden sm:inline text-xs text-[#475569] font-medium tabular-nums w-11 text-center">
           {Math.round(zoom * 100)}%
         </span>
 
@@ -343,8 +343,8 @@ export default function CustomPDFViewer({ src, className = '' }: CustomPDFViewer
         {loading && (
           <div className="flex items-center justify-center h-full w-full">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
-              <p className="mt-4 text-slate-600 text-sm">Loading PDF...</p>
+              <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1D4ED8] border-t-transparent mx-auto"></div>
+              <p className="mt-4 text-[#475569] text-sm">Loading PDF...</p>
             </div>
           </div>
         )}

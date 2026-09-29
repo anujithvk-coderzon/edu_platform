@@ -985,9 +985,9 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
         hasSubmission
           ? isGraded
             ? 'bg-gradient-to-r from-[#ECFDF3] to-[#ECFDF3] border-[#ABEFC6] hover:from-[#DCFAE6] hover:to-[#DCFAE6]'
-            : 'bg-gradient-to-r from-[#EFF4FF] to-cyan-50 border-[#C7D7FE] hover:from-[#DBE7FE] hover:to-cyan-100'
+            : 'bg-[#EFF4FF] border-[#C7D7FE] hover:bg-[#DBE7FE]'
           : isOverdue
-          ? 'bg-gradient-to-r from-[#FEF3F2] to-pink-50 border-[#FECDCA] hover:from-[#FEE4E2] hover:to-pink-100'
+          ? 'bg-gradient-to-r from-[#FEF3F2] to-[#FEF3F2] border-[#FECDCA] hover:from-[#FEE4E2] hover:to-[#FEE4E2]'
           : 'bg-white border-[#DDE3EA] hover:bg-[#F6F8FA] hover:border-[#C7D7FE]'
       }`}
     >

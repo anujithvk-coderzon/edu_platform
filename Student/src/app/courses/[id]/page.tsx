@@ -612,7 +612,7 @@ export default function CourseDetailPage() {
 
                           {/* Module Materials */}
                           {isExpanded && (
-                            <div className="divide-y divide-slate-100 bg-white">
+                            <div className="divide-y divide-[#E9EEF4] bg-white">
                               {module.materials
                                 .sort((a, b) => a.orderIndex - b.orderIndex)
                                 .map((material, materialIndex) => {

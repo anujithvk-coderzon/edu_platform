@@ -94,13 +94,13 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-slate-50 rounded-lg p-5 animate-pulse">
+          <div key={i} className="bg-[#F6F8FA] rounded-lg p-5 animate-pulse">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-slate-200 rounded-full"></div>
+              <div className="w-10 h-10 bg-[#DDE3EA] rounded-full"></div>
               <div className="flex-1 space-y-2">
-                <div className="h-3 bg-slate-200 rounded w-1/4"></div>
-                <div className="h-3 bg-slate-200 rounded w-full"></div>
-                <div className="h-3 bg-slate-200 rounded w-3/4"></div>
+                <div className="h-3 bg-[#DDE3EA] rounded w-1/4"></div>
+                <div className="h-3 bg-[#DDE3EA] rounded w-full"></div>
+                <div className="h-3 bg-[#DDE3EA] rounded w-3/4"></div>
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
         <>
           <div className="space-y-3">
             {reviews.map((review) => (
-              <div key={review.id} className="bg-slate-50 rounded-lg p-5 hover:bg-slate-100 transition-colors">
+              <div key={review.id} className="bg-[#F6F8FA] rounded-lg p-5 hover:bg-[#E9EEF4] transition-colors">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
                     {review.student.avatar ? (
@@ -127,8 +127,8 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                        <span className="text-indigo-600 font-semibold text-sm">
+                      <div className="w-10 h-10 bg-[#DBE7FE] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                        <span className="text-[#1D4ED8] font-semibold text-sm">
                           {getInitials(review.student.firstName, review.student.lastName)}
                         </span>
                       </div>
@@ -136,10 +136,10 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-semibold text-slate-900">
+                      <h4 className="text-sm font-semibold text-[#0F172A]">
                         {review.student.firstName} {review.student.lastName}
                       </h4>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-[#64748B]">
                         {formatDate(review.createdAt)}
                       </span>
                     </div>
@@ -147,7 +147,7 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
                       <StarRating rating={review.rating} readonly size="sm" />
                     </div>
                     {review.comment && (
-                      <p className="text-slate-700 text-sm leading-relaxed">
+                      <p className="text-[#334155] text-sm leading-relaxed">
                         {review.comment}
                       </p>
                     )}
@@ -163,18 +163,18 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
               <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="px-6 py-2.5 bg-white border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:border-indigo-500 hover:text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
+                className="px-6 py-2.5 bg-white border-2 border-[#C7D2DE] text-[#334155] font-semibold rounded-lg hover:border-[#1D4ED8] hover:text-[#1D4ED8] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm"
               >
                 {loadingMore ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-400 border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#94A3B8] border-t-transparent"></div>
                     Loading...
                   </div>
                 ) : (
                   `Load More Reviews`
                 )}
               </button>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[#64748B]">
                 Showing {reviews.length} of {totalReviews} reviews
               </p>
             </div>
@@ -182,18 +182,18 @@ export default function CourseReviews({ courseId }: CourseReviewsProps) {
 
           {/* All Loaded Message */}
           {!hasMore && reviews.length > 0 && (
-            <div className="text-center pt-4 border-t border-slate-200">
-              <p className="text-xs text-slate-500">
+            <div className="text-center pt-4 border-t border-[#DDE3EA]">
+              <p className="text-xs text-[#64748B]">
                 All {totalReviews} reviews loaded
               </p>
             </div>
           )}
         </>
       ) : (
-        <div className="bg-slate-50 rounded-lg p-8 text-center">
-          <UserCircleIcon className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-slate-900 mb-1">No Reviews Yet</h3>
-          <p className="text-sm text-slate-600">Be the first to review this course!</p>
+        <div className="bg-[#F6F8FA] rounded-lg p-8 text-center">
+          <UserCircleIcon className="h-12 w-12 text-[#94A3B8] mx-auto mb-3" />
+          <h3 className="text-base font-semibold text-[#0F172A] mb-1">No Reviews Yet</h3>
+          <p className="text-sm text-[#475569]">Be the first to review this course!</p>
         </div>
       )}
     </div>

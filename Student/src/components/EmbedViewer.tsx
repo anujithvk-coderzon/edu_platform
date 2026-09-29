@@ -39,9 +39,9 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
 
   if (!embedInfo) {
     return (
-      <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
-        <div className="text-center text-slate-500">
-          <LinkIcon className="h-12 w-12 mx-auto mb-3 text-slate-400" />
+      <div className="bg-white border border-[#DDE3EA] rounded-lg p-8 shadow-sm">
+        <div className="text-center text-[#64748B]">
+          <LinkIcon className="h-12 w-12 mx-auto mb-3 text-[#94A3B8]" />
           <p className="text-sm">Invalid URL</p>
         </div>
       </div>
@@ -51,25 +51,25 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
   // If not embeddable or error occurred, show fallback
   if (!embedInfo.isEmbeddable || error) {
     return (
-      <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
+      <div className="bg-white border border-[#DDE3EA] rounded-lg p-8 shadow-sm">
         <div className="text-center">
           {error ? (
             <>
-              <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-3 text-orange-500" />
-              <h3 className="text-base font-semibold mb-2 text-slate-900">
+              <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-3 text-[#F79009]" />
+              <h3 className="text-base font-semibold mb-2 text-[#0F172A]">
                 Unable to Embed Content
               </h3>
-              <p className="text-sm text-slate-600 mb-4">
+              <p className="text-sm text-[#475569] mb-4">
                 This content cannot be embedded. Please open it in a new tab.
               </p>
             </>
           ) : (
             <>
-              <LinkIcon className="h-12 w-12 mx-auto mb-3 text-indigo-600" />
-              <h3 className="text-base font-semibold mb-2 text-slate-900">
+              <LinkIcon className="h-12 w-12 mx-auto mb-3 text-[#1D4ED8]" />
+              <h3 className="text-base font-semibold mb-2 text-[#0F172A]">
                 External Resource
               </h3>
-              <p className="text-sm text-slate-600 mb-4">
+              <p className="text-sm text-[#475569] mb-4">
                 {getPlatformName(embedInfo.platform)} content
               </p>
             </>
@@ -78,7 +78,7 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
             href={embedInfo.originalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-md"
+            className="inline-flex items-center px-5 py-2.5 bg-[#1D4ED8] text-white rounded-lg hover:bg-[#1E40AF] transition-colors text-sm font-medium shadow-md"
           >
             <ArrowTopRightOnSquareIcon className="h-4 w-4 mr-2" />
             Open in New Tab
@@ -94,17 +94,17 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
                              '56.25%'; // default to 16:9
 
   return (
-    <div className={`bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm ${className}`}>
+    <div className={`bg-white border border-[#DDE3EA] rounded-lg overflow-hidden shadow-sm ${className}`}>
       {/* Platform Badge */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-4 py-2 border-b border-slate-200">
+      <div className="bg-[#EFF4FF] px-4 py-2 border-b border-[#DDE3EA]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {embedInfo.platform === 'youtube' || embedInfo.platform === 'vimeo' || embedInfo.platform === 'loom' ? (
-              <VideoCameraIcon className="h-4 w-4 text-indigo-600" />
+              <VideoCameraIcon className="h-4 w-4 text-[#1D4ED8]" />
             ) : (
-              <DocumentTextIcon className="h-4 w-4 text-indigo-600" />
+              <DocumentTextIcon className="h-4 w-4 text-[#1D4ED8]" />
             )}
-            <span className="text-sm font-medium text-slate-700">
+            <span className="text-sm font-medium text-[#334155]">
               {getPlatformName(embedInfo.platform)}
             </span>
           </div>
@@ -112,7 +112,7 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
             href={embedInfo.originalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 hover:underline"
+            className="text-xs text-[#1D4ED8] hover:text-[#1E40AF] font-medium flex items-center gap-1 hover:underline"
           >
             <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
             Open Original
@@ -123,10 +123,10 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
       {/* Iframe Container with Aspect Ratio */}
       <div className="relative w-full" style={{ paddingBottom: aspectRatioPadding }}>
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#F6F8FA]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto mb-2"></div>
-              <p className="text-sm text-slate-600">Loading content...</p>
+              <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1D4ED8] border-t-transparent mx-auto mb-2"></div>
+              <p className="text-sm text-[#475569]">Loading content...</p>
             </div>
           </div>
         )}
@@ -150,8 +150,8 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
 
       {/* Info Footer */}
       {title && (
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200">
-          <p className="text-sm text-slate-700 font-medium truncate">{title}</p>
+        <div className="px-4 py-3 bg-[#F6F8FA] border-t border-[#DDE3EA]">
+          <p className="text-sm text-[#334155] font-medium truncate">{title}</p>
         </div>
       )}
     </div>

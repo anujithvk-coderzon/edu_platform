@@ -1502,7 +1502,7 @@ export default function RegisterPage() {
                   </p>
                 </div>
 
-                <div className="flex justify-center space-x-1.5 sm:space-x-2">
+                <div className="flex justify-center gap-1.5 sm:gap-2">
                   {[0, 1, 2, 3, 4, 5].map((index) => (
                     <input
                       key={index}
@@ -1535,7 +1535,7 @@ export default function RegisterPage() {
                           prevInput?.focus();
                         }
                       }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-semibold text-[#0F172A] border-2 border-[#C7D2DE] rounded-[4px] focus:border-[#1D4ED8] focus:outline-none"
+                      className="h-11 w-full min-w-0 flex-1 max-w-[3rem] text-center text-lg sm:text-xl font-semibold text-[#0F172A] border-2 border-[#C7D2DE] rounded-[4px] focus:border-[#1D4ED8] focus:outline-none"
                     />
                   ))}
                 </div>

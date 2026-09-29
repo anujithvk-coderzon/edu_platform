@@ -106,11 +106,11 @@ export default function CourseRatingPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F8FA] flex items-center justify-center">
         <div className="text-center">
-          <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Please log in</h3>
-          <p className="text-gray-600 mb-4">You need to be logged in to rate courses.</p>
+          <BookOpenIcon className="h-16 w-16 text-[#94A3B8] mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-[#0F172A] mb-2">Please log in</h3>
+          <p className="text-[#475569] mb-4">You need to be logged in to rate courses.</p>
           <Link href="/login">
             <Button>Log In</Button>
           </Link>
@@ -121,15 +121,15 @@ export default function CourseRatingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F6F8FA]">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 md:py-8">
           <div className="animate-pulse">
-            <div className="h-6 sm:h-8 bg-gray-200 rounded w-1/3 mb-3 sm:mb-4"></div>
-            <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/2 mb-4 sm:mb-6 md:mb-8"></div>
+            <div className="h-6 sm:h-8 bg-[#DDE3EA] rounded w-1/3 mb-3 sm:mb-4"></div>
+            <div className="h-3 sm:h-4 bg-[#DDE3EA] rounded w-1/2 mb-4 sm:mb-6 md:mb-8"></div>
             <div className="bg-white rounded-lg border p-4 sm:p-5 md:p-6">
-              <div className="h-5 sm:h-6 bg-gray-200 rounded w-1/4 mb-3 sm:mb-4"></div>
-              <div className="h-3 sm:h-4 bg-gray-200 rounded w-full mb-2"></div>
-              <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-5 sm:h-6 bg-[#DDE3EA] rounded w-1/4 mb-3 sm:mb-4"></div>
+              <div className="h-3 sm:h-4 bg-[#DDE3EA] rounded w-full mb-2"></div>
+              <div className="h-3 sm:h-4 bg-[#DDE3EA] rounded w-3/4"></div>
             </div>
           </div>
         </div>
@@ -139,11 +139,11 @@ export default function CourseRatingPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F6F8FA]">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 md:py-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-5 md:p-6 text-center">
-            <h2 className="text-base sm:text-lg font-semibold text-red-800 mb-2">Unable to Load Rating Page</h2>
-            <p className="text-sm text-red-600 mb-3 sm:mb-4">{error}</p>
+          <div className="bg-[#FEF3F2] border border-[#FECDCA] rounded-lg p-4 sm:p-5 md:p-6 text-center">
+            <h2 className="text-base sm:text-lg font-semibold text-[#912018] mb-2">Unable to Load Rating Page</h2>
+            <p className="text-sm text-[#B42318] mb-3 sm:mb-4">{error}</p>
             <div className="space-x-4">
               <Link href="/my-courses">
                 <Button variant="outline">Back to My Courses</Button>
@@ -159,9 +159,9 @@ export default function CourseRatingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-white border-b border-[#DDE3EA]">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 md:py-5">
           <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
             <Link href="/my-courses" className="hidden sm:block">
@@ -175,7 +175,7 @@ export default function CourseRatingPage() {
           <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 md:gap-5">
             {/* Course Thumbnail */}
             <div className="flex-shrink-0">
-              <div className="w-24 h-16 sm:w-32 sm:h-20 md:w-40 md:h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center relative overflow-hidden">
+              <div className="w-24 h-16 sm:w-32 sm:h-20 md:w-40 md:h-24 bg-[#1D4ED8] rounded-lg flex items-center justify-center relative overflow-hidden">
                 {course?.thumbnail && course.thumbnail ? (
                   <img
                     src={course.thumbnail!}
@@ -196,28 +196,28 @@ export default function CourseRatingPage() {
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                 {course?.category && (
-                  <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium">
+                  <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#E9EEF4] text-[#334155] rounded text-xs font-medium">
                     {course.category.name}
                   </span>
                 )}
-                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#DBE7FE] text-[#1E40AF] rounded text-xs">
                   {course?.level}
                 </span>
-                <div className="flex items-center text-green-600">
+                <div className="flex items-center text-[#079455]">
                   <CheckCircleIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
                   <span className="text-xs font-medium">Completed</span>
                 </div>
               </div>
 
-              <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-[#0F172A] mb-1.5 sm:mb-2">
                 {course?.title}
               </h1>
 
-              <p className="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3 line-clamp-2">
+              <p className="text-xs sm:text-sm text-[#475569] mb-2 sm:mb-3 line-clamp-2">
                 {course?.description}
               </p>
 
-              <div className="text-xs sm:text-sm text-slate-600">
+              <div className="text-xs sm:text-sm text-[#475569]">
                 by {course?.creator.firstName} {course?.creator.lastName}
               </div>
             </div>
@@ -229,12 +229,12 @@ export default function CourseRatingPage() {
       <div className="max-w-4xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 md:py-8">
         <div className="mb-4 sm:mb-5 md:mb-6">
           <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1.5 sm:mb-2">
-            <StarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" />
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900">
+            <StarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#F79009]" />
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold text-[#0F172A]">
               {enrollment?.hasReviewed ? 'Update Your Review' : 'Rate This Course'}
             </h2>
           </div>
-          <p className="text-xs sm:text-sm text-slate-600">
+          <p className="text-xs sm:text-sm text-[#475569]">
             {enrollment?.hasReviewed
               ? 'You can update your rating and review anytime.'
               : 'Share your experience to help other students discover great courses.'

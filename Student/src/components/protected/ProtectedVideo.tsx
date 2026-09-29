@@ -29,21 +29,31 @@ export default function ProtectedVideo({
   const stageRef = useRef<HTMLDivElement>(null);
   // CSS-rotation fallback, used where the platform cannot rotate for us.
   const [rotated, setRotated] = useState(false);
-  const [canRotate, setCanRotate] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // The API resolves VIDEO materials to a Stream embed URL; its presence is
   // what distinguishes a streamed video from a plain uploaded file.
   const isStreamVideo = Boolean(embedUrl);
 
-  // Rotating only makes sense on a phone-sized, portrait viewport.
+  // Narrow viewports get a rotated landscape view; wider ones just go
+  // fullscreen. The control itself is offered everywhere.
   useEffect(() => {
     if (!isStreamVideo || typeof window === 'undefined') return;
     const mq = window.matchMedia('(max-width: 900px)');
-    const sync = () => setCanRotate(mq.matches);
+    const sync = () => setIsNarrow(mq.matches);
     sync();
     mq.addEventListener('change', sync);
     return () => mq.removeEventListener('change', sync);
   }, [isStreamVideo]);
+
+  // Track real fullscreen so the button reflects the actual state, including
+  // when the user leaves via Escape or the browser's own affordance.
+  useEffect(() => {
+    const sync = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
+  }, []);
 
   // Escape leaves the rotated view, and the page behind it must not scroll.
   useEffect(() => {
@@ -53,41 +63,49 @@ export default function ProtectedVideo({
     };
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    // Signals globals.css to hide the site nav; see the note there for why
+    // z-index alone cannot win against it.
+    document.documentElement.setAttribute('data-immersive-video', '');
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.documentElement.removeAttribute('data-immersive-video');
       window.removeEventListener('keydown', onKey);
     };
   }, [rotated]);
 
-  const enterLandscape = async () => {
+  const enterImmersive = async () => {
     const stage = stageRef.current;
     const orientation: any =
       typeof screen !== 'undefined' ? (screen as any).orientation : undefined;
 
-    // Where the platform can genuinely rotate -- Android Chrome, desktop --
-    // real fullscreen plus an orientation lock is the better experience.
-    if (stage?.requestFullscreen && orientation?.lock) {
+    // Real fullscreen is the better experience wherever it exists: it covers
+    // the navbar, sidebar and page chrome outright.
+    if (stage?.requestFullscreen) {
       try {
         await stage.requestFullscreen();
-        await orientation.lock('landscape');
+        // On a phone, also turn it landscape if the platform allows it.
+        if (isNarrow && orientation?.lock) {
+          try {
+            await orientation.lock('landscape');
+          } catch {
+            // Rotation refused (iPad, or the user's own rotation lock).
+            // Fullscreen alone is still a big improvement, so keep it.
+          }
+        }
         return;
       } catch {
-        // Lock refused (iPad, desktop, or the user's rotation lock is on).
-        // Fall through to rotating it ourselves.
-        if (document.fullscreenElement) {
-          try { await document.exitFullscreen(); } catch {}
-        }
+        // Fullscreen itself was refused; fall through.
       }
     }
 
     // iPhone Safari supports neither Element.requestFullscreen nor the Screen
-    // Orientation API, so the only way to give it a landscape view is to draw
-    // one: a full-viewport layer with the player turned 90 degrees.
+    // Orientation API, so the only way to give it a full landscape view is to
+    // draw one: a full-viewport layer with the player turned 90 degrees.
     setRotated(true);
   };
 
-  const exitLandscape = async () => {
+  const exitImmersive = async () => {
     if (document.fullscreenElement) {
       try { await document.exitFullscreen(); } catch {}
     }
@@ -198,11 +216,14 @@ export default function ProtectedVideo({
             />
           </div>
 
-          {canRotate && (
+          {(() => {
+            const active = rotated || isFullscreen;
+            const label = active ? 'Exit' : isNarrow ? 'Rotate' : 'Expand';
+            return (
             <button
               type="button"
-              onClick={rotated ? exitLandscape : enterLandscape}
-              aria-label={rotated ? 'Exit landscape view' : 'Watch in landscape'}
+              onClick={active ? exitImmersive : enterImmersive}
+              aria-label={active ? 'Exit full view' : isNarrow ? 'Watch in landscape' : 'Expand video'}
               className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-[4px] bg-black/65 px-2.5 py-1.5 text-[11px] font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black/80"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
@@ -210,9 +231,10 @@ export default function ProtectedVideo({
                 <path d="M22 12a10 10 0 0 1-10 10v-4" strokeLinecap="round" />
                 <path d="M12 2 9 5m3-3 3 3M12 22l3-3m-3 3-3-3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              {rotated ? 'Exit' : 'Rotate'}
+              {label}
             </button>
-          )}
+            );
+          })()}
         </div>
       ) : (
         /* Regular video tag for non-stream videos */

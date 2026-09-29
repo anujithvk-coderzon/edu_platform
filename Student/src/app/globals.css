@@ -140,6 +140,18 @@
   }
 }
 
+/* While a video is in the rotated landscape view, the site chrome has to go.
+   The learn page's own root is `position: fixed`, which always creates a
+   stacking context -- so the overlay's z-index is trapped inside it and the
+   navbar (sticky z-50, in the root context) paints over the top of it however
+   high we set z-index. Hiding the nav is what actually clears the screen. */
+@layer base {
+  html[data-immersive-video] [data-site-nav],
+  html[data-immersive-video] [data-page-chrome] {
+    display: none;
+  }
+}
+
 /* Responsive container utilities */
 .container-responsive {
   width: 100%;

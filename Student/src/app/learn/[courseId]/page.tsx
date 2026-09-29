@@ -799,7 +799,7 @@ export default function LearnPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col bg-[#F6F8FA] overflow-hidden">
         {/* Cleaner Header */}
-        <div className="bg-white border-b border-[#DDE3EA] p-3 sm:p-4 z-30 flex-shrink-0">
+        <div data-page-chrome className="bg-white border-b border-[#DDE3EA] p-3 sm:p-4 z-30 flex-shrink-0">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
             <div className="flex items-center gap-2">
               {!showSidebar && (

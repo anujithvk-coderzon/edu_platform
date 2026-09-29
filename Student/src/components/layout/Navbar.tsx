@@ -71,7 +71,7 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[#DDE3EA] bg-[#FFFFFF]">
+    <nav data-site-nav className="sticky top-0 z-50 border-b border-[#DDE3EA] bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 lg:h-[72px]">
           {/* Logo and Main Nav */}

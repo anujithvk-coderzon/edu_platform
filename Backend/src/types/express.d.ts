@@ -1,4 +1,4 @@
-import { AuthRequest } from '../middleware/auth';
+import { AuthRequest } from '../middlewares/auth';
 
 declare global {
   namespace Express {

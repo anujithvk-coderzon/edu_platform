@@ -507,7 +507,7 @@ export default function LearnPage() {
     switch (currentMaterial.type.toUpperCase()) {
       case 'VIDEO':
         return (
-          <div className="w-full max-w-5xl mx-auto bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+          <div className="w-full max-w-5xl mx-auto bg-white rounded-lg border border-[#DDE3EA] overflow-hidden shadow-sm">
             {currentMaterial.fileUrl ? (
               <ProtectedVideo
                 src={currentMaterial.fileUrl}
@@ -516,8 +516,8 @@ export default function LearnPage() {
                 watermarkText={user?.email || 'Protected Content'}
               />
             ) : (
-              <div className="bg-slate-50 text-slate-600 text-center p-8 md:p-12">
-                <VideoCameraIcon className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 text-slate-400" />
+              <div className="bg-[#F6F8FA] text-[#475569] text-center p-8 md:p-12">
+                <VideoCameraIcon className="h-12 w-12 md:h-16 md:w-16 mx-auto mb-4 text-[#94A3B8]" />
                 <p className="text-sm">Video content not available</p>
               </div>
             )}
@@ -526,7 +526,7 @@ export default function LearnPage() {
 
       case 'PDF':
         return (
-          <div className={`bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden ${currentMaterial.fileUrl ? 'h-full flex flex-col min-h-0' : 'p-3 sm:p-4'}`}>
+          <div className={`bg-white rounded-lg border border-[#DDE3EA] shadow-sm overflow-hidden ${currentMaterial.fileUrl ? 'h-full flex flex-col min-h-0' : 'p-3 sm:p-4'}`}>
             {currentMaterial.fileUrl ? (
               <CustomPDFViewer
                 src={currentMaterial.fileUrl || ''}
@@ -534,11 +534,11 @@ export default function LearnPage() {
               />
             ) : currentMaterial.content ? (
               <div className="prose max-w-none p-6 protected-content" onContextMenu={(e) => e.preventDefault()}>
-                <pre className="whitespace-pre-wrap font-sans text-sm">{currentMaterial.content}</pre>
+                <pre className="mx-auto max-w-[70ch] whitespace-pre-wrap font-sans text-lead text-[#0F172A]">{currentMaterial.content}</pre>
               </div>
             ) : (
-              <div className="text-center text-slate-500 p-8 bg-slate-50 rounded-lg">
-                <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-slate-400" />
+              <div className="text-center text-[#64748B] p-8 bg-[#F6F8FA] rounded-lg">
+                <DocumentTextIcon className="h-16 w-16 mx-auto mb-4 text-[#94A3B8]" />
                 <p className="text-sm">PDF content not available</p>
               </div>
             )}
@@ -555,9 +555,9 @@ export default function LearnPage() {
                 title={currentMaterial.title}
               />
             ) : (
-              <div className="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
-                <div className="text-center text-slate-500">
-                  <LinkIcon className="h-12 w-12 mx-auto mb-3 text-slate-400" />
+              <div className="bg-white border border-[#DDE3EA] rounded-lg p-8 shadow-sm">
+                <div className="text-center text-[#64748B]">
+                  <LinkIcon className="h-12 w-12 mx-auto mb-3 text-[#94A3B8]" />
                   <p className="text-sm">Link not available</p>
                 </div>
               </div>
@@ -567,9 +567,9 @@ export default function LearnPage() {
 
       default:
         return (
-          <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
-            <div className="prose prose-sm max-w-none text-slate-700">
-              {currentMaterial.content || <span className="text-slate-500 text-sm">Content not available</span>}
+          <div className="bg-white border border-[#DDE3EA] rounded-lg p-6 shadow-sm">
+            <div className="prose prose-sm max-w-none text-[#334155]">
+              {currentMaterial.content || <span className="text-[#64748B] text-sm">Content not available</span>}
             </div>
           </div>
         );
@@ -578,12 +578,12 @@ export default function LearnPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F8FA] flex items-center justify-center">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Please log in</h3>
-          <p className="text-slate-600 mb-4">You need to be logged in to access course content.</p>
+          <h3 className="text-lg font-semibold text-[#0F172A] mb-2">Please log in</h3>
+          <p className="text-[#475569] mb-4">You need to be logged in to access course content.</p>
           <Link href="/login">
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+            <button className="bg-[#1D4ED8] text-white px-4 py-2 rounded-lg hover:bg-[#1E40AF] transition-colors">
               Log In
             </button>
           </Link>
@@ -594,10 +594,10 @@ export default function LearnPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F8FA] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-indigo-600 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-slate-600 text-sm">Loading course...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1D4ED8] border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-[#475569] text-sm">Loading course...</p>
         </div>
       </div>
     );
@@ -609,7 +609,7 @@ export default function LearnPage() {
     currentMaterial?.type?.toUpperCase() === 'PDF' && !!currentMaterial?.fileUrl;
 
   return (
-    <div className="fixed inset-0 pt-16 sm:pt-18 md:pt-20 lg:pt-24 bg-slate-50 flex flex-col lg:flex-row overflow-hidden">
+    <div className="fixed inset-0 pt-16 sm:pt-18 md:pt-20 lg:pt-24 bg-[#F6F8FA] flex flex-col lg:flex-row overflow-hidden">
       {/* Mobile Sidebar Backdrop */}
       {showSidebar && (
         <div
@@ -631,34 +631,34 @@ export default function LearnPage() {
 
       {/* Sidebar */}
       {showSidebar && (
-        <div className="w-full sm:w-96 lg:w-80 xl:w-96 bg-white border-r border-slate-200 flex flex-col fixed lg:relative inset-0 z-50 lg:z-auto shadow-xl lg:shadow-none transition-all duration-300 overflow-hidden">
-          <div className="p-4 sm:p-5 lg:p-6 border-b border-slate-200 bg-white">
+        <div className="w-full sm:w-96 lg:w-80 xl:w-96 bg-white border-r border-[#DDE3EA] flex flex-col fixed lg:relative inset-0 z-50 lg:z-auto shadow-xl lg:shadow-none transition-all duration-300 overflow-hidden">
+          <div className="p-4 sm:p-5 lg:p-6 border-b border-[#DDE3EA] bg-white">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-slate-900 truncate text-base sm:text-lg pr-2">{course?.title}</h2>
+              <h2 className="font-bold text-[#0F172A] truncate text-base sm:text-lg pr-2">{course?.title}</h2>
               <button
                 onClick={() => setShowSidebar(false)}
-                className="p-2.5 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0 lg:hidden min-h-[44px] min-w-[44px]"
+                className="p-2.5 hover:bg-[#E9EEF4] rounded-xl transition-all flex-shrink-0 lg:hidden min-h-[44px] min-w-[44px]"
               >
-                <XMarkIcon className="h-5 w-5 text-slate-600" />
+                <XMarkIcon className="h-5 w-5 text-[#475569]" />
               </button>
             </div>
             {progress && (
               <div className="space-y-3">
                 {/* Simplified Progress Bar */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <div className="bg-[#F6F8FA] rounded-xl p-4 border border-[#DDE3EA]">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-slate-700">Progress</span>
-                    <span className="text-lg font-bold text-indigo-600">
+                    <span className="text-sm font-semibold text-[#334155]">Progress</span>
+                    <span className="text-lg font-bold text-[#1D4ED8]">
                       {Math.min(100, Math.round(progress.stats.progressPercentage))}%
                     </span>
                   </div>
-                  <div className="relative w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                  <div className="relative w-full bg-[#DDE3EA] rounded-full h-2 overflow-hidden">
                     <div
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full transition-all duration-500"
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#1D4ED8] to-[#1D4ED8] rounded-full transition-all duration-500"
                       style={{ width: `${Math.min(100, progress.stats.progressPercentage)}%` }}
                     />
                   </div>
-                  <div className="flex items-center justify-between mt-3 text-xs text-slate-600">
+                  <div className="flex items-center justify-between mt-3 text-xs text-[#475569]">
                     <span>{progress.materials.filter(m => m.moduleId && m.progress?.isCompleted).length} of {progress.materials.filter(m => m.moduleId).length} lessons</span>
                     {(progress.stats.totalAssignments || assignments.length) > 0 && (
                       <span>{progress.stats.submittedAssignments || Object.keys(assignmentSubmissions).length} of {progress.stats.totalAssignments || assignments.length} tasks</span>
@@ -667,13 +667,13 @@ export default function LearnPage() {
                 </div>
 
                 {/* Cleaner Tab Navigation */}
-                <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
+                <div className="flex gap-2 bg-[#E9EEF4] p-1 rounded-lg">
                   <button
                     onClick={() => setActiveTab('materials')}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
                       activeTab === 'materials'
-                        ? 'bg-white text-indigo-600 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-[#1D4ED8] shadow-sm'
+                        : 'text-[#475569] hover:text-[#0F172A]'
                     }`}
                   >
                     <DocumentTextIcon className="h-5 w-5" />
@@ -686,8 +686,8 @@ export default function LearnPage() {
                     }}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-all min-h-[44px] ${
                       activeTab === 'assignments'
-                        ? 'bg-white text-indigo-600 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-[#1D4ED8] shadow-sm'
+                        : 'text-[#475569] hover:text-[#0F172A]'
                     }`}
                   >
                     <ClipboardDocumentListIcon className="h-5 w-5" />
@@ -701,10 +701,10 @@ export default function LearnPage() {
           <div className="overflow-y-auto h-full pb-20 px-3 sm:px-4">
             {activeTab === 'materials' ? (
               modules.map((module, moduleIndex) => (
-              <div key={module.id} className="mb-3 rounded-lg overflow-hidden border border-indigo-200 bg-white">
-                <div className="p-3 sm:p-4 bg-indigo-600 border-b border-indigo-700">
+              <div key={module.id} className="mb-3 rounded-lg overflow-hidden border border-[#C7D7FE] bg-white">
+                <div className="p-3 sm:p-4 bg-[#1D4ED8] border-b border-[#1E40AF]">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-indigo-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#1E40AF] rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-bold" style={{ color: 'white' }}>{moduleIndex + 1}</span>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -717,25 +717,25 @@ export default function LearnPage() {
                     <button
                       key={material.id}
                       onClick={() => handleMaterialSelect(material)}
-                      className={`w-full p-3 sm:p-4 text-left transition-all border-b border-slate-100 last:border-b-0 min-h-[60px] hover:bg-slate-50 active:bg-slate-100 ${
+                      className={`w-full p-3 sm:p-4 text-left transition-all border-b border-[#E9EEF4] last:border-b-0 min-h-[60px] hover:bg-[#F6F8FA] active:bg-[#E9EEF4] ${
                         currentMaterial?.id === material.id
-                          ? 'bg-indigo-50 border-l-4 !border-l-indigo-600'
+                          ? 'bg-[#EFF4FF] border-l-4 !border-l-indigo-600'
                           : ''
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg flex-shrink-0 transition-all ${
                           material.progress?.isCompleted
-                            ? 'bg-green-500'
+                            ? 'bg-[#17B26A]'
                             : currentMaterial?.id === material.id
-                            ? 'bg-indigo-600'
-                            : 'bg-slate-200'
+                            ? 'bg-[#1D4ED8]'
+                            : 'bg-[#DDE3EA]'
                         }`}>
                           {material.progress?.isCompleted ? (
                             <CheckCircleIconSolid className="h-5 w-5 text-white" />
                           ) : (
                             <div className={`h-5 w-5 ${
-                              currentMaterial?.id === material.id ? 'text-white' : 'text-slate-600'
+                              currentMaterial?.id === material.id ? 'text-white' : 'text-[#475569]'
                             }`}>
                               {getMaterialIcon(material.type)}
                             </div>
@@ -743,18 +743,18 @@ export default function LearnPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className={`font-medium truncate text-sm ${
-                            currentMaterial?.id === material.id ? 'text-indigo-900' : 'text-slate-900'
+                            currentMaterial?.id === material.id ? 'text-[#1E3A8A]' : 'text-[#0F172A]'
                           }`}>
                             {material.title}
                           </h4>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={`text-xs capitalize ${
-                              currentMaterial?.id === material.id ? 'text-indigo-700' : 'text-slate-500'
+                              currentMaterial?.id === material.id ? 'text-[#1E40AF]' : 'text-[#64748B]'
                             }`}>
                               {material.type.toLowerCase()}
                             </span>
                             {material.progress?.isCompleted && (
-                              <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-medium">
+                              <span className="text-xs bg-[#17B26A] text-white px-2 py-0.5 rounded-full font-medium">
                                 ✓
                               </span>
                             )}
@@ -771,8 +771,8 @@ export default function LearnPage() {
               <div className="p-4">
                 {loadingAssignments ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="ml-2 text-slate-600 text-sm">Loading assignments...</span>
+                    <div className="w-6 h-6 border-2 border-[#1D4ED8] border-t-transparent rounded-full animate-spin"></div>
+                    <span className="ml-2 text-[#475569] text-sm">Loading assignments...</span>
                   </div>
                 ) : assignments.length > 0 ? (
                   <div className="space-y-2 sm:space-y-3">
@@ -785,9 +785,9 @@ export default function LearnPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <ClipboardDocumentListIcon className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-                    <h3 className="text-sm font-medium text-slate-900 mb-1">No assignments yet</h3>
-                    <p className="text-xs text-slate-600">Assignments will appear here when they are created.</p>
+                    <ClipboardDocumentListIcon className="h-12 w-12 text-[#94A3B8] mx-auto mb-3" />
+                    <h3 className="text-sm font-medium text-[#0F172A] mb-1">No assignments yet</h3>
+                    <p className="text-xs text-[#475569]">Assignments will appear here when they are created.</p>
                   </div>
                 )}
               </div>
@@ -797,21 +797,21 @@ export default function LearnPage() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-[#F6F8FA] overflow-hidden">
         {/* Cleaner Header */}
-        <div className="bg-white border-b border-slate-200 p-3 sm:p-4 z-30 flex-shrink-0">
+        <div className="bg-white border-b border-[#DDE3EA] p-3 sm:p-4 z-30 flex-shrink-0">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
             <div className="flex items-center gap-2">
               {!showSidebar && (
                 <button
                   onClick={() => setShowSidebar(true)}
-                  className="p-2.5 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  className="p-2.5 hover:bg-[#E9EEF4] rounded-lg transition-all border border-[#DDE3EA] min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
-                  <ListBulletIcon className="h-5 w-5 text-slate-700" />
+                  <ListBulletIcon className="h-5 w-5 text-[#334155]" />
                 </button>
               )}
               <Link href={`/courses/${courseId}`} className="hidden sm:block">
-                <button className="flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-all px-3 py-2 rounded-lg hover:bg-slate-100 text-sm">
+                <button className="flex items-center gap-2 text-[#334155] hover:text-[#0F172A] font-medium transition-all px-3 py-2 rounded-lg hover:bg-[#E9EEF4] text-sm">
                   <ArrowLeftIcon className="h-4 w-4" />
                   <span>Back</span>
                 </button>
@@ -822,16 +822,16 @@ export default function LearnPage() {
               <button
                 onClick={handlePreviousMaterial}
                 disabled={!progress || progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial?.id) === 0}
-                className="p-2.5 hover:bg-slate-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-slate-200 disabled:hover:bg-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-2.5 hover:bg-[#E9EEF4] rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-[#DDE3EA] disabled:hover:bg-white min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                <ArrowLeftIcon className="h-5 w-5 text-slate-700" />
+                <ArrowLeftIcon className="h-5 w-5 text-[#334155]" />
               </button>
               <button
                 onClick={handleNextMaterial}
                 disabled={!progress || progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial?.id) === progress.materials.filter(m => m.moduleId).length - 1}
-                className="p-2.5 hover:bg-slate-100 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-slate-200 disabled:hover:bg-white min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-2.5 hover:bg-[#E9EEF4] rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-[#DDE3EA] disabled:hover:bg-white min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                <ArrowRightIcon className="h-5 w-5 text-slate-700" />
+                <ArrowRightIcon className="h-5 w-5 text-[#334155]" />
               </button>
             </div>
           </div>
@@ -847,33 +847,33 @@ export default function LearnPage() {
           {currentMaterial && progress ? (
             <div className={`max-w-6xl mx-auto w-full ${isPdfLesson ? 'flex-1 min-h-0 flex flex-col' : ''}`}>
               {/* Simplified Material Header */}
-              <div className={`bg-white rounded-xl border border-slate-200 shadow-sm ${isPdfLesson ? 'flex-shrink-0 mb-2 px-3 py-2' : 'mb-4 sm:mb-6 p-4 sm:p-5'}`}>
+              <div className={`bg-white rounded-xl border border-[#DDE3EA] shadow-sm ${isPdfLesson ? 'flex-shrink-0 mb-2 px-3 py-2' : 'mb-4 sm:mb-6 p-4 sm:p-5'}`}>
                 <div className={`flex gap-3 ${isPdfLesson ? 'items-center' : 'items-start mb-3'}`}>
-                  <div className={`bg-indigo-600 rounded-lg flex-shrink-0 ${isPdfLesson ? 'p-1.5' : 'p-2.5'}`}>
+                  <div className={`bg-[#1D4ED8] rounded-lg flex-shrink-0 ${isPdfLesson ? 'p-1.5' : 'p-2.5'}`}>
                     <div className="w-5 h-5 text-white" style={{ color: 'white' }}>
                       {getMaterialIcon(currentMaterial.type)}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h1 className={`font-bold text-slate-900 leading-tight ${isPdfLesson ? 'text-sm sm:text-base truncate' : 'text-lg sm:text-xl mb-1'}`}>{currentMaterial.title}</h1>
+                    <h1 className={`font-bold text-[#0F172A] leading-tight ${isPdfLesson ? 'text-sm sm:text-base truncate' : 'text-lg sm:text-xl mb-1'}`}>{currentMaterial.title}</h1>
                     {currentMaterial.description && !isPdfLesson && (
-                      <p className="text-slate-600 text-sm line-clamp-2">{currentMaterial.description}</p>
+                      <p className="text-[#475569] text-sm line-clamp-2">{currentMaterial.description}</p>
                     )}
                   </div>
                   {isPdfLesson && (
-                    <span className="text-xs text-slate-600 whitespace-nowrap hidden sm:inline flex-shrink-0">
+                    <span className="text-xs text-[#475569] whitespace-nowrap hidden sm:inline flex-shrink-0">
                       Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}
                     </span>
                   )}
                   {currentMaterial.progress?.isCompleted && (
-                    <div className={`flex items-center gap-1.5 bg-green-500 text-white rounded-full flex-shrink-0 ${isPdfLesson ? 'px-2.5 py-1' : 'px-3 py-1.5'}`} style={{ color: 'white' }}>
+                    <div className={`flex items-center gap-1.5 bg-[#17B26A] text-white rounded-full flex-shrink-0 ${isPdfLesson ? 'px-2.5 py-1' : 'px-3 py-1.5'}`} style={{ color: 'white' }}>
                       <CheckCircleIconSolid className="h-4 w-4" style={{ color: 'white' }} />
                       <span className="text-xs font-medium hidden sm:inline" style={{ color: 'white' }}>Completed</span>
                     </div>
                   )}
                 </div>
                 {!isPdfLesson && (
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <div className="flex items-center gap-2 text-xs text-[#475569]">
                     <span>Lesson {progress.materials.filter(m => m.moduleId).findIndex(m => m.id === currentMaterial.id) + 1} of {progress.materials.filter(m => m.moduleId).length}</span>
                     <span>•</span>
                     <span className="capitalize">{currentMaterial.type.toLowerCase()}</span>
@@ -892,7 +892,7 @@ export default function LearnPage() {
                   <button
                     onClick={handleMarkComplete}
                     disabled={markingComplete}
-                    className={`bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 font-medium shadow-md hover:shadow-lg ${isPdfLesson ? 'px-5 py-2 text-sm min-h-[40px]' : 'px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base min-h-[50px]'}`}
+                    className={`bg-[#1D4ED8] hover:bg-[#1E40AF] text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5 font-medium shadow-md hover:shadow-lg ${isPdfLesson ? 'px-5 py-2 text-sm min-h-[40px]' : 'px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base min-h-[50px]'}`}
                   >
                     {markingComplete ? (
                       <>
@@ -911,13 +911,13 @@ export default function LearnPage() {
             </div>
           ) : (
             <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center px-6 py-10 bg-white rounded-xl border border-slate-200 shadow-sm max-w-md mx-4">
-                <DocumentTextIcon className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">No Lesson Selected</h3>
-                <p className="text-slate-600 text-sm mb-6">Choose a lesson from the sidebar to begin learning.</p>
+              <div className="text-center px-6 py-10 bg-white rounded-xl border border-[#DDE3EA] shadow-sm max-w-md mx-4">
+                <DocumentTextIcon className="h-16 w-16 text-[#94A3B8] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#0F172A] mb-2">No Lesson Selected</h3>
+                <p className="text-[#475569] text-sm mb-6">Choose a lesson from the sidebar to begin learning.</p>
                 <button
                   onClick={() => setShowSidebar(true)}
-                  className="lg:hidden bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-sm font-medium shadow-md transition-all min-h-[48px]"
+                  className="lg:hidden bg-[#1D4ED8] hover:bg-[#1E40AF] text-white px-6 py-3 rounded-lg text-sm font-medium shadow-md transition-all min-h-[48px]"
                 >
                   Browse Lessons
                 </button>
@@ -984,11 +984,11 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
       className={`w-full p-2.5 sm:p-3 md:p-4 text-left border rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-md ${
         hasSubmission
           ? isGraded
-            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 hover:from-green-100 hover:to-emerald-100'
-            : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 hover:from-blue-100 hover:to-cyan-100'
+            ? 'bg-gradient-to-r from-[#ECFDF3] to-[#ECFDF3] border-[#ABEFC6] hover:from-[#DCFAE6] hover:to-[#DCFAE6]'
+            : 'bg-gradient-to-r from-[#EFF4FF] to-cyan-50 border-[#C7D7FE] hover:from-[#DBE7FE] hover:to-cyan-100'
           : isOverdue
-          ? 'bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:from-red-100 hover:to-pink-100'
-          : 'bg-white border-slate-200 hover:bg-slate-50 hover:border-indigo-200'
+          ? 'bg-gradient-to-r from-[#FEF3F2] to-pink-50 border-[#FECDCA] hover:from-[#FEE4E2] hover:to-pink-100'
+          : 'bg-white border-[#DDE3EA] hover:bg-[#F6F8FA] hover:border-[#C7D7FE]'
       }`}
     >
       <div className="flex flex-col w-full">
@@ -996,45 +996,45 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
           <div className={`p-1 sm:p-1.5 rounded-lg mr-2 flex-shrink-0 ${
             hasSubmission
               ? isGraded
-                ? 'bg-green-100 border border-green-200'
-                : 'bg-blue-100 border border-blue-200'
+                ? 'bg-[#DCFAE6] border border-[#ABEFC6]'
+                : 'bg-[#DBE7FE] border border-[#C7D7FE]'
               : isOverdue
-              ? 'bg-red-100 border border-red-200'
-              : 'bg-indigo-100 border border-indigo-200'
+              ? 'bg-[#FEE4E2] border border-[#FECDCA]'
+              : 'bg-[#DBE7FE] border border-[#C7D7FE]'
           }`}>
             <ClipboardDocumentListIcon className={`h-4 w-4 ${
               hasSubmission
                 ? isGraded
-                  ? 'text-green-600'
-                  : 'text-blue-600'
+                  ? 'text-[#079455]'
+                  : 'text-[#1D4ED8]'
                 : isOverdue
-                ? 'text-red-600'
-                : 'text-indigo-600'
+                ? 'text-[#B42318]'
+                : 'text-[#1D4ED8]'
             }`} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="mb-1.5 sm:mb-2">
-              <h4 className="font-semibold text-xs sm:text-sm text-slate-900 break-words line-clamp-2 mb-1">
+              <h4 className="font-semibold text-xs sm:text-sm text-[#0F172A] break-words line-clamp-2 mb-1">
                 {assignment.title}
               </h4>
               <div className="flex flex-wrap gap-1">
                 {hasSubmission && (
                   <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium inline-block whitespace-nowrap ${
                     isGraded
-                      ? 'bg-green-100 text-green-700 border border-green-200'
-                      : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      ? 'bg-[#DCFAE6] text-[#067647] border border-[#ABEFC6]'
+                      : 'bg-[#DBE7FE] text-[#1E40AF] border border-[#C7D7FE]'
                   }`}>
                     {isGraded ? '✓ Graded' : '📤 Submitted'}
                   </span>
                 )}
                 {!hasSubmission && isOverdue && (
-                  <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-700 border border-red-200 inline-block whitespace-nowrap">
+                  <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium bg-[#FEE4E2] text-[#912018] border border-[#FECDCA] inline-block whitespace-nowrap">
                     ⏰ Overdue
                   </span>
                 )}
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3 line-clamp-2 break-words">
+            <p className="text-xs sm:text-sm text-[#475569] mb-2 sm:mb-3 line-clamp-2 break-words">
               {assignment.description}
             </p>
             <div className="flex flex-col gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
@@ -1042,8 +1042,8 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
                 {assignment.dueDate && (
                   <div className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg whitespace-nowrap ${
                     isOverdue
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-slate-100 text-slate-600'
+                      ? 'bg-[#FEE4E2] text-[#912018]'
+                      : 'bg-[#E9EEF4] text-[#475569]'
                   }`}>
                     <CalendarIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0" />
                     <span className={`${isOverdue ? 'font-medium' : ''} truncate max-w-[120px] sm:max-w-none`}>
@@ -1051,16 +1051,16 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
                     </span>
                   </div>
                 )}
-                <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-100 text-slate-600 rounded-md sm:rounded-lg whitespace-nowrap">
+                <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#E9EEF4] text-[#475569] rounded-md sm:rounded-lg whitespace-nowrap">
                   <span className="truncate">Max: {assignment.maxScore}pts</span>
                 </div>
               </div>
               {isGraded && (
                 <div className="flex items-center gap-1 flex-wrap">
-                  <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-md sm:rounded-lg font-medium border border-green-200 whitespace-nowrap">
+                  <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#DCFAE6] text-[#067647] rounded-md sm:rounded-lg font-medium border border-[#ABEFC6] whitespace-nowrap">
                     <span className="truncate">📊 {submissionGrade}/{assignment.maxScore}</span>
                   </div>
-                  <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-700 rounded-md sm:rounded-lg font-medium border border-green-200 whitespace-nowrap">
+                  <div className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 bg-[#DCFAE6] text-[#067647] rounded-md sm:rounded-lg font-medium border border-[#ABEFC6] whitespace-nowrap">
                     <span>{Math.round((submissionGrade! / assignment.maxScore) * 100)}%</span>
                   </div>
                 </div>
@@ -1186,20 +1186,20 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
 
   return (
     <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[98vh] sm:max-h-[90vh] mx-2 sm:mx-4 flex flex-col">
-        <div className="p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50 flex-shrink-0">
+      <div className="bg-white rounded-xl shadow-2xl border border-[#DDE3EA] max-w-3xl w-full max-h-[98vh] sm:max-h-[90vh] mx-2 sm:mx-4 flex flex-col">
+        <div className="p-4 sm:p-6 border-b border-[#DDE3EA] bg-gradient-to-r from-[#F6F8FA] to-[#EFF4FF] flex-shrink-0">
           <div className="flex justify-between items-start gap-3">
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-semibold text-slate-900 truncate pr-2">{assignment.title}</h2>
-              <p className="text-slate-600 mt-1 text-xs sm:text-sm line-clamp-2 sm:line-clamp-none whitespace-pre-line">{assignment.description}</p>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-xs sm:text-sm text-slate-500">
+              <h2 className="text-lg sm:text-xl font-semibold text-[#0F172A] truncate pr-2">{assignment.title}</h2>
+              <p className="text-[#475569] mt-1 text-xs sm:text-sm line-clamp-2 sm:line-clamp-none whitespace-pre-line">{assignment.description}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-3 text-xs sm:text-sm text-[#64748B]">
                 {assignment.dueDate && (
                   <div className="flex items-center">
                     <CalendarIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    <span className={`${isOverdue ? 'text-red-600' : ''} truncate`}>
+                    <span className={`${isOverdue ? 'text-[#B42318]' : ''} truncate`}>
                       <span className="hidden sm:inline">Due </span>{new Date(assignment.dueDate).toLocaleDateString()}
                       {isOverdue && <span className="hidden sm:inline"> (Overdue)</span>}
-                      {isOverdue && <span className="sm:hidden text-red-600"> - Overdue</span>}
+                      {isOverdue && <span className="sm:hidden text-[#B42318]"> - Overdue</span>}
                     </span>
                   </div>
                 )}
@@ -1214,9 +1214,9 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
+              className="p-1.5 sm:p-2 hover:bg-[#E9EEF4] rounded-lg transition-colors flex-shrink-0"
             >
-              <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+              <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#475569]" />
             </button>
           </div>
         </div>
@@ -1224,21 +1224,21 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
         <div className="flex-1 p-4 sm:p-6 overflow-y-auto min-h-0">
           {loading ? (
             <div className="flex items-center justify-center py-6 sm:py-8">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-2 text-slate-600 text-sm sm:text-base">Loading submission...</span>
+              <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-[#1D4ED8] border-t-transparent rounded-full animate-spin"></div>
+              <span className="ml-2 text-[#475569] text-sm sm:text-base">Loading submission...</span>
             </div>
           ) : submission ? (
             /* Show existing submission */
             <div className="space-y-3 sm:space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="font-medium text-green-800 mb-2">Submission Completed</h3>
-                <p className="text-sm text-green-700">
+              <div className="bg-[#ECFDF3] border border-[#ABEFC6] rounded-lg p-4">
+                <h3 className="font-medium text-[#05603A] mb-2">Submission Completed</h3>
+                <p className="text-sm text-[#067647]">
                   Submitted on {submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : 'Unknown date'}
                 </p>
                 {(() => {
                   const currentGrade = submission.score ?? submission.grade;
                   return currentGrade !== null && currentGrade !== undefined && (
-                    <p className="text-sm text-green-700 mt-1">
+                    <p className="text-sm text-[#067647] mt-1">
                       Grade: {currentGrade}/{assignment.maxScore} ({Math.round((currentGrade / assignment.maxScore) * 100)}%)
                     </p>
                   );
@@ -1247,21 +1247,21 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
 
               {submission.content && (
                 <div>
-                  <h4 className="font-medium text-slate-900 mb-2">Text Submission</h4>
-                  <div className="bg-slate-50 border rounded-lg p-4">
-                    <p className="text-slate-700 whitespace-pre-wrap">{submission.content}</p>
+                  <h4 className="font-medium text-[#0F172A] mb-2">Text Submission</h4>
+                  <div className="bg-[#F6F8FA] border rounded-lg p-4">
+                    <p className="text-[#334155] whitespace-pre-wrap">{submission.content}</p>
                   </div>
                 </div>
               )}
 
               {submission.fileUrl && (
                 <div>
-                  <h4 className="font-medium text-slate-900 mb-2">File Submission</h4>
+                  <h4 className="font-medium text-[#0F172A] mb-2">File Submission</h4>
                   <a
                     href={submission.fileUrl || submission.fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    className="inline-flex items-center px-4 py-2 bg-[#1D4ED8] text-white rounded-lg hover:bg-[#1E40AF] transition-colors text-sm font-medium"
                   >
                     <PaperClipIcon className="h-4 w-4 mr-2" />
                     View Submitted File
@@ -1271,9 +1271,9 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
 
               {submission.feedback && (
                 <div>
-                  <h4 className="font-medium text-slate-900 mb-2">Feedback</h4>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-blue-800">{submission.feedback}</p>
+                  <h4 className="font-medium text-[#0F172A] mb-2">Feedback</h4>
+                  <div className="bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg p-4">
+                    <p className="text-[#1E40AF]">{submission.feedback}</p>
                   </div>
                 </div>
               )}
@@ -1282,31 +1282,31 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
             /* Show submission form */
             <div className="space-y-6">
               {isOverdue ? (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h3 className="font-medium text-red-800 mb-1">Assignment Overdue</h3>
-                  <p className="text-sm text-red-700">
+                <div className="bg-[#FEF3F2] border border-[#FECDCA] rounded-lg p-4">
+                  <h3 className="font-medium text-[#912018] mb-1">Assignment Overdue</h3>
+                  <p className="text-sm text-[#912018]">
                     This assignment was due on {assignment.dueDate ? new Date(assignment.dueDate).toLocaleString() : 'Unknown date'}.
                     You can no longer submit.
                   </p>
                 </div>
               ) : assignment.dueDate ? (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-medium text-blue-800 mb-1">Assignment Open</h3>
-                  <p className="text-sm text-blue-700">
+                <div className="bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg p-4">
+                  <h3 className="font-medium text-[#1E40AF] mb-1">Assignment Open</h3>
+                  <p className="text-sm text-[#1E40AF]">
                     Due: {new Date(assignment.dueDate).toLocaleString()}
                   </p>
                 </div>
               ) : (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="font-medium text-green-800 mb-1">Assignment Open</h3>
-                  <p className="text-sm text-green-700">
+                <div className="bg-[#ECFDF3] border border-[#ABEFC6] rounded-lg p-4">
+                  <h3 className="font-medium text-[#05603A] mb-1">Assignment Open</h3>
+                  <p className="text-sm text-[#067647]">
                     No due date specified. You can submit anytime.
                   </p>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2">
                   Written Response
                 </label>
                 <textarea
@@ -1315,24 +1315,24 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
                   placeholder="Type your answer here..."
                   rows={5}
                   disabled={!canSubmit}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed transition-colors text-sm text-slate-900 resize-none"
+                  className="w-full px-3 py-2 border border-[#C7D2DE] rounded-lg focus:ring-1 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] disabled:bg-[#F6F8FA] disabled:cursor-not-allowed transition-colors text-sm text-[#0F172A] resize-none"
                 />
-                <p className="text-xs text-slate-500 mt-1">{submissionText.length} characters</p>
+                <p className="text-xs text-[#64748B] mt-1">{submissionText.length} characters</p>
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2 sm:mb-3">
-                  File Upload <span className="text-slate-500 font-normal">(Optional)</span>
+                <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2 sm:mb-3">
+                  File Upload <span className="text-[#64748B] font-normal">(Optional)</span>
                 </label>
                 {submissionFile ? (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg">
                     <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                      <div className="p-1.5 sm:p-2 bg-blue-100 rounded-full flex-shrink-0">
-                        <PaperClipIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                      <div className="p-1.5 sm:p-2 bg-[#DBE7FE] rounded-full flex-shrink-0">
+                        <PaperClipIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#1D4ED8]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-blue-900 truncate">{submissionFile.name}</p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs sm:text-sm font-medium text-[#1E3A8A] truncate">{submissionFile.name}</p>
+                        <p className="text-xs text-[#1E40AF]">
                           {(submissionFile.size / 1024 / 1024).toFixed(2)} MB • Ready to submit
                         </p>
                       </div>
@@ -1342,14 +1342,14 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
                         onClick={() => {
                           setSubmissionFile(null);
                         }}
-                        className="text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium px-2 sm:px-3 py-1 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                        className="text-xs sm:text-sm text-[#B42318] hover:text-[#912018] font-medium px-2 sm:px-3 py-1 hover:bg-[#FEF3F2] rounded transition-colors flex-shrink-0"
                       >
                         Remove
                       </button>
                     )}
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 sm:p-8 text-center bg-white hover:border-slate-400 transition-colors">
+                  <div className="border-2 border-dashed border-[#C7D2DE] rounded-lg p-6 sm:p-8 text-center bg-white hover:border-[#94A3B8] transition-colors">
                     <input
                       type="file"
                       onChange={(e) => {
@@ -1368,18 +1368,18 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
                       className={`cursor-pointer ${!canSubmit ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                       <div className="space-y-3">
-                        <div className="p-3 bg-slate-100 rounded-full w-fit mx-auto">
-                          <PaperClipIcon className="h-8 w-8 text-slate-400" />
+                        <div className="p-3 bg-[#E9EEF4] rounded-full w-fit mx-auto">
+                          <PaperClipIcon className="h-8 w-8 text-[#94A3B8]" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900">
+                          <p className="text-sm font-medium text-[#0F172A]">
                             Choose a file to upload
                           </p>
-                          <p className="text-xs text-slate-500 mt-1">
+                          <p className="text-xs text-[#64748B] mt-1">
                             PDF, DOC, DOCX, TXT, ZIP, Images, PPT, XLS (Max 25MB)
                           </p>
                         </div>
-                        <div className="text-xs text-slate-400">
+                        <div className="text-xs text-[#94A3B8]">
                           File will be uploaded when you click Submit
                         </div>
                       </div>
@@ -1392,18 +1392,18 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
         </div>
 
         {!loading && !submission && (
-          <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-[#DDE3EA] bg-[#F6F8FA] flex-shrink-0">
             <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-3">
               <button
                 onClick={onClose}
-                className="order-2 sm:order-1 w-full sm:w-auto px-4 py-2.5 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium min-h-[42px]"
+                className="order-2 sm:order-1 w-full sm:w-auto px-4 py-2.5 text-[#334155] bg-white border border-[#C7D2DE] rounded-lg hover:bg-[#F6F8FA] transition-colors text-sm font-medium min-h-[42px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit || submitting || (!submissionText.trim() && !submissionFile)}
-                className="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center font-medium text-sm min-h-[42px]"
+                className="order-1 sm:order-2 w-full sm:w-auto px-5 py-2.5 bg-[#1D4ED8] text-white rounded-lg hover:bg-[#1E40AF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center font-medium text-sm min-h-[42px]"
               >
                 {submitting ? (
                   <>

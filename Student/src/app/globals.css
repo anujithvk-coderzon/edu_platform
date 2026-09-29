@@ -2,14 +2,63 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0F172A;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Everything here becomes a Tailwind utility (font-sans, text-body, text-h1…).
+   NOTE: any plain CSS added to this file must live inside @layer base.
+   Tailwind v4 puts its utilities in a cascade layer, and unlayered CSS beats
+   layered CSS regardless of specificity — unlayered rules here have silently
+   overridden text-white, h-full and placeholder colours before.
+--------------------------------------------------------------------------- */
+@theme {
+  --font-sans: var(--font-sans-plex), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: var(--font-serif-plex), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type scale. Line-height tightens and tracking goes negative as size grows,
+     which is how the same face stays readable at 11px and composed at 46px. */
+  --text-micro: 0.6875rem;              /* 11px — eyebrows, badges, uppercase */
+  --text-micro--line-height: 1rem;
+  --text-micro--letter-spacing: 0.06em;
+  --text-micro--font-weight: 600;
+
+  --text-caption: 0.8125rem;            /* 13px — meta, helper, timestamps */
+  --text-caption--line-height: 1.25rem;
+  --text-caption--letter-spacing: 0.002em;
+
+  --text-ui: 0.875rem;                  /* 14px — labels, buttons, dense UI */
+  --text-ui--line-height: 1.25rem;
+
+  --text-body: 0.9375rem;               /* 15px — default reading size */
+  --text-body--line-height: 1.6;
+
+  --text-lead: 1.0625rem;               /* 17px — intros, hero subcopy */
+  --text-lead--line-height: 1.65;
+  --text-lead--letter-spacing: -0.003em;
+
+  --text-title: 1.3125rem;              /* 21px — card + section titles */
+  --text-title--line-height: 1.75rem;
+  --text-title--letter-spacing: -0.012em;
+  --text-title--font-weight: 600;
+
+  --text-h2: 1.75rem;                   /* 28px */
+  --text-h2--line-height: 2.125rem;
+  --text-h2--letter-spacing: -0.018em;
+  --text-h2--font-weight: 600;
+
+  --text-h1: 2.25rem;                   /* 36px */
+  --text-h1--line-height: 2.625rem;
+  --text-h1--letter-spacing: -0.022em;
+  --text-h1--font-weight: 600;
+
+  --text-display: 2.875rem;             /* 46px — hero only */
+  --text-display--line-height: 1.08;
+  --text-display--letter-spacing: -0.028em;
+  --text-display--font-weight: 600;
 }
 
 /* Disable automatic dark mode to prevent UI visibility issues */
@@ -20,73 +69,75 @@
   }
 } */
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  min-height: 100vh;
-}
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: var(--text-body);
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    font-variant-numeric: lining-nums;
+  }
 
-/* Ensure all inputs and textareas have proper visibility */
-input, textarea, select {
-  color: #111827 !important; /* gray-900 */
-  background-color: #ffffff !important;
-}
+  /* Optical tracking defaults. Utilities (tracking-*) still win over these. */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
 
-input:disabled, textarea:disabled, select:disabled {
-  background-color: #f9fafb !important; /* gray-50 */
-  color: #6b7280 !important; /* gray-500 */
-}
+  h1 { letter-spacing: -0.022em; }
+  h4, h5, h6 { letter-spacing: -0.008em; }
 
-/* Ensure proper focus states */
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5); /* indigo-500 */
-}
+  p, li {
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+  }
 
-/* Ensure placeholder text is visible */
-input::placeholder, textarea::placeholder {
-  color: #9ca3af !important; /* gray-400 */
-}
+  span, div, td, th {
+    overflow-wrap: break-word;
+  }
 
-/* Ensure form labels are visible */
-label {
-  color: #374151 !important; /* gray-700 */
-}
+  /* Numbers that sit in columns or tick upward shouldn't jitter. */
+  time, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
 
-/* Ensure all text is readable */
-h1, h2, h3, h4, h5, h6, p, span, div {
-  color: inherit;
-}
+  input, textarea, select {
+    color: #0F172A;
+    background-color: #ffffff;
+  }
 
-/* Ensure buttons have proper contrast */
-button {
-  font-weight: 500;
-}
+  input:disabled, textarea:disabled, select:disabled {
+    background-color: #F6F8FA;
+    color: #64748B;
+  }
 
-/* Ensure cards are properly visible */
-.bg-white {
-  background-color: #ffffff !important;
-  border: 1px solid #e5e7eb; /* gray-200 */
-}
+  /* Baseline focus ring for bare form elements. Components that set their own
+     (Input.tsx) override it, which they could not do when this was unlayered. */
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+  }
 
-/* Enterprise-grade responsive utilities */
-* {
-  box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  input::placeholder, textarea::placeholder {
+    color: #94A3B8;
+  }
 
-/* Prevent text overflow and ensure proper wrapping */
-h1, h2, h3, h4, h5, h6 {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-}
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-p, span, div, li, td, th {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  /* In @layer base so Tailwind utilities (h-full, aspect-*) can still win.
+     Unlayered, this `height: auto` overrides every explicit height. */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 /* Responsive container utilities */
@@ -109,17 +160,6 @@ p, span, div, li, td, th {
     padding-left: 2rem;
     padding-right: 2rem;
   }
-}
-
-/* Ensure responsive images */
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Prevent horizontal scroll on mobile */
-body {
-  overflow-x: hidden;
 }
 
 /* Hide scrollbar for webkit browsers */

@@ -1,6 +1,8 @@
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, githubProvider } from '../config/firebase.config';
 
+import { env } from '../config/env';
+import { studentStorage } from './storage';
 interface OAuthResult {
   success: boolean;
   data?: {
@@ -116,7 +118,7 @@ export const signInWithGithub = async (): Promise<OAuthResult> => {
  */
 export const oauthLogin = async (provider: 'google' | 'github', idToken: string) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/student/auth/oauth-login`, {
+    const response = await fetch(`${env.API_BASE_URL}/student/auth/oauth-login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -130,6 +132,10 @@ export const oauthLogin = async (provider: 'google' | 'github', idToken: string)
     if (!response.ok) {
       throw new Error(data.error?.message || 'OAuth login failed');
     }
+
+    // Safari drops the cookie the backend sets when the API is on another
+    // site, so the token has to be kept for the Authorization header.
+    if (data?.data?.token) studentStorage.setToken(data.data.token);
 
     return { success: true, data: data.data };
   } catch (error: any) {
@@ -162,7 +168,7 @@ export const oauthRegister = async (
   }
 ) => {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/student/auth/oauth-register`, {
+    const response = await fetch(`${env.API_BASE_URL}/student/auth/oauth-register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -184,6 +190,9 @@ export const oauthRegister = async (
     if (!response.ok) {
       throw new Error(data.error?.message || 'OAuth registration failed');
     }
+
+    // Same reason as oauthLogin above.
+    if (data?.data?.token) studentStorage.setToken(data.data.token);
 
     return { success: true, data: data.data };
   } catch (error: any) {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 import "../styles/materialProtection.css";
 import Navbar from "../components/layout/Navbar";
@@ -7,9 +7,22 @@ import { AuthProvider } from "../contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
 import ScrollToTop from "../components/ScrollToTop";
 
-const inter = Inter({
+// UI / body face. Plex Sans holds its shape at 11-15px, where most of this
+// interface lives, and its figures are tabular-friendly for progress and counts.
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans-plex",
+});
+
+// Display face, used only for hero headlines. Same superfamily as the sans, so
+// the pairing is harmonious by construction rather than by luck.
+const plexSerif = IBM_Plex_Serif({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["600"], // the only weight the display face is used at
+  variable: "--font-serif-plex",
 });
 
 export const metadata: Metadata = {
@@ -23,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased bg-gray-50`}>
+    <html lang="en" className={`${plexSans.variable} ${plexSerif.variable}`}>
+      <body className="font-sans antialiased bg-white">
         <AuthProvider>
           <ScrollToTop />
           <div className="min-h-screen">

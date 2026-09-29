@@ -185,13 +185,13 @@ export default function MyCoursesPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-3">
+      <div className="min-h-screen bg-white flex items-center justify-center px-3">
         <div className="text-center">
-          <BookOpenIcon className="h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Please log in</h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">You need to be logged in to view your courses.</p>
+          <BookOpenIcon className="h-12 w-12 sm:h-16 sm:w-16 text-[#94A3B8] mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-[#0F172A] mb-2">Please log in</h3>
+          <p className="text-sm sm:text-base text-[#475569] mb-3 sm:mb-4">You need to be logged in to view your courses.</p>
           <Link href="/login">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm sm:text-base">
+            <button className="bg-[#1D4ED8] text-white px-4 py-2 rounded-[4px] hover:bg-[#1E40AF] text-sm sm:text-base">
               Log In
             </button>
           </Link>
@@ -201,16 +201,16 @@ export default function MyCoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-white border-b border-[#DDE3EA]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
+              <h1 className="text-h2 sm:text-h1 text-[#0F172A] mb-1">
                 My Courses
               </h1>
-              <p className="text-sm sm:text-base text-slate-600">
+              <p className="text-sm sm:text-base text-[#475569]">
                 {stats.total > 0
                   ? `${stats.active} active • ${stats.completed} completed • ${stats.averageProgress}% average progress`
                   : 'Start your learning journey by enrolling in courses'
@@ -219,7 +219,7 @@ export default function MyCoursesPage() {
             </div>
 
             <Link href="/courses">
-              <button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-colors shadow-sm hover:shadow-md min-h-[44px]">
+              <button className="w-full sm:w-auto bg-[#1D4ED8] hover:bg-[#1E40AF] text-white px-5 py-2.5 rounded-[4px] font-medium text-sm transition-colors min-h-[44px]">
                 {stats.active > 0 ? 'Browse More Courses' : 'Explore Courses'}
               </button>
             </Link>
@@ -230,50 +230,50 @@ export default function MyCoursesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-[4px] border border-[#DDE3EA] p-3 sm:p-4 transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#EFF4FF] rounded-[4px] flex items-center justify-center flex-shrink-0">
+                <BookOpenIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#1D4ED8]" />
               </div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-slate-900">{stats.active}</p>
-                <p className="text-[10px] sm:text-xs font-medium text-slate-600 uppercase truncate">Active</p>
+                <p className="text-title sm:text-h2 tabular-nums text-[#0F172A]">{stats.active}</p>
+                <p className="text-micro text-[#475569] uppercase truncate">Active</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-[4px] border border-[#DDE3EA] p-3 sm:p-4 transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <ChartBarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FEF0C7] rounded-[4px] flex items-center justify-center flex-shrink-0">
+                <ChartBarIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#B45309]" />
               </div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-slate-900">{stats.inProgress}</p>
-                <p className="text-[10px] sm:text-xs font-medium text-slate-600 uppercase truncate">In Progress</p>
+                <p className="text-title sm:text-h2 tabular-nums text-[#0F172A]">{stats.inProgress}</p>
+                <p className="text-micro text-[#475569] uppercase truncate">In Progress</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-[4px] border border-[#DDE3EA] p-3 sm:p-4 transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#F6F8FA] rounded-[4px] flex items-center justify-center flex-shrink-0">
+                <CheckCircleIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#0F172A]" />
               </div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-slate-900">{stats.completed}</p>
-                <p className="text-[10px] sm:text-xs font-medium text-slate-600 uppercase truncate">Completed</p>
+                <p className="text-title sm:text-h2 tabular-nums text-[#0F172A]">{stats.completed}</p>
+                <p className="text-micro text-[#475569] uppercase truncate">Completed</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-[4px] border border-[#DDE3EA] p-3 sm:p-4 transition-shadow">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#F6F8FA] rounded-[4px] flex items-center justify-center flex-shrink-0">
+                <ClockIcon className="h-5 w-5 sm:h-6 sm:w-6 text-[#475569]" />
               </div>
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl font-bold text-slate-900">{stats.totalHours}</p>
-                <p className="text-[10px] sm:text-xs font-medium text-slate-600 uppercase truncate">Hours</p>
+                <p className="text-title sm:text-h2 tabular-nums text-[#0F172A]">{stats.totalHours}</p>
+                <p className="text-micro text-[#475569] uppercase truncate">Hours</p>
               </div>
             </div>
           </div>
@@ -289,17 +289,17 @@ export default function MyCoursesPage() {
             <button
               key={key}
               onClick={() => setFilter(key as typeof filter)}
-              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-[4px] text-xs sm:text-sm font-medium transition-colors ${
                 filter === key
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                  ? 'bg-[#1D4ED8] text-white'
+                  : 'bg-white text-[#0F172A] hover:bg-[#F6F8FA] border border-[#DDE3EA]'
               }`}
             >
               <span className="whitespace-nowrap">{label}</span>
               <span className={`px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${
                 filter === key
                   ? 'bg-white/20 text-white'
-                  : 'bg-slate-100 text-slate-600'
+                  : 'bg-[#F6F8FA] text-[#475569]'
               }`}>
                 {count}
               </span>
@@ -311,13 +311,13 @@ export default function MyCoursesPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden animate-pulse">
-                <div className="aspect-video bg-slate-200"></div>
+              <div key={i} className="bg-white rounded-[4px] border border-[#DDE3EA] overflow-hidden animate-pulse">
+                <div className="aspect-video bg-[#E9EEF4]"></div>
                 <div className="p-4 space-y-3">
-                  <div className="h-5 bg-slate-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-slate-200 rounded"></div>
-                  <div className="h-2 bg-slate-200 rounded"></div>
-                  <div className="h-9 bg-slate-200 rounded"></div>
+                  <div className="h-5 bg-[#E9EEF4] rounded w-3/4"></div>
+                  <div className="h-4 bg-[#E9EEF4] rounded"></div>
+                  <div className="h-2 bg-[#E9EEF4] rounded"></div>
+                  <div className="h-9 bg-[#E9EEF4] rounded"></div>
                 </div>
               </div>
             ))}
@@ -326,39 +326,45 @@ export default function MyCoursesPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filteredEnrollments.map((enrollment) => (
-              <div key={enrollment.id} className="bg-white rounded-lg border border-slate-200 hover:shadow-lg transition-all duration-200 overflow-hidden">
+              <div key={enrollment.id} className="bg-white rounded-[4px] border border-[#DDE3EA] transition-all duration-200 overflow-hidden">
                 <div className="relative w-full rounded-t-lg" style={{ height: '208px' }}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-t-lg overflow-hidden">
-                    {enrollment.course.thumbnail && enrollment.course.thumbnail ? (
-                      <img
-                        src={enrollment.course.thumbnail!}
-                        alt={enrollment.course.title}
-                        className="w-full h-full object-cover"
-                      onError={(e) => {
-                      }}
-                      onLoad={() => {
-                      }}
-                      />
+                  <div className="absolute inset-0 bg-[#F6F8FA] rounded-t-lg overflow-hidden">
+                    {enrollment.course.thumbnail ? (
+                      <>
+                        <img
+                          src={enrollment.course.thumbnail}
+                          alt=""
+                          aria-hidden="true"
+                          className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-45"
+                        />
+                        <img
+                          src={enrollment.course.thumbnail}
+                          alt=""
+                          className="relative h-full w-full object-contain"
+                        />
+                      </>
                     ) : (
                       <BookOpenIcon className="h-10 w-10 sm:h-12 sm:w-12 text-white/80" />
                     )}
                   </div>
 
                   {/* Status Badge */}
-                  <div className="absolute top-2 right-2 z-10 flex flex-col gap-1 items-end">
-                    {enrollment.progressPercentage === 100 ? (
-                      <div className="bg-green-600 px-2 py-1 rounded text-xs font-medium" style={{ color: 'white' }}>
+                  <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1">
+                    {/* Completion is decided the same way as everywhere else in
+                        this file: a rounded 99.6% is still not finished. */}
+                    {enrollment.status === 'COMPLETED' ||
+                    (enrollment.progressPercentage ?? 0) >= 100 ? (
+                      <div className="rounded-[3px] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#0F172A] ring-1 ring-black/5 shadow-[0_1px_4px_rgba(15,23,42,0.45)]">
                         Completed
                       </div>
                     ) : (
-                      <div className="bg-indigo-600 px-2 py-1 rounded text-xs font-medium" style={{ color: 'white' }}>
-                        {Math.min(100, Math.round(enrollment.progressPercentage))}%
+                      <div className="rounded-[3px] bg-[#1D4ED8] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-white shadow-[0_1px_4px_rgba(15,23,42,0.45)]">
+                        {Math.min(99, Math.round(enrollment.progressPercentage ?? 0))}%
                       </div>
                     )}
-                    {/* New Content Badge */}
                     {enrollment.hasNewContent && (
-                      <div className="bg-orange-500 px-2 py-1 rounded text-xs font-medium animate-pulse" style={{ color: 'white' }}>
-                        🆕 New Content Added
+                      <div className="rounded-[3px] bg-[#B45309] px-2.5 py-1 text-[11px] font-semibold text-white shadow-[0_1px_4px_rgba(15,23,42,0.45)]">
+                        New material
                       </div>
                     )}
                   </div>
@@ -367,39 +373,39 @@ export default function MyCoursesPage() {
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {enrollment.course.category && (
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">
+                      <span className="px-2 py-0.5 bg-[#F6F8FA] text-[#0F172A] rounded text-xs font-medium">
                         {enrollment.course.category.name}
                       </span>
                     )}
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                    <span className="px-2 py-0.5 bg-[#EFF4FF] text-[#1E40AF] rounded text-xs font-medium">
                       {enrollment.course.level}
                     </span>
                   </div>
 
-                  <h3 className="font-semibold text-slate-900 mb-2 line-clamp-2 text-sm">
+                  <h3 className="font-semibold text-[#0F172A] mb-2 line-clamp-2 text-sm">
                     {enrollment.course.title}
                   </h3>
 
-                  <p className="text-xs text-slate-600 mb-2 line-clamp-2">
+                  <p className="text-xs text-[#475569] mb-2 line-clamp-2">
                     {enrollment.course.description}
                   </p>
 
-                  <div className="text-xs text-slate-600 mb-3 truncate">
+                  <div className="text-xs text-[#475569] mb-3 truncate">
                     by {enrollment.course.tutorName || `${enrollment.course.creator.firstName} ${enrollment.course.creator.lastName}`}
                   </div>
 
                   {/* Progress Bar */}
                   <div className="mb-3">
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-600">Progress</span>
-                      <span className="font-medium text-slate-900">
+                      <span className="text-[#475569]">Progress</span>
+                      <span className="font-medium text-[#0F172A]">
                         {Math.min(100, Math.round(enrollment.progressPercentage))}%
                       </span>
                     </div>
-                    <div className="w-full bg-slate-200 rounded-full h-2">
+                    <div className="w-full bg-[#E9EEF4] rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${
-                          enrollment.progressPercentage === 100 ? 'bg-green-600' : 'bg-indigo-600'
+                          enrollment.status === 'COMPLETED' || (enrollment.progressPercentage ?? 0) >= 100 ? 'bg-[#0F172A]' : 'bg-[#1D4ED8]'
                         }`}
                         style={{ width: `${Math.min(100, enrollment.progressPercentage)}%` }}
                       />
@@ -407,7 +413,7 @@ export default function MyCoursesPage() {
                   </div>
 
                   {/* Stats */}
-                  <div className="flex justify-between text-xs text-slate-600 mb-3">
+                  <div className="flex justify-between text-xs text-[#475569] mb-3">
                     <span>{Math.min(enrollment.completedMaterials || 0, enrollment.course._count.materials)} / {enrollment.course._count.materials} lessons</span>
                     <span>{Math.round((enrollment.totalTimeSpent || 0) / 60)}h</span>
                   </div>
@@ -417,14 +423,14 @@ export default function MyCoursesPage() {
                     const buttonState = getEnrollmentButtonState(enrollment);
                     return (
                       <Link href={buttonState.href}>
-                        <button className={`w-full py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
+                        <button className={`w-full py-2 rounded-[4px] text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
                           buttonState.type === 'completed'
-                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            ? 'bg-[#0F172A] text-white hover:bg-[#0F172A]'
                             : buttonState.type === 'rate'
-                            ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                            ? 'bg-[#B45309] text-white hover:bg-[#B45309]'
                             : buttonState.type === 'new-content'
-                            ? 'bg-orange-600 text-white hover:bg-orange-700 animate-pulse'
-                            : 'bg-slate-900 text-white hover:bg-slate-800'
+                            ? 'bg-[#B45309] text-white hover:bg-[#92400E] animate-pulse'
+                            : 'bg-[#0F172A] text-white hover:bg-[#1E293B]'
                         }`}>
                           {buttonState.type === 'rate' && <StarIcon className="h-3.5 w-3.5" />}
                           <span>{buttonState.text}</span>
@@ -434,7 +440,7 @@ export default function MyCoursesPage() {
                   })()}
 
                   {/* Enrollment Date */}
-                  <div className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">
+                  <div className="text-xs text-[#64748B] mt-3 pt-3 border-t border-[#DDE3EA]">
                     <div className="flex items-center">
                       <CalendarIcon className="h-3 w-3 mr-1" />
                       <span className="truncate">Enrolled {new Date(enrollment.enrolledAt).toLocaleDateString()}</span>
@@ -454,7 +460,7 @@ export default function MyCoursesPage() {
               <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="group relative px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none"
+                className="rounded-[4px] bg-[#1D4ED8] px-7 py-3 text-body font-semibold text-white transition-colors hover:bg-[#1E40AF] disabled:cursor-not-allowed disabled:bg-[#E9EEF4] disabled:text-[#94A3B8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1D4ED8]"
               >
                 {loadingMore ? (
                   <div className="flex items-center gap-3">
@@ -473,16 +479,16 @@ export default function MyCoursesPage() {
                   </div>
                 )}
               </button>
-              <p className="text-sm text-slate-600">
-                Showing <span className="font-semibold text-slate-900">{enrollments.length}</span> of <span className="font-semibold text-slate-900">{totalEnrollments}</span> courses
+              <p className="text-sm text-[#475569]">
+                Showing <span className="font-semibold text-[#0F172A]">{enrollments.length}</span> of <span className="font-semibold text-[#0F172A]">{totalEnrollments}</span> courses
               </p>
             </div>
           )}
 
           {/* All Courses Loaded Message */}
           {!loading && !hasMore && filteredEnrollments.length > 0 && enrollments.length === totalEnrollments && (
-            <div className="flex flex-col items-center gap-2 mt-8 py-6 border-t border-slate-200">
-              <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex flex-col items-center gap-2 mt-8 py-6 border-t border-[#DDE3EA]">
+              <div className="flex items-center gap-2 text-[#475569]">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
@@ -490,7 +496,7 @@ export default function MyCoursesPage() {
               </div>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1 mt-2"
+                className="text-sm text-[#1D4ED8] hover:text-[#1D4ED8] font-medium flex items-center gap-1 mt-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -504,28 +510,28 @@ export default function MyCoursesPage() {
           <div className="text-center py-12">
             {filter === 'all' ? (
               <>
-                <BookOpenIcon className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">No courses enrolled yet</h3>
-                <p className="text-sm text-slate-600 mb-4">
+                <BookOpenIcon className="h-16 w-16 text-[#94A3B8] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#0F172A] mb-2">No courses enrolled yet</h3>
+                <p className="text-sm text-[#475569] mb-4">
                   Start your learning journey by enrolling in your first course!
                 </p>
                 <Link href="/courses">
-                  <button className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">
+                  <button className="bg-[#1D4ED8] text-white px-6 py-2.5 rounded-[4px] hover:bg-[#1E40AF] text-sm font-medium transition-colors">
                     Browse Courses
                   </button>
                 </Link>
               </>
             ) : filter === 'in_progress' ? (
               <>
-                <ChartBarIcon className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">No courses in progress</h3>
-                <p className="text-sm text-slate-600">All your enrolled courses are completed!</p>
+                <ChartBarIcon className="h-16 w-16 text-[#94A3B8] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#0F172A] mb-2">No courses in progress</h3>
+                <p className="text-sm text-[#475569]">All your enrolled courses are completed!</p>
               </>
             ) : (
               <>
-                <CheckCircleIcon className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">No completed courses</h3>
-                <p className="text-sm text-slate-600">Keep learning to complete your first course!</p>
+                <CheckCircleIcon className="h-16 w-16 text-[#94A3B8] mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-[#0F172A] mb-2">No completed courses</h3>
+                <p className="text-sm text-[#475569]">Keep learning to complete your first course!</p>
               </>
             )}
           </div>

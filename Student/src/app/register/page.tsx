@@ -28,6 +28,7 @@ import { studentStorage } from '@/utils/storage';
 import { handleGoogleRegister } from '@/Oauth/google';
 import { handleGithubRegister } from '@/Oauth/github';
 
+import { env } from '../../config/env';
 const educationLevels = [
   { value: 'high-school', label: 'High School' },
   { value: 'associate', label: 'Associate Degree' },
@@ -215,7 +216,7 @@ export default function RegisterPage() {
 
   const checkEmailExists = async (email: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/check-email`, {
+      const response = await fetch(`${env.API_BASE_URL}/student/auth/check-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -394,7 +395,7 @@ export default function RegisterPage() {
       };
 
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-register`, {
+      const response = await fetch(`${env.API_BASE_URL}/student/auth/oauth-register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -498,7 +499,7 @@ export default function RegisterPage() {
 
 
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/register`, {
+      const response = await fetch(`${env.API_BASE_URL}/student/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -546,7 +547,7 @@ export default function RegisterPage() {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/resend-otp`, {
+      const response = await fetch(`${env.API_BASE_URL}/student/auth/resend-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -587,7 +588,7 @@ export default function RegisterPage() {
       };
 
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/verify-otp`, {
+      const response = await fetch(`${env.API_BASE_URL}/student/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -602,7 +603,12 @@ export default function RegisterPage() {
       if (response.ok && data.success) {
         toast.success('Email verified! Account created successfully.');
 
-        // Account is already created by the backend and JWT cookie is set
+        // The backend sets a cookie here, but Safari (iOS and macOS) drops it
+        // when the API is on a different site, which left the user logged out
+        // the moment registration finished. Keep the token the response also
+        // returns, so the Authorization header can carry the session instead.
+        if (data?.data?.token) studentStorage.setToken(data.data.token);
+
         // Refresh the auth context to get the current user data
         await refreshUser();
 
@@ -639,7 +645,7 @@ export default function RegisterPage() {
 
         const requestBody = { email: result.data.email };
 
-        const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/check-email`, {
+        const checkResponse = await fetch(`${env.API_BASE_URL}/student/auth/check-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -656,7 +662,7 @@ export default function RegisterPage() {
           toast.loading('Account exists. Logging you in...');
 
           // Attempt OAuth login
-          const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-login`, {
+          const loginResponse = await fetch(`${env.API_BASE_URL}/student/auth/oauth-login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -735,7 +741,7 @@ export default function RegisterPage() {
       // Check if account already exists
       try {
 
-        const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/check-email`, {
+        const checkResponse = await fetch(`${env.API_BASE_URL}/student/auth/check-email`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -752,7 +758,7 @@ export default function RegisterPage() {
 
           // Attempt OAuth login
 
-          const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL!}/student/auth/oauth-login`, {
+          const loginResponse = await fetch(`${env.API_BASE_URL}/student/auth/oauth-login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -823,62 +829,62 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-96px)] bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-96px)] bg-[#F6F8FA]/30 via-white /30 relative overflow-hidden">
       {/* Decorative Background Elements - Spanning across both sides */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute bottom-20 left-20 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-3xl animate-float-slower"></div>
-        <div className="absolute top-40 right-20 w-80 h-80 bg-purple-400/8 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#1D4ED8]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-20 w-[500px] h-[500px] bg-[#1D4ED8]/10 rounded-full blur-3xler"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-[#94A3B8]/8 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative z-10 lg:grid lg:grid-cols-2 h-full">
         {/* Left Column - Marketing/Benefits Section (Hidden on mobile/tablet) */}
         <div className="hidden lg:flex lg:flex-col lg:justify-center px-8 xl:px-12 py-3">
-          <div className="max-w-md animate-fade-in-left">
+          <div className="max-w-md">
             {/* Logo */}
             <div className="mb-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="h-11 w-11 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <div className="h-11 w-11 bg-[#1D4ED8] rounded-[6px] flex items-center justify-center">
                   <span className="text-white font-bold text-lg">C</span>
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-slate-900">CODiiN</h1>
-                  <p className="text-xs text-slate-600">Learn & Grow</p>
+                  <h1 className="text-title text-[#0F172A]">CODiiN</h1>
+                  <p className="text-xs text-[#475569]">Learn & Grow</p>
                 </div>
               </div>
             </div>
 
             {/* Main Heading */}
-            <h2 className="text-2xl xl:text-3xl font-bold text-slate-900 mb-3 leading-tight">
+            <h2 className="font-display text-h2 xl:text-h1 text-[#0F172A] mb-3">
               Start your learning journey today
             </h2>
-            <p className="text-sm text-slate-600 mb-5">
+            <p className="text-sm text-[#475569] mb-5">
               Join thousands of students already learning on our platform and accelerate your career.
             </p>
 
             {/* Benefits List */}
             <div className="space-y-4">
               <div className="flex items-start gap-3 group">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/30 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-[6px] bg-[#1D4ED8] flex items-center justify-center flex-shrink-0 transition-transform duration-300">
                   <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 mb-0.5 text-sm">Expert-led courses</h3>
-                  <p className="text-xs text-slate-600">Learn from industry professionals with real-world expertise</p>
+                  <h3 className="font-bold text-[#0F172A] mb-0.5 text-sm">Expert-led courses</h3>
+                  <p className="text-xs text-[#475569]">Learn from industry professionals with real-world expertise</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3 group">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-12 h-12 rounded-[6px] bg-[#1D4ED8] flex items-center justify-center flex-shrink-0 transition-transform duration-300">
                   <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 mb-0.5 text-sm">Learn at your own pace</h3>
-                  <p className="text-xs text-slate-600">Flexible learning schedule that fits your lifestyle</p>
+                  <h3 className="font-bold text-[#0F172A] mb-0.5 text-sm">Learn at your own pace</h3>
+                  <p className="text-xs text-[#475569]">Flexible learning schedule that fits your lifestyle</p>
                 </div>
               </div>
             </div>
@@ -889,25 +895,25 @@ export default function RegisterPage() {
         <div className="flex flex-col justify-center px-3 sm:px-6 lg:px-8 xl:px-10 py-2 sm:py-3">
           <div className="w-full max-w-2xl mx-auto">
             {/* Modern Header with Inline Progress */}
-            <div className="mb-2 sm:mb-3 animate-fade-in-up">
+            <div className="mb-2 sm:mb-3">
               <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                 <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 lg:hidden bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 transform hover:scale-105 transition-transform duration-300">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-[#1D4ED8] sm:h-12 sm:w-12 lg:hidden">
                     <span className="text-white font-bold text-xl">C</span>
                   </div>
                   <div>
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
+                    <h2 className="text-title sm:text-h2 text-[#0F172A]">
                       {step === 5 ? 'Verify Email' : isOAuthFlow ? 'Complete Profile' : 'Create Account'}
                     </h2>
-                    <p className="text-xs sm:text-sm lg:text-base text-slate-500 mt-0.5">
+                    <p className="text-xs sm:text-sm lg:text-base text-[#64748B] mt-0.5">
                       {step === 5 ? (
-                        <>Code sent to <span className="text-blue-600 font-semibold">{formData.email}</span></>
+                        <>Code sent to <span className="text-[#1D4ED8] font-semibold">{formData.email}</span></>
                       ) : isOAuthFlow ? (
                         <>Additional information required</>
                       ) : (
                         <>
                           Have an account?{' '}
-                          <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-500">
+                          <Link href="/login" className="font-semibold text-[#1D4ED8] hover:text-[#1D4ED8]">
                             Sign in
                           </Link>
                         </>
@@ -924,10 +930,10 @@ export default function RegisterPage() {
                         key={s}
                         className={`relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 transform ${
                           step > s
-                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/40 scale-110'
+                            ? 'bg-[#0F172A] text-white'
                             : step === s
-                            ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 scale-110 ring-4 ring-indigo-100'
-                            : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                            ? 'bg-[#1D4ED8] text-white ring-4 ring-[#EFF4FF]'
+                            : 'border border-[#DDE3EA] bg-white text-[#64748B]'
                         }`}
                       >
                         {step > s ? (
@@ -935,9 +941,6 @@ export default function RegisterPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         ) : s}
-                        {step === s && (
-                          <div className="absolute inset-0 rounded-full animate-ping bg-indigo-400 opacity-20"></div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -951,10 +954,10 @@ export default function RegisterPage() {
                         key={s}
                         className={`relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 transform ${
                           step > s
-                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/40 scale-110'
+                            ? 'bg-[#0F172A] text-white'
                             : step === s
-                            ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 scale-110 ring-4 ring-indigo-100'
-                            : 'bg-slate-100 text-slate-400'
+                            ? 'bg-[#1D4ED8] text-white ring-4 ring-[#EFF4FF]'
+                            : 'border border-[#DDE3EA] bg-white text-[#64748B]'
                         }`}
                       >
                         {step > s ? (
@@ -962,9 +965,6 @@ export default function RegisterPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         ) : idx + 1}
-                        {step === s && (
-                          <div className="absolute inset-0 rounded-full animate-ping bg-indigo-400 opacity-20"></div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -979,12 +979,12 @@ export default function RegisterPage() {
               <div className="flex items-start justify-between">
                 {/* Step 1 with Label */}
                 <div className="flex flex-col items-center gap-1.5" style={{ flex: '0 0 auto' }}>
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 shadow-sm ${
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300  ${
                     step > 1
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-green-500/30'
+                      ? 'bg-[#0F172A] text-white'
                       : step === 1
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-500/40'
-                      : 'bg-white border-2 border-slate-300 text-slate-500'
+                      ? 'bg-[#1D4ED8] text-white'
+                      : 'bg-white border-2 border-[#C7D2DE] text-[#64748B]'
                   }`}>
                     {step > 1 ? (
                       <CheckIcon className="h-4 w-4" />
@@ -993,7 +993,7 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <span className={`text-xs font-bold whitespace-nowrap transition-colors duration-300 ${
-                    step >= 1 ? 'text-slate-900' : 'text-slate-500'
+                    step >= 1 ? 'text-[#0F172A]' : 'text-[#64748B]'
                   }`}>
                     Basic Info
                   </span>
@@ -1002,18 +1002,18 @@ export default function RegisterPage() {
                 {/* Connecting line 1-2 */}
                 <div className="flex-1 flex items-start pt-3.5 px-2">
                   <div className={`w-full h-1 rounded-full transition-all duration-500 ${
-                    step > 1 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-slate-200'
+                    step > 1 ? 'bg-[#F6F8FA]' : 'bg-[#E9EEF4]'
                   }`} />
                 </div>
 
                 {/* Step 2 with Label */}
                 <div className="flex flex-col items-center gap-1.5" style={{ flex: '0 0 auto' }}>
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 shadow-sm ${
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300  ${
                     step > 2
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-green-500/30'
+                      ? 'bg-[#0F172A] text-white'
                       : step === 2
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-500/40'
-                      : 'bg-white border-2 border-slate-300 text-slate-500'
+                      ? 'bg-[#1D4ED8] text-white'
+                      : 'bg-white border-2 border-[#C7D2DE] text-[#64748B]'
                   }`}>
                     {step > 2 ? (
                       <CheckIcon className="h-4 w-4" />
@@ -1022,7 +1022,7 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <span className={`text-xs font-bold whitespace-nowrap transition-colors duration-300 ${
-                    step >= 2 ? 'text-slate-900' : 'text-slate-500'
+                    step >= 2 ? 'text-[#0F172A]' : 'text-[#64748B]'
                   }`}>
                     Personal
                   </span>
@@ -1031,18 +1031,18 @@ export default function RegisterPage() {
                 {/* Connecting line 2-3 */}
                 <div className="flex-1 flex items-start pt-3.5 px-2">
                   <div className={`w-full h-1 rounded-full transition-all duration-500 ${
-                    step > 2 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-slate-200'
+                    step > 2 ? 'bg-[#F6F8FA]' : 'bg-[#E9EEF4]'
                   }`} />
                 </div>
 
                 {/* Step 3 with Label */}
                 <div className="flex flex-col items-center gap-1.5" style={{ flex: '0 0 auto' }}>
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 shadow-sm ${
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300  ${
                     step > 3
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-green-500/30'
+                      ? 'bg-[#0F172A] text-white'
                       : step === 3
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-500/40'
-                      : 'bg-white border-2 border-slate-300 text-slate-500'
+                      ? 'bg-[#1D4ED8] text-white'
+                      : 'bg-white border-2 border-[#C7D2DE] text-[#64748B]'
                   }`}>
                     {step > 3 ? (
                       <CheckIcon className="h-4 w-4" />
@@ -1051,7 +1051,7 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <span className={`text-xs font-bold whitespace-nowrap transition-colors duration-300 ${
-                    step >= 3 ? 'text-slate-900' : 'text-slate-500'
+                    step >= 3 ? 'text-[#0F172A]' : 'text-[#64748B]'
                   }`}>
                     Education
                   </span>
@@ -1063,17 +1063,17 @@ export default function RegisterPage() {
 
             {/* OAuth Progress Steps */}
             {isOAuthFlow && step < 4 && (
-              <div className="mb-3 animate-fade-in-up">
-                <div className="relative bg-white/60 backdrop-blur-sm rounded-xl p-3 shadow-md border border-blue-100/50">
+              <div className="mb-3">
+                <div className="relative bg-white/60 rounded-[6px] p-3 border border-[#DDE3EA]/50">
               <div className="flex items-start justify-between">
                 {/* Step 1: Personal Info with Label */}
                 <div className="flex flex-col items-center gap-1" style={{ flex: '0 0 auto' }}>
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 shadow-sm ${
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300  ${
                     step > 2
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-green-500/30 scale-110'
+                      ? 'bg-[#0F172A] text-white'
                       : step === 2
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-500/40 scale-110'
-                      : 'bg-white border-2 border-slate-300 text-slate-500'
+                      ? 'bg-[#1D4ED8] text-white'
+                      : 'bg-white border-2 border-[#C7D2DE] text-[#64748B]'
                   }`}>
                     {step > 2 ? (
                       <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -1082,7 +1082,7 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <span className={`text-[10px] sm:text-xs font-bold whitespace-nowrap transition-colors duration-300 ${
-                    step >= 2 ? 'text-slate-900' : 'text-slate-500'
+                    step >= 2 ? 'text-[#0F172A]' : 'text-[#64748B]'
                   }`}>
                     Personal Info
                   </span>
@@ -1091,18 +1091,18 @@ export default function RegisterPage() {
                 {/* Connecting line */}
                 <div className="flex-1 flex items-start pt-3 sm:pt-3.5 px-1.5 sm:px-2 md:px-3">
                   <div className={`w-full h-0.5 sm:h-1 rounded-full transition-all duration-500 ${
-                    step > 2 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-slate-200'
+                    step > 2 ? 'bg-[#F6F8FA]' : 'bg-[#E9EEF4]'
                   }`} />
                 </div>
 
                 {/* Step 2: Education with Label */}
                 <div className="flex flex-col items-center gap-1.5" style={{ flex: '0 0 auto' }}>
-                  <div className={`flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full transition-all duration-300 shadow-sm ${
+                  <div className={`flex items-center justify-center w-7 h-7 sm:w-9 sm:h-9 rounded-full transition-all duration-300  ${
                     step > 3
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-green-500/30 scale-110'
+                      ? 'bg-[#0F172A] text-white'
                       : step === 3
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-500/40 scale-110'
-                      : 'bg-white border-2 border-slate-300 text-slate-500'
+                      ? 'bg-[#1D4ED8] text-white'
+                      : 'bg-white border-2 border-[#C7D2DE] text-[#64748B]'
                   }`}>
                     {step > 3 ? (
                       <CheckIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -1111,7 +1111,7 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <span className={`text-[10px] sm:text-xs font-bold whitespace-nowrap transition-colors duration-300 ${
-                    step >= 3 ? 'text-slate-900' : 'text-slate-500'
+                    step >= 3 ? 'text-[#0F172A]' : 'text-[#64748B]'
                   }`}>
                     Education
                   </span>
@@ -1124,14 +1124,14 @@ export default function RegisterPage() {
             {/* Modern Form Card */}
             <div className="relative group">
               {/* Glow effect on hover */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+              <div className="absolute -inset-0.5 bg-[#F6F8FA] rounded-[8px] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
 
-              <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200/50 overflow-hidden">
+              <div className="relative bg-white rounded-[8px] border border-[#DDE3EA]/50 overflow-hidden">
                 {/* Animated gradient bar */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#F6F8FA]"></div>
 
                 {/* Subtle background pattern */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30"></div>
+                <div className="absolute inset-0 bg-[#F6F8FA]/30 via-white /30"></div>
 
                 <div className="relative p-4 sm:p-5">
                 <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit}>
@@ -1139,15 +1139,15 @@ export default function RegisterPage() {
                   {step === 1 && (
                     <div className="space-y-2 sm:space-y-2.5">
                       {/* Step Title */}
-                      <div className="flex items-center gap-2 sm:gap-3 pb-1.5 border-b border-slate-100">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                      <div className="flex items-center gap-2 sm:gap-3 pb-1.5 border-b border-[#DDE3EA]">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[4px] bg-[#1D4ED8] flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                           </svg>
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-bold text-slate-900">Basic Information</h3>
-                          <p className="text-xs text-slate-500 hidden sm:block">Let's start with your details</p>
+                          <h3 className="text-base sm:text-lg font-bold text-[#0F172A]">Basic Information</h3>
+                          <p className="text-xs text-[#64748B] hidden sm:block">Let's start with your details</p>
                         </div>
                       </div>
 
@@ -1220,13 +1220,13 @@ export default function RegisterPage() {
                     />
                     <button
                       type="button"
-                      className="absolute right-2 top-[26px] sm:right-3 sm:top-9 p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors z-20"
+                      className="absolute right-2 top-[26px] sm:right-3 sm:top-9 p-1.5 sm:p-2 rounded-[4px] hover:bg-[#F6F8FA] transition-colors z-20"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeSlashIcon className="h-4 w-4 text-slate-500" />
+                        <EyeSlashIcon className="h-4 w-4 text-[#64748B]" />
                       ) : (
-                        <EyeIcon className="h-4 w-4 text-slate-500" />
+                        <EyeIcon className="h-4 w-4 text-[#64748B]" />
                       )}
                     </button>
                   </div>
@@ -1246,13 +1246,13 @@ export default function RegisterPage() {
                     />
                     <button
                       type="button"
-                      className="absolute right-2 top-[26px] sm:right-3 sm:top-9 p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors z-20"
+                      className="absolute right-2 top-[26px] sm:right-3 sm:top-9 p-1.5 sm:p-2 rounded-[4px] hover:bg-[#F6F8FA] transition-colors z-20"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? (
-                        <EyeSlashIcon className="h-4 w-4 text-slate-500" />
+                        <EyeSlashIcon className="h-4 w-4 text-[#64748B]" />
                       ) : (
-                        <EyeIcon className="h-4 w-4 text-slate-500" />
+                        <EyeIcon className="h-4 w-4 text-[#64748B]" />
                       )}
                     </button>
                   </div>
@@ -1264,20 +1264,20 @@ export default function RegisterPage() {
                   {step === 2 && (
                     <div className="space-y-2 sm:space-y-2.5">
                       {/* Step Title */}
-                      <div className="flex items-center gap-2 sm:gap-3 pb-1.5 border-b border-slate-100">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                      <div className="flex items-center gap-2 sm:gap-3 pb-1.5 border-b border-[#DDE3EA]">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[4px] bg-[#1D4ED8] flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                           </svg>
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-bold text-slate-900">Personal Details</h3>
-                          <p className="text-xs text-slate-500 hidden sm:block">Tell us more about yourself</p>
+                          <h3 className="text-base sm:text-lg font-bold text-[#0F172A]">Personal Details</h3>
+                          <p className="text-xs text-[#64748B] hidden sm:block">Tell us more about yourself</p>
                         </div>
                       </div>
                 {/* Show OAuth user info if in OAuth flow */}
                 {isOAuthFlow && oauthData && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-3 mb-2.5">
+                  <div className="bg-[#EFF4FF] border border-[#C7D2DE] rounded-[4px] p-3 sm:p-3 mb-2.5">
                     <div className="flex items-center space-x-2 sm:space-x-3">
                       {oauthData.avatar ? (
                         <img
@@ -1291,13 +1291,13 @@ export default function RegisterPage() {
                           }}
                         />
                       ) : (
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-300 flex items-center justify-center">
-                          <span className="text-xs text-slate-600">No Avatar</span>
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#CBD5E1] flex items-center justify-center">
+                          <span className="text-xs text-[#475569]">No Avatar</span>
                         </div>
                       )}
                       <div>
-                        <p className="text-xs sm:text-sm text-blue-800">{oauthData.email || 'Email from OAuth'}</p>
-                        <p className="text-xs text-blue-700">
+                        <p className="text-xs sm:text-sm text-[#1E40AF]">{oauthData.email || 'Email from OAuth'}</p>
+                        <p className="text-xs text-[#1E40AF]">
                           Signed in with {oauthProvider === 'google' ? 'Google' : 'GitHub'}
                         </p>
                       </div>
@@ -1397,15 +1397,15 @@ export default function RegisterPage() {
                   {step === 3 && (
                     <div className="space-y-2 sm:space-y-2.5">
                       {/* Step Title */}
-                      <div className="flex items-center gap-2 sm:gap-3 pb-1.5 border-b border-slate-100">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                      <div className="flex items-center gap-2 sm:gap-3 pb-1.5 border-b border-[#DDE3EA]">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[4px] bg-[#1D4ED8] flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                           </svg>
                         </div>
                         <div>
-                          <h3 className="text-base sm:text-lg font-bold text-slate-900">Education & Career</h3>
-                          <p className="text-xs text-slate-500 hidden sm:block">Share your academic background</p>
+                          <h3 className="text-base sm:text-lg font-bold text-[#0F172A]">Education & Career</h3>
+                          <p className="text-xs text-[#64748B] hidden sm:block">Share your academic background</p>
                         </div>
                       </div>
                 <Select
@@ -1455,11 +1455,11 @@ export default function RegisterPage() {
             {step === 4 && (
               <div className="space-y-2">
                 <div className="text-center">
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-green-50 mb-2">
-                    <CheckIcon className="h-6 w-6 sm:h-7 sm:w-7 text-green-600" />
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-[#F6F8FA] mb-2">
+                    <CheckIcon className="h-6 w-6 sm:h-7 sm:w-7 text-[#0F172A]" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-1">Almost Done!</h3>
-                  <p className="text-xs sm:text-sm text-slate-600">
+                  <h3 className="text-base sm:text-lg font-semibold text-[#0F172A] mb-1">Almost Done!</h3>
+                  <p className="text-xs sm:text-sm text-[#475569]">
                     {isOAuthFlow
                       ? 'Please review your information and click "Complete Registration" to finish.'
                       : 'Please review your information and click "Send Verification Code" to complete your registration.'
@@ -1467,13 +1467,13 @@ export default function RegisterPage() {
                   </p>
                 </div>
 
-                <div className="bg-slate-50 rounded-lg p-3 sm:p-4 space-y-1.5 text-xs sm:text-sm text-slate-900">
+                <div className="bg-white rounded-[4px] p-3 sm:p-4 space-y-1.5 text-xs sm:text-sm text-[#0F172A]">
                   {isOAuthFlow && oauthData?.avatar && (
                     <div className="flex justify-center mb-2">
                       <img
                         src={oauthData.avatar}
                         alt="Profile"
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white shadow-sm"
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-white"
                         referrerPolicy="no-referrer"
                       />
                     </div>
@@ -1494,10 +1494,10 @@ export default function RegisterPage() {
             {step === 5 && (
               <div className="space-y-3">
                 <div className="text-center mb-2">
-                  <div className="mx-auto flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-indigo-50 mb-2">
-                    <ShieldCheckIcon className="h-7 w-7 sm:h-8 sm:w-8 text-indigo-600" />
+                  <div className="mx-auto flex items-center justify-center h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-[#EFF4FF] mb-2">
+                    <ShieldCheckIcon className="h-7 w-7 sm:h-8 sm:w-8 text-[#1D4ED8]" />
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-600">
+                  <p className="text-xs sm:text-sm text-[#475569]">
                     Please enter the 6-digit verification code sent to your email
                   </p>
                 </div>
@@ -1535,21 +1535,21 @@ export default function RegisterPage() {
                           prevInput?.focus();
                         }
                       }}
-                      className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-semibold text-slate-900 border-2 border-slate-300 rounded-lg focus:border-indigo-500 focus:outline-none"
+                      className="w-10 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-semibold text-[#0F172A] border-2 border-[#C7D2DE] rounded-[4px] focus:border-[#1D4ED8] focus:outline-none"
                     />
                   ))}
                 </div>
 
                 <div className="text-center">
-                  <p className="text-xs sm:text-sm text-slate-600">
+                  <p className="text-xs sm:text-sm text-[#475569]">
                     Didn&apos;t receive the code?{' '}
                     {resendTimer > 0 ? (
-                      <span className="text-slate-500">Resend in {resendTimer}s</span>
+                      <span className="text-[#64748B]">Resend in {resendTimer}s</span>
                     ) : (
                       <button
                         type="button"
                         onClick={resendOTP}
-                        className="text-indigo-600 hover:text-indigo-500 font-medium"
+                        className="text-[#1D4ED8] hover:text-[#1D4ED8] font-medium"
                         disabled={isLoading}
                       >
                         Resend OTP
@@ -1609,10 +1609,10 @@ export default function RegisterPage() {
               {/* Modern OAuth Divider */}
               <div className="relative my-2 sm:my-3">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200"></div>
+                  <div className="w-full border-t border-[#DDE3EA]"></div>
                 </div>
                 <div className="relative flex justify-center text-xs sm:text-sm">
-                  <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 bg-white text-slate-500 font-medium rounded-full border border-slate-100">Or continue with</span>
+                  <span className="px-2.5 py-0.5 sm:px-3 sm:py-1 bg-white text-[#64748B] font-medium rounded-full border border-[#DDE3EA]">Or continue with</span>
                 </div>
               </div>
 
@@ -1623,12 +1623,12 @@ export default function RegisterPage() {
                   type="button"
                   onClick={onGoogleRegisterClick}
                   disabled={isLoading}
-                  className={`relative flex items-center justify-center px-2 py-2.5 sm:px-3 sm:py-3 border-2 border-slate-200 rounded-xl shadow-sm bg-white overflow-hidden transition-all duration-300 group ${
-                    isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:border-blue-400 hover:-translate-y-0.5 hover:bg-blue-50/50'
+                  className={`relative flex items-center justify-center px-2 py-2.5 sm:px-3 sm:py-3 border-2 border-[#DDE3EA] rounded-[6px]  bg-white overflow-hidden transition-all duration-300 group ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ' hover:border-[#1D4ED8] hover:-translate-y-0.5 hover:bg-[#EFF4FF]/50'
                   }`}
                 >
                   {/* Shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent /50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
                   <svg className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" viewBox="0 0 24 24">
                     <path
@@ -1648,7 +1648,7 @@ export default function RegisterPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm font-semibold text-slate-700 relative z-10">Google</span>
+                  <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm font-semibold text-[#0F172A] relative z-10">Google</span>
                 </button>
 
                 {/* GitHub Sign Up */}
@@ -1656,12 +1656,12 @@ export default function RegisterPage() {
                   type="button"
                   onClick={onGithubRegisterClick}
                   disabled={isLoading}
-                  className={`relative flex items-center justify-center px-2 py-2.5 sm:px-3 sm:py-3 border-2 border-slate-200 rounded-xl shadow-sm bg-white overflow-hidden transition-all duration-300 group ${
-                    isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg hover:border-slate-400 hover:-translate-y-0.5 hover:bg-slate-50'
+                  className={`relative flex items-center justify-center px-2 py-2.5 sm:px-3 sm:py-3 border-2 border-[#DDE3EA] rounded-[6px]  bg-white overflow-hidden transition-all duration-300 group ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ' hover:border-[#94A3B8] hover:-translate-y-0.5 hover:bg-white'
                   }`}
                 >
                   {/* Shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent /50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
                   <svg className="h-4 w-4 sm:h-5 sm:w-5 relative z-10" fill="currentColor" viewBox="0 0 24 24">
                     <path
@@ -1670,7 +1670,7 @@ export default function RegisterPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm font-semibold text-slate-700 relative z-10">GitHub</span>
+                  <span className="ml-1.5 sm:ml-2 text-xs sm:text-sm font-semibold text-[#0F172A] relative z-10">GitHub</span>
                 </button>
               </div>
             </div>

@@ -71,18 +71,19 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+    <nav className="sticky top-0 z-50 border-b border-[#DDE3EA] bg-[#FFFFFF]">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 sm:h-18 md:h-20 lg:h-24">
+        <div className="flex justify-between items-center h-16 lg:h-[72px]">
           {/* Logo and Main Nav */}
           <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
-              <div className="h-16 w-16 sm:h-18 sm:w-18 md:h-16 md:w-16 lg:h-20 lg:w-20 relative">
+              <div className="relative h-11 w-11 lg:h-12 lg:w-12">
                 <Image
                   src="/logo.png"
-                  alt="CODiiN Logo"
+                  alt="CODiiN"
                   fill
+                  sizes="48px"
                   className="object-contain"
                   priority
                 />
@@ -90,7 +91,7 @@ export default function Navbar() {
             </Link>
 
             {/* Navigation Links */}
-            <div className="hidden md:flex md:items-center md:gap-2 lg:gap-3">
+            <div className="hidden md:flex md:items-center md:gap-6 lg:gap-8">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -98,16 +99,12 @@ export default function Navbar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      'inline-flex items-center px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg text-sm lg:text-base font-medium transition-all duration-200',
+                      'inline-flex items-center border-b-2 px-1 pt-1 pb-[6px] text-body transition-colors',
                       isActive
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                        ? 'border-[#1D4ED8] font-semibold text-[#0F172A]'
+                        : 'border-transparent font-medium text-[#475569] hover:text-[#0F172A]'
                     )}
                   >
-                    <item.icon className={cn(
-                      "w-4 h-4 lg:w-5 lg:h-5 mr-2 flex-shrink-0",
-                      isActive ? "text-white" : "text-slate-500"
-                    )} />
                     <span className="whitespace-nowrap">{item.name}</span>
                   </Link>
                 );
@@ -122,11 +119,11 @@ export default function Navbar() {
               <div className="relative" ref={userMenuRef}>
                 <div>
                   <button
-                    className="flex items-center text-sm rounded-lg p-1.5 md:p-2 hover:bg-slate-50 transition-all duration-200"
+                    className="flex items-center rounded-[3px] p-1.5 text-sm transition-colors hover:bg-[#F6F8FA]"
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                   >
                     <span className="sr-only">Open user menu</span>
-                    <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center ring-2 ring-transparent hover:ring-blue-100 transition-all">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#DDE3EA]">
                       {user.avatar ? (
                         <img
                           className="h-8 w-8 rounded-lg object-cover"
@@ -135,40 +132,40 @@ export default function Navbar() {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <UserIcon className="h-4 w-4 text-slate-600" />
+                        <UserIcon className="h-4 w-4 text-[#475569]" />
                       )}
                     </div>
                     <div className="ml-2 md:ml-3 text-left hidden lg:block">
-                      <p className="text-sm font-medium text-slate-900 leading-tight">{user.firstName} {user.lastName}</p>
-                      <p className="text-xs text-slate-500 font-medium">{user.email}</p>
+                      <p className="text-sm font-medium text-[#0F172A] leading-tight">{user.firstName} {user.lastName}</p>
+                      <p className="text-xs text-[#64748B] font-medium">{user.email}</p>
                     </div>
                     <ChevronDownIcon className={cn(
-                      "ml-1.5 md:ml-2 h-4 w-4 text-slate-500 transition-transform duration-200",
+                      "ml-1.5 md:ml-2 h-4 w-4 text-[#64748B] transition-transform duration-200",
                       userMenuOpen && "rotate-180"
                     )} />
                   </button>
                 </div>
 
                 {userMenuOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-lg py-1.5 bg-white ring-1 ring-black/5 z-50 border border-slate-200 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-3 py-2.5 border-b border-slate-200">
-                      <p className="text-sm font-semibold text-slate-900 truncate">{user.firstName} {user.lastName}</p>
-                      <p className="text-xs text-slate-500 truncate mt-0.5">{user.email}</p>
+                  <div className="absolute right-0 z-50 mt-2 w-60 origin-top-right rounded-[4px] border border-[#DDE3EA] bg-[#FFFFFF] py-1.5 shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18)]">
+                    <div className="px-3 py-2.5 border-b border-[#DDE3EA]">
+                      <p className="text-sm font-semibold text-[#0F172A] truncate">{user.firstName} {user.lastName}</p>
+                      <p className="text-xs text-[#64748B] truncate mt-0.5">{user.email}</p>
                     </div>
                     <Link
                       href="/profile"
-                      className="flex items-center px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      className="flex items-center px-3 py-2.5 text-sm text-[#0F172A] hover:bg-[#F6F8FA] transition-colors"
                       onClick={() => setUserMenuOpen(false)}
                     >
-                      <UserIcon className="h-4 w-4 mr-2.5 text-slate-400" />
+                      <UserIcon className="h-4 w-4 mr-2.5 text-[#94A3B8]" />
                       Your Profile
                     </Link>
                     <Link
                       href="/my-courses"
-                      className="flex items-center px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      className="flex items-center px-3 py-2.5 text-sm text-[#0F172A] hover:bg-[#F6F8FA] transition-colors"
                       onClick={() => setUserMenuOpen(false)}
                     >
-                      <AcademicCapIcon className="h-4 w-4 mr-2.5 text-slate-400" />
+                      <AcademicCapIcon className="h-4 w-4 mr-2.5 text-[#94A3B8]" />
                       My Learning
                     </Link>
                     <button
@@ -176,9 +173,9 @@ export default function Navbar() {
                         setUserMenuOpen(false);
                         handleLogout();
                       }}
-                      className="flex items-center w-full text-left px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1 border-t border-slate-100"
+                      className="flex items-center w-full text-left px-3 py-2.5 text-sm text-[#B42318] hover:bg-[#FEF3F2] transition-colors mt-1 border-t border-[#DDE3EA]"
                     >
-                      <svg className="h-4 w-4 mr-2.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4 w-4 mr-2.5 text-[#D92D20]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       Sign out
@@ -190,12 +187,12 @@ export default function Navbar() {
               // Login/Register buttons
               <div className="flex items-center gap-2 md:gap-3">
                 <Link href="/login">
-                  <button className="text-slate-700 hover:text-slate-900 px-3 md:px-4 py-1.5 md:py-2 text-sm font-medium transition-colors rounded-lg hover:bg-slate-50">
+                  <button className="px-1 py-2 text-body font-medium text-[#475569] transition-colors hover:text-[#0F172A]">
                     Sign in
                   </button>
                 </Link>
                 <Link href="/register">
-                  <button className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 px-4 md:px-6 py-1.5 md:py-2.5 rounded-lg md:rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+                  <button className="rounded-[4px] bg-[#1D4ED8] px-5 py-2.5 text-ui font-semibold text-white transition-colors hover:bg-[#1E40AF]">
                     Get Started
                   </button>
                 </Link>
@@ -206,24 +203,24 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button
-              className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-[3px] border border-[#DDE3EA] bg-[#FFFFFF] transition-colors hover:bg-[#F6F8FA] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F172A]"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
               <span className="sr-only">Open main menu</span>
               <div className="w-5 h-4 relative flex flex-col justify-between">
                 <span
-                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`w-full h-0.5 bg-[#0F172A] rounded-full transition-all duration-300 ease-in-out ${
                     mobileMenuOpen ? 'rotate-45 translate-y-[7px]' : ''
                   }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`w-full h-0.5 bg-[#0F172A] rounded-full transition-all duration-300 ease-in-out ${
                     mobileMenuOpen ? 'opacity-0' : ''
                   }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`w-full h-0.5 bg-[#0F172A] rounded-full transition-all duration-300 ease-in-out ${
                     mobileMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''
                   }`}
                 />
@@ -235,14 +232,14 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-slate-50 border-t border-slate-200 shadow-lg">
+        <div className="border-t border-[#DDE3EA] bg-[#FFFFFF] md:hidden">
           <div className="max-h-[calc(100vh-5rem)] overflow-y-auto">
             {/* User Profile Card - Only for logged in users */}
             {user && (
               <div className="p-4 bg-white">
-                <div className="flex items-center p-3 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                <div className="flex items-center rounded-[4px] border border-[#DDE3EA] bg-[#F6F8FA] p-3">
                   <div className="flex-shrink-0">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center ring-2 ring-white shadow-md">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#0F172A] text-white">
                       {user.avatar ? (
                         <img
                           className="h-12 w-12 rounded-xl object-cover"
@@ -256,8 +253,8 @@ export default function Navbar() {
                     </div>
                   </div>
                   <div className="ml-3 min-w-0 flex-1">
-                    <div className="text-sm font-bold text-slate-900 truncate">{user.firstName} {user.lastName}</div>
-                    <div className="text-xs text-slate-600 truncate mt-0.5">{user.email}</div>
+                    <div className="text-sm font-bold text-[#0F172A] truncate">{user.firstName} {user.lastName}</div>
+                    <div className="text-xs text-[#475569] truncate mt-0.5">{user.email}</div>
                   </div>
                 </div>
               </div>
@@ -265,7 +262,7 @@ export default function Navbar() {
 
             {/* Navigation Section */}
             <div className="px-4 pt-4 pb-2">
-              <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                 Navigation
               </h3>
               <div className="space-y-1">
@@ -278,14 +275,14 @@ export default function Navbar() {
                       className={cn(
                         'flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                          : 'text-slate-700 bg-white hover:bg-slate-50 active:scale-[0.98]'
+                          ? 'bg-[#1D4ED8] text-white'
+                          : 'text-[#0F172A] bg-white hover:bg-[#F6F8FA] active:scale-[0.98]'
                       )}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <item.icon className={cn(
                         "w-5 h-5 mr-3 flex-shrink-0",
-                        isActive ? "text-white" : "text-slate-400"
+                        isActive ? "text-white" : "text-[#94A3B8]"
                       )} />
                       <span>{item.name}</span>
                       {isActive && (
@@ -302,18 +299,18 @@ export default function Navbar() {
             {/* Account Section - Only for logged in users */}
             {user && (
               <div className="px-4 pt-3 pb-4">
-                <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <h3 className="px-3 mb-2 text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                   Account
                 </h3>
                 <div className="space-y-1">
                   <Link
                     href="/profile"
-                    className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#0F172A] bg-white hover:bg-[#F6F8FA] transition-all active:scale-[0.98]"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <UserIcon className="h-5 w-5 mr-3 text-slate-400 flex-shrink-0" />
+                    <UserIcon className="h-5 w-5 mr-3 text-[#94A3B8] flex-shrink-0" />
                     <span>Your Profile</span>
-                    <svg className="ml-auto w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="ml-auto w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -323,13 +320,13 @@ export default function Navbar() {
                       setMobileMenuOpen(false);
                       handleLogout();
                     }}
-                    className="flex items-center w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-red-600 bg-white hover:bg-red-50 transition-all active:scale-[0.98]"
+                    className="flex items-center w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-[#B42318] bg-white hover:bg-[#FEF3F2] transition-all active:scale-[0.98]"
                   >
-                    <svg className="h-5 w-5 mr-3 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5 mr-3 text-[#B42318] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                     <span>Sign Out</span>
-                    <svg className="ml-auto w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="ml-auto w-4 h-4 text-[#D92D20]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -340,13 +337,13 @@ export default function Navbar() {
             {/* Get Started Section - Only for guests */}
             {!user && (
               <div className="px-4 pt-3 pb-4">
-                <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <h3 className="px-3 mb-2 text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                   Get Started
                 </h3>
                 <div className="space-y-2">
                   <Link
                     href="/login"
-                    className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-slate-700 bg-white border-2 border-slate-200 rounded-xl transition-all hover:border-indigo-600 hover:text-indigo-600 active:scale-[0.98]"
+                    className="flex items-center justify-center rounded-[4px] border border-[#DDE3EA] bg-white px-4 py-3 text-sm font-semibold text-[#0F172A] transition-colors hover:border-[#1D4ED8] hover:text-[#1D4ED8]"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Sign In
@@ -354,7 +351,7 @@ export default function Navbar() {
 
                   <Link
                     href="/register"
-                    className="flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:shadow-xl hover:shadow-indigo-600/40 active:scale-[0.98]"
+                    className="flex items-center justify-center rounded-[4px] bg-[#1D4ED8] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1E40AF]"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Get Started

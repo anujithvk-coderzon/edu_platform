@@ -5,6 +5,33 @@ interface EnvConfig {
   BACKEND_URL: string;
 }
 
+// NEXT_PUBLIC_* values are inlined into the client bundle at build time, so a
+// "localhost" configured here means "whatever device is running the browser"
+// once the page is opened from another machine -- a phone on the same Wi-Fi
+// gets its own localhost and every API call fails.
+//
+// When the page was served from some other host, point loopback URLs at that
+// host instead and keep the port. On the laptop this is a no-op, and it is
+// skipped entirely on the server, where localhost is genuinely correct.
+function forCurrentHost(url: string): string {
+  if (typeof window === 'undefined') return url;
+
+  try {
+    const parsed = new URL(url);
+    const isLoopback =
+      parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+
+    if (!isLoopback || window.location.hostname === parsed.hostname) return url;
+
+    parsed.hostname = window.location.hostname;
+    // URL.toString() appends a trailing slash to an empty path, which would
+    // produce a double slash when callers concatenate their endpoint.
+    return parsed.toString().replace(/\/$/, '');
+  } catch {
+    return url;
+  }
+}
+
 function validateEnv(): EnvConfig {
   const requiredVars = {
     API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -22,10 +49,12 @@ function validateEnv(): EnvConfig {
     );
   }
 
+  const apiBaseUrl = forCurrentHost(requiredVars.API_BASE_URL!);
+
   return {
-    API_BASE_URL: requiredVars.API_BASE_URL!,
-    STUDENT_API_URL: `${requiredVars.API_BASE_URL!}/student`,
-    BACKEND_URL: requiredVars.BACKEND_URL!,
+    API_BASE_URL: apiBaseUrl,
+    STUDENT_API_URL: `${apiBaseUrl}/student`,
+    BACKEND_URL: forCurrentHost(requiredVars.BACKEND_URL!),
   };
 }
 

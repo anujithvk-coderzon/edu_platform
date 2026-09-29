@@ -154,7 +154,7 @@ const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+          className="block text-xs sm:text-sm font-semibold text-[#0F172A] mb-1.5 sm:mb-2"
         >
           {label}
         </label>
@@ -162,7 +162,7 @@ const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(({
       <div className="relative group">
         {leftIcon && (
           <div className="absolute inset-y-0 left-0 pl-2.5 sm:pl-3 md:pl-4 flex items-center pointer-events-none z-10">
-            <div className="text-slate-500 group-focus-within:text-indigo-600 w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-200">
+            <div className="text-[#64748B] group-focus-within:text-[#1D4ED8] w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-200">
               {leftIcon}
             </div>
           </div>
@@ -185,9 +185,9 @@ const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(({
           onBlur={handleBlur}
           autoComplete="off"
           className={cn(
-            'block w-full rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50',
+            'block w-full rounded-[4px] sm:rounded-[6px] border-2 border-[#DDE3EA] bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-[#0F172A] placeholder:text-[#94A3B8]  transition-all duration-200 hover:border-[#C7D2DE] focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-[#1D4ED8]/20 focus:border-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-white',
             leftIcon && 'pl-9 sm:pl-10 md:pl-12',
-            error && 'border-red-400 focus:ring-red-500/20 focus:border-red-500 bg-red-50/50',
+            error && 'border-[#B42318] focus:ring-[#B42318]/20 focus:border-[#B42318] bg-[#FEF3F2]/50',
             className
           )}
           {...props}
@@ -197,7 +197,7 @@ const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(({
         {showDropdown && filteredSuggestions.length > 0 && (
           <div
             ref={dropdownRef}
-            className="absolute z-50 w-full mt-1 bg-white border-2 border-slate-200 rounded-lg sm:rounded-xl shadow-lg max-h-60 overflow-y-auto"
+            className="absolute z-50 w-full mt-1 bg-white border-2 border-[#DDE3EA] rounded-[4px] sm:rounded-[6px] max-h-60 overflow-y-auto"
           >
             {filteredSuggestions.map((suggestion, index) => (
               <button
@@ -207,8 +207,8 @@ const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(({
                 onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
                 className={cn(
                   'w-full text-left px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base transition-colors duration-150',
-                  'hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none',
-                  selectedIndex === index ? 'bg-indigo-100 text-indigo-900' : 'text-slate-700',
+                  'hover:bg-[#EFF4FF] focus:bg-[#EFF4FF] focus:outline-none',
+                  selectedIndex === index ? 'bg-[#EFF4FF] text-[#1E40AF]' : 'text-[#0F172A]',
                   index === 0 && 'rounded-t-lg sm:rounded-t-xl',
                   index === filteredSuggestions.length - 1 && 'rounded-b-lg sm:rounded-b-xl'
                 )}
@@ -221,7 +221,7 @@ const Autocomplete = React.forwardRef<HTMLInputElement, AutocompleteProps>(({
       </div>
 
       {error && (
-        <p className="text-xs sm:text-sm text-red-600 font-medium flex items-center mt-1">
+        <p className="text-xs sm:text-sm text-[#B42318] font-medium flex items-center mt-1">
           <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>

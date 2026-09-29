@@ -59,9 +59,9 @@ export default function StarRating({
               key={star}
               type="button"
               className={`${
-                readonly ? 'cursor-default' : 'cursor-pointer hover:scale-110'
+                readonly ? 'cursor-default' : 'cursor-pointer '
               } transition-all duration-150 ${
-                isFilled ? 'text-yellow-400' : 'text-gray-300'
+                isFilled ? 'text-[#B45309]' : 'text-[#CBD5E1]'
               }`}
               onClick={() => handleClick(star)}
               onMouseEnter={() => handleMouseEnter(star)}
@@ -74,7 +74,7 @@ export default function StarRating({
         })}
       </div>
       {showValue && (
-        <span className="text-sm text-gray-600 ml-1">
+        <span className="text-sm text-[#475569] ml-1">
           ({rating.toFixed(1)})
         </span>
       )}

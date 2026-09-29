@@ -136,11 +136,14 @@ export default function EmbedViewer({ url, title, className = '' }: EmbedViewerP
           title={title || 'Embedded content'}
           className="absolute top-0 left-0 w-full h-full pointer-events-auto"
           frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
           allowFullScreen
           onError={handleIframeError}
           onLoad={handleIframeLoad}
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+          // allow-orientation-lock lets an embedded player turn the screen to
+          // landscape on fullscreen; without it the sandbox blocks the request
+          // and the video stays portrait. allow-modals covers player dialogs.
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation allow-orientation-lock allow-modals"
           loading="lazy"
         />
       </div>

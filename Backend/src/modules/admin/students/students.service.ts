@@ -315,7 +315,32 @@ export const getAllStudentsService = async (
       courseId: { in: courseIds },
     },
     include: {
-      student: true,
+      // `student: true` returned every column, which put the bcrypt password
+      // hash, the live activeSessionToken and lastLoginIP on the wire for the
+      // admin client. None of it is rendered; all of it is dangerous to ship.
+      student: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          avatar: true,
+          phone: true,
+          dateOfBirth: true,
+          gender: true,
+          country: true,
+          city: true,
+          education: true,
+          institution: true,
+          occupation: true,
+          company: true,
+          isVerified: true,
+          isActive: true,
+          blocked: true,
+          createdAt: true,
+          updatedAt: true, // surfaced as "lastActive"
+        },
+      },
       course: {
         include: {
           _count: {

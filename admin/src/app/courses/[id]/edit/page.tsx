@@ -846,17 +846,17 @@ export default function CourseEditPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-900 mb-2">
-                        Price (USD) <span className="text-red-500">*</span>
+                        Price (INR) <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">₹</span>
                         <Input
                           type="number"
                           min="0"
-                          step="0.01"
+                          step="1"
                           value={course?.price || ''}
                           onChange={(e) => setCourse(prev => prev ? ({ ...prev, price: parseFloat(e.target.value) }) : prev)}
-                          placeholder="0.00"
+                          placeholder="499"
                           className="pl-8 text-base"
                         />
                       </div>

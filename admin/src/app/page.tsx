@@ -7,7 +7,7 @@ import {
   BookOpenIcon,
   UserGroupIcon,
   ChartBarIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   PlusIcon,
   ArrowRightIcon,
   CalendarIcon,
@@ -21,6 +21,7 @@ import { api } from '../lib/api';
 import { Course, User } from '../types/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { formatAmount } from '@/utils/currency';
 
 interface DashboardStats {
   totalCourses: number;
@@ -556,10 +557,10 @@ const Page = () => {
                 <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center shadow-sm">
-                      <CurrencyDollarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                      <CurrencyRupeeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">${stats.totalEarnings}</div>
+                      <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{formatAmount(stats.totalEarnings)}</div>
                       <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Earnings</div>
                     </div>
                   </div>

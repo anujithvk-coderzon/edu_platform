@@ -16,6 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
+import { formatPrice } from '@/utils/currency';
 
 interface Course {
   id: string;
@@ -612,9 +613,7 @@ function CoursesContent() {
 
                     <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#DDE3EA] pt-3.5">
                       <span className="text-body font-semibold tabular-nums text-[#0F172A]">
-                        {course.price === 0
-                          ? 'Free'
-                          : `₹${course.price.toLocaleString('en-IN')}`}
+                        {formatPrice(course.price)}
                       </span>
 
                       {(() => {

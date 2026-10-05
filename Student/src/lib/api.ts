@@ -10,11 +10,6 @@ class ApiClient {
   constructor(baseURL: string) {
     this.baseURL = baseURL;
   }
-
-  // iOS Safari blocks third-party cookies outright, so the session cookie never
-  // survives on iPhone. The backend also accepts `Authorization: Bearer`, so the
-  // token is kept client-side and sent as a header; the cookie still rides along
-  // for browsers that allow it.
   private getToken(): string | null {
     return studentStorage.getToken();
   }
@@ -187,6 +182,18 @@ class ApiClient {
     updateStatus: (enrollmentId: string, status: string) =>
       this.put<ApiResponse>(`/enrollments/${enrollmentId}/status`, { status }),
     cancel: (enrollmentId: string) => this.delete<ApiResponse>(`/enrollments/${enrollmentId}`),
+  };
+
+  // Payment endpoints
+  payments = {
+    createOrder: (courseId: string) =>
+      this.post<ApiResponse>('/payments/order', { courseId }),
+    // The three fields Razorpay Checkout hands back, passed through verbatim.
+    verify: (payload: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+    }) => this.post<ApiResponse>('/payments/verify', payload),
   };
 
   // Material endpoints

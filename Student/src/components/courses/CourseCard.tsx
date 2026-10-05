@@ -6,6 +6,7 @@ import {
  UsersIcon
 } from '@heroicons/react/24/outline';
 import StarRating from '../ui/StarRating';
+import { formatPrice } from '@/utils/currency';
 
 interface Course {
  id: string;
@@ -172,7 +173,7 @@ export default function CourseCard({ course }: CourseCardProps) {
  </span>
  ) : (
  <span className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl text-[#0F172A]">
- 💰 ${course.price}
+ 💰 {formatPrice(course.price)}
  </span>
  )}
  </div>

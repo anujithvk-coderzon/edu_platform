@@ -20,8 +20,20 @@ export const getMaterialByIdService = async (
 ) => {
   const material = await prisma.material.findUnique({
     where: { id: materialId },
-    include: {
-      course: { select: { id: true, title: true, creatorId: true } },
+    // The learn page needs the lesson itself, not the row's bookkeeping.
+    // `include` was returning authorId and course.creatorId -- both Admin
+    // account ids -- plus isPublic and the timestamps, to every student.
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      type: true,
+      fileUrl: true,
+      content: true,
+      orderIndex: true,
+      moduleId: true,
+      courseId: true,
+      course: { select: { id: true, title: true } },
     },
   });
 

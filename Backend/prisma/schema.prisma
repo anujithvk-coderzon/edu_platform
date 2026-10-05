@@ -87,7 +87,7 @@ model Student {
   submissions AssignmentSubmission[]
   progress    Progress[]
   reviews     Review[]
-
+  payments    Payment[]
   @@map("students")
 }
 
@@ -120,7 +120,7 @@ model Course {
   materials    Material[]
   assignments  Assignment[]
   reviews      Review[]
-
+  payments     Payment[]
   @@map("courses")
 }
 
@@ -273,3 +273,28 @@ model Review {
   @@unique([courseId, studentId])
   @@map("reviews")
 }
+enum PaymentStatus {
+  CREATED
+  PAID
+  FAILED
+}
+model Payment {
+  id                String        @id @default(cuid())
+  studentId         String
+  courseId          String
+  amount            Int           
+  currency          String        @default("INR")
+  status            PaymentStatus @default(CREATED)
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?       @unique
+  razorpaySignature String?
+  failureReason     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  @@index([studentId, courseId])
+  @@index([status])
+  @@map("payments")
+}
+

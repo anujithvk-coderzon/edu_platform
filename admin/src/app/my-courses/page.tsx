@@ -11,7 +11,7 @@ import {
   PencilIcon,
   TrashIcon,
   UsersIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   StarIcon,
   AcademicCapIcon,
   CheckCircleIcon,
@@ -26,6 +26,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import './animations.css';
+import { formatPrice } from '@/utils/currency';
 
 interface Course {
   id: string;
@@ -508,8 +509,8 @@ const Page = () => {
                   {/* Stats - Compact */}
                   <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-slate-100">
                     <div className="text-center">
-                      <CurrencyDollarIcon className="w-3.5 h-3.5 mx-auto mb-0.5 text-green-600" />
-                      <div className="text-xs font-semibold text-slate-900">${course.price}</div>
+                      <CurrencyRupeeIcon className="w-3.5 h-3.5 mx-auto mb-0.5 text-green-600" />
+                      <div className="text-xs font-semibold text-slate-900">{formatPrice(course.price)}</div>
                       <div className="text-[9px] text-slate-500">price</div>
                     </div>
                     <div className="text-center">

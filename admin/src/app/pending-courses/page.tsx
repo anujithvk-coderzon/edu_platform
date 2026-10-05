@@ -15,6 +15,7 @@ import {
   UserIcon,
   BookOpenIcon
 } from '@heroicons/react/24/outline';
+import { formatPrice } from '@/utils/currency';
 
 interface PendingCourse {
   id: string;
@@ -232,7 +233,7 @@ export default function PendingCoursesPage() {
                             </div>
                           )}
                           <div className="font-semibold text-green-600">
-                            ${course.price}
+                            {formatPrice(course.price)}
                           </div>
                         </div>
 

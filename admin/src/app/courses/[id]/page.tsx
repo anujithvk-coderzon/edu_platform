@@ -10,7 +10,7 @@ import {
   ChevronLeftIcon,
   PencilIcon,
   UsersIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   StarIcon,
   AcademicCapIcon,
   ClockIcon,
@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useAuth } from '../../../contexts/AuthContext';
+import { formatPrice } from '@/utils/currency';
 
 interface Material {
   id: string;
@@ -339,10 +340,10 @@ export default function CourseViewPage() {
               <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                 <div className="flex items-center text-slate-700">
                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                    <CurrencyDollarIcon className="w-4 h-4 text-green-600" />
+                    <CurrencyRupeeIcon className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900 text-lg">${course.price}</div>
+                    <div className="font-semibold text-slate-900 text-lg">{formatPrice(course.price)}</div>
                     <div className="text-xs text-slate-600">Price</div>
                   </div>
                 </div>

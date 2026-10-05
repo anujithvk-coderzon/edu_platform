@@ -15,7 +15,7 @@ import {
   ChevronLeftIcon,
   CheckCircleIcon,
   BookOpenIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   PhotoIcon,
   AcademicCapIcon,
   ClockIcon,
@@ -35,6 +35,7 @@ import {
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import './animations.css';
+import { formatPrice } from '@/utils/currency';
 
 interface Material {
   id: string;
@@ -750,7 +751,7 @@ export default function CreateCoursePage() {
     <div className="space-y-2 sm:space-y-4 md:space-y-5">
       <div className="text-center mb-2 sm:mb-4 md:mb-5">
         <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg mb-1 sm:mb-3">
-          <CurrencyDollarIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+          <CurrencyRupeeIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
         </div>
         <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
           Course Details
@@ -840,19 +841,19 @@ export default function CreateCoursePage() {
         {formData.isPaid && (
           <div>
             <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-              Price (USD) <span className="text-red-500">*</span>
+              Price (INR) <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
               value={formData.price}
               onChange={(e) => {
                 const value = e.target.value;
-                // Allow empty string, numbers with up to 2 decimal places
-                if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                // Whole rupees only -- course prices here are not quoted in paise.
+                if (value === '' || /^\d*$/.test(value)) {
                   handleInputChange('price', value);
                 }
               }}
-              placeholder="49.99"
+              placeholder="499"
               error={errors.price}
             />
           </div>
@@ -1211,7 +1212,7 @@ export default function CreateCoursePage() {
               {formData.isPaid ? (
                 <div>
                   <p className="text-blue-700 font-semibold text-xs sm:text-sm">Paid Course</p>
-                  <p className="text-slate-700 text-xs sm:text-sm mt-1">Price: ${formData.price}</p>
+                  <p className="text-slate-700 text-xs sm:text-sm mt-1">Price: {formatPrice(Number(formData.price))}</p>
                 </div>
               ) : (
                 <p className="text-green-700 font-semibold text-xs sm:text-sm">Free Course</p>

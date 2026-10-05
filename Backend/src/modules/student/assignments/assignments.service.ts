@@ -25,7 +25,12 @@ export const listCourseAssignmentsService = async (
 
   const assignments = await prisma.assignment.findMany({
     where: { courseId },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      dueDate: true,
+      maxScore: true,
       submissions: {
         where: { studentId },
         select: {
@@ -50,8 +55,14 @@ export const submitAssignmentService = async (
 ) => {
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
-    include: {
-      course: { include: { enrollments: { where: { studentId } } } },
+    // Used only to authorise and to check the deadline, so pull just that.
+    select: {
+      id: true,
+      dueDate: true,
+      courseId: true,
+      course: {
+        select: { enrollments: { where: { studentId }, select: { id: true } } },
+      },
     },
   });
 
@@ -81,7 +92,15 @@ export const submitAssignmentService = async (
       studentId,
       status: "SUBMITTED",
     },
-    include: {
+    select: {
+      id: true,
+      content: true,
+      fileUrl: true,
+      status: true,
+      score: true,
+      feedback: true,
+      submittedAt: true,
+      gradedAt: true,
       assignment: { select: { title: true, maxScore: true, dueDate: true } },
     },
   });
@@ -141,7 +160,15 @@ export const getSubmissionService = async (
 ) => {
   const submission = await prisma.assignmentSubmission.findUnique({
     where: { assignmentId_studentId: { assignmentId, studentId } },
-    include: {
+    select: {
+      id: true,
+      content: true,
+      fileUrl: true,
+      status: true,
+      score: true,
+      feedback: true,
+      submittedAt: true,
+      gradedAt: true,
       assignment: { select: { title: true, maxScore: true, dueDate: true } },
     },
   });

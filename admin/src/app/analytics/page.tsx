@@ -8,7 +8,7 @@ import { Select } from '../../components/ui/Select';
 import type { SelectOption } from '../../components/ui/Select';
 import {
   ChartBarIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   UserGroupIcon,
   AcademicCapIcon,
   ArrowUpIcon,
@@ -24,6 +24,7 @@ import {
 import { api } from '../../lib/api';
 import { Course } from '../../types/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { formatAmount } from '@/utils/currency';
 
 interface AnalyticsData {
   revenue: {
@@ -166,12 +167,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatAmount(amount);
 
   // Filter and limit courses
   const getDisplayedCourses = () => {
@@ -275,7 +271,7 @@ export default function AnalyticsPage() {
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 p-3 sm:p-4 md:p-6 hover:shadow-2xl transition-all">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                <CurrencyDollarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                <CurrencyRupeeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               </div>
               <div className="text-right">
                 <div className="text-base sm:text-xl md:text-2xl font-bold text-slate-900">
@@ -437,7 +433,7 @@ export default function AnalyticsPage() {
                                 <span className="text-[9px] sm:text-[10px] font-medium text-slate-700">{course.students}</span>
                               </div>
                               <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-slate-200">
-                                <CurrencyDollarIcon className="w-3 h-3 text-green-500 flex-shrink-0" />
+                                <CurrencyRupeeIcon className="w-3 h-3 text-green-500 flex-shrink-0" />
                                 <span className="text-[9px] sm:text-[10px] font-medium text-slate-700 truncate">{formatCurrency(course.revenue)}</span>
                               </div>
                               <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-slate-200">
@@ -503,7 +499,7 @@ export default function AnalyticsPage() {
                             <div className="bg-white rounded-lg p-2 sm:p-3 border-l-2 border-green-500 shadow-sm">
                               <div className="flex items-center gap-1 sm:gap-1.5 mb-1">
                                 <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 rounded-md flex items-center justify-center">
-                                  <CurrencyDollarIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600" />
+                                  <CurrencyRupeeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-600" />
                                 </div>
                                 <span className="text-[10px] sm:text-xs font-bold text-slate-700">Revenue</span>
                               </div>

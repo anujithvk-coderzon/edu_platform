@@ -1,10 +1,10 @@
-'use client';
-
+'use client'
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import Link from 'next/link';
+import Script from 'next/script';
 import {
   BookOpenIcon,
   ClockIcon,
@@ -29,6 +29,7 @@ import toast from 'react-hot-toast';
 import StarRating from '@/components/ui/StarRating';
 import CourseReview from '@/components/CourseReview';
 import CourseReviews from '@/components/CourseReviews';
+import { formatPrice } from '@/utils/currency';
 
 interface Course {
   id: string;
@@ -174,17 +175,90 @@ export default function CourseDetailPage() {
       return;
     }
 
+    // Free courses never touch Razorpay; the backend rejects paid ones here.
+    if (!course || course.price <= 0) {
+      try {
+        setEnrolling(true);
+        const response = await api.enrollments.enroll(courseId);
+        if (response.success) {
+          toast.success('Successfully enrolled in course!');
+          setCourse(prev => prev ? { ...prev, isEnrolled: true } : null);
+          await fetchCourseDetails();
+        }
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to enroll in course');
+      } finally {
+        setEnrolling(false);
+      }
+      return;
+    }
+
     try {
       setEnrolling(true);
-      const response = await api.enrollments.enroll(courseId);
-      if (response.success) {
-        toast.success('Successfully enrolled in course!');
-        setCourse(prev => prev ? { ...prev, isEnrolled: true } : null);
-        await fetchCourseDetails();
+
+      // The amount and key both come from the server, which read the price from
+      // the database. Nothing about the charge is decided in the browser.
+      const { data } = await api.payments.createOrder(courseId);
+
+      const Razorpay = (window as any).Razorpay;
+      if (!Razorpay) {
+        toast.error('Payment system is still loading. Please try again.');
+        setEnrolling(false);
+        return;
       }
+
+      const rzp = new Razorpay({
+        key: data.keyId,
+        order_id: data.orderId,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'CODiiN',
+        description: data.courseTitle,
+        prefill: {
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+        },
+        theme: { color: '#1D4ED8' },
+        handler: async (response: any) => {
+          // Checkout running in the browser is not proof of payment. The server
+          // re-checks the signature and asks Razorpay what actually happened
+          // before it grants access.
+          try {
+            await api.payments.verify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success('Payment successful. You are enrolled!');
+            setCourse(prev => prev ? { ...prev, isEnrolled: true } : null);
+            await fetchCourseDetails();
+          } catch (error: any) {
+            // The charge may well have succeeded even though this call did not,
+            // so do not tell the student their payment failed.
+            toast.error(
+              error.message ||
+                'Payment received but enrolment is still pending. Refresh in a moment.',
+            );
+          } finally {
+            setEnrolling(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setEnrolling(false);
+            toast('Payment cancelled');
+          },
+        },
+      });
+
+      rzp.on('payment.failed', (r: any) => {
+        toast.error(r?.error?.description || 'Payment failed');
+        setEnrolling(false);
+      });
+
+      rzp.open();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to enroll in course');
-    } finally {
+      toast.error(error.message || 'Could not start checkout');
       setEnrolling(false);
     }
   };
@@ -253,6 +327,10 @@ export default function CourseDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Razorpay Checkout. lazyOnload keeps it off the critical path -- it is
+          only needed once someone actually starts a purchase. */}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
       {/* Sticky Back Button */}
       <div className="border-b border-[#DDE3EA] bg-white">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3">
@@ -396,7 +474,7 @@ export default function CourseDetailPage() {
                   ) : (
                     <div className="text-center">
                       <div className="text-title sm:text-h2 tabular-nums text-[#0F172A]">
-                        ${course.price}
+                        {formatPrice(course.price)}
                       </div>
                       <div className="text-xs text-[#64748B] mt-0.5">One-time payment</div>
                     </div>
@@ -443,7 +521,9 @@ export default function CourseDetailPage() {
                           <span>Enrolling...</span>
                         </div>
                       ) : (
-                        'Enroll Now'
+                        course.price > 0
+                          ? `Buy ${formatPrice(course.price)}`
+                          : 'Enroll for free'
                       )}
                     </button>
                   )}

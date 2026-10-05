@@ -964,7 +964,7 @@ function AssignmentListItem({ assignment, onSelect }: AssignmentListItemProps) {
         if (response.success && response.data?.submission) {
           setHasSubmission(true);
           // Use score field (backend) or fall back to grade field for compatibility
-          const currentGrade = response.data.submission.score ?? response.data.submission.grade;
+          const currentGrade = response.data.submission.score;
           setSubmissionGrade(currentGrade ?? null);
         }
       } catch (error) {
@@ -1236,7 +1236,7 @@ function AssignmentSubmissionModal({ assignment, courseId, onClose, onSubmit }: 
                   Submitted on {submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : 'Unknown date'}
                 </p>
                 {(() => {
-                  const currentGrade = submission.score ?? submission.grade;
+                  const currentGrade = submission.score;
                   return currentGrade !== null && currentGrade !== undefined && (
                     <p className="text-sm text-[#067647] mt-1">
                       Grade: {currentGrade}/{assignment.maxScore} ({Math.round((currentGrade / assignment.maxScore) * 100)}%)

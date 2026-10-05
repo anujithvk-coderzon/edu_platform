@@ -11,7 +11,7 @@ import {
   ChartBarIcon,
   BookOpenIcon,
   UserGroupIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   PencilIcon,
   MapPinIcon,
   GlobeAltIcon,
@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { api } from '../../lib/api';
 import { User, Course } from '../../types/api';
 import toast from 'react-hot-toast';
+import { formatPrice } from '@/utils/currency';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -390,7 +391,7 @@ export default function ProfilePage() {
                                 <span className="font-medium text-slate-700">{course._count?.enrollments || 0}</span>
                               </div>
                               <span className="text-slate-400">•</span>
-                              <span className="font-semibold text-green-600">${course.price}</span>
+                              <span className="font-semibold text-green-600">{formatPrice(course.price)}</span>
                               {course.averageRating && (
                                 <>
                                   <span className="text-slate-400">•</span>

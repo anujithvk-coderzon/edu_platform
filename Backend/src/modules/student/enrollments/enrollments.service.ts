@@ -167,7 +167,9 @@ export const enrollInCourseService = async (
   if (existing) {
     throw new BadRequestError("Already enrolled in this course");
   }
-
+  if(course.price > 0) {
+    throw new BadRequestError("This course requires payment. Please complete checkout to enrol.");
+  }
   const enrollment = await prisma.enrollment.create({
     data: { studentId, courseId, progressPercentage: 0, status: "ACTIVE" },
     include: {

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { formatPrice } from '@/utils/currency';
 
 interface Course {
   id: string;
@@ -550,7 +551,7 @@ export default function Home() {
 
                       <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#DDE3EA] pt-3.5">
                         <span className="text-body font-semibold tabular-nums">
-                          {course.price > 0 ? `₹${course.price.toLocaleString('en-IN')}` : 'Free'}
+                          {formatPrice(course.price)}
                         </span>
 
                         {/* A filled button means you already have it in progress. */}

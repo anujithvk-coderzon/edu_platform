@@ -813,6 +813,19 @@ const deleteCourseService = async (id, userId, userRole) => {
     if (activeEnrollments.length > 0) {
         throw new Errors_1.BadRequestError(`Cannot delete course with ${activeEnrollments.length} active enrollment(s). Wait for students to complete the course or manually mark enrollments as completed.`);
     }
+    // Payment records outlive the course they paid for; the schema enforces this
+    // with onDelete: Restrict. Check it here so the caller gets a clear reason
+    // instead of a raw foreign-key error -- and, critically, so we stop before
+    // deleting any files.
+    const paymentCount = await prisma_1.default.payment.count({ where: { courseId: id } });
+    if (paymentCount > 0) {
+        throw new Errors_1.BadRequestError(`Cannot delete a course with ${paymentCount} payment record(s). ` +
+            `Archive it instead -- payment history has to be retained.`);
+    }
+    // Remove the database row FIRST. It is the only step here that can fail and
+    // be rolled back; every CDN deletion below is irreversible. Doing it last
+    // meant a failed delete left the course intact with all its files destroyed.
+    await prisma_1.default.course.delete({ where: { id } });
     // Delete all associated material files from CDN and Bunny Stream
     const materials = course.materials.filter((material) => material.fileUrl && material.type !== "LINK");
     let deletedMaterialsCount = 0;
@@ -896,10 +909,6 @@ const deleteCourseService = async (id, userId, userRole) => {
     else {
         console.log(`📝 No thumbnail to delete for course: ${course.title}`);
     }
-    // Now delete the course from database (this will cascade delete related records)
-    await prisma_1.default.course.delete({
-        where: { id },
-    });
     const deletionSummary = {
         courseName: course.title,
         deletedMaterials: `${deletedMaterialsCount}/${materials.length}`,

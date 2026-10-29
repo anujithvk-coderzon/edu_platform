@@ -26,12 +26,12 @@ payment_id:paymentId
 },signature,secret);
 }
 
-export const isValidWebhookSignature = (
-  rawBody: Buffer,
-  signature: string,
-): boolean => {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  if (!secret) throw new InternalServerError("Webhook secret is not configured.");
+// export const isValidWebhookSignature = (
+//   rawBody: Buffer,
+//   signature: string,
+// ): boolean => {
+//   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+//   if (!secret) throw new InternalServerError("Webhook secret is not configured.");
 
-  return validateWebhookSignature(rawBody.toString(), signature, secret);
-};
+//   return validateWebhookSignature(rawBody.toString(), signature, secret);
+// };

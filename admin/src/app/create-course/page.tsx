@@ -636,18 +636,18 @@ export default function CreateCoursePage() {
   const renderStep1 = () => (
     <div className="space-y-2 sm:space-y-4 md:space-y-5">
       <div className="text-center mb-2 sm:mb-4 md:mb-5">
-        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg mb-1 sm:mb-3">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-[#1D4ED8] shadow-lg mb-1 sm:mb-3">
           <BookOpenIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
         </div>
-        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#0F172A] mb-0.5 sm:mb-1">
           Basic Information
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm px-2">Let's start with the fundamentals of your course</p>
+        <p className="text-[#475569] text-xs sm:text-sm px-2">Let's start with the fundamentals of your course</p>
       </div>
 
       <div>
-        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
-          Course Title <span className="text-red-500">*</span>
+        <label className="block text-xs sm:text-sm font-semibold text-[#334155] mb-1 sm:mb-1.5">
+          Course Title <span className="text-[#F04438]">*</span>
         </label>
         <Input
           value={formData.title}
@@ -659,10 +659,11 @@ export default function CreateCoursePage() {
       </div>
 
       <div>
-        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
-          Course Description <span className="text-red-500">*</span>
+        <label className="block text-xs sm:text-sm font-semibold text-[#334155] mb-1 sm:mb-1.5">
+          Course Description <span className="text-[#F04438]">*</span>
         </label>
         <Textarea
+          maxLength={5000}
           value={formData.description}
           onChange={(e) => handleInputChange('description', e.target.value)}
           placeholder="Describe what students will learn in this course..."
@@ -675,8 +676,8 @@ export default function CreateCoursePage() {
       {/* Only show tutor selection for Admin users */}
       {user?.role?.toLowerCase() === 'admin' && (
         <div>
-          <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
-            Assign Tutor <span className="text-red-500">*</span>
+          <label className="block text-xs sm:text-sm font-semibold text-[#334155] mb-1 sm:mb-1.5">
+            Assign Tutor <span className="text-[#F04438]">*</span>
           </label>
           {tutors.length > 0 ? (
             <>
@@ -687,17 +688,17 @@ export default function CreateCoursePage() {
                 placeholder="Select a tutor for this course..."
               />
               {errors.tutorId && (
-                <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.tutorId}</p>
+                <p className="text-[#F04438] text-xs sm:text-sm mt-1">{errors.tutorId}</p>
               )}
             </>
           ) : (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2.5 sm:p-3 md:p-4">
+            <div className="bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg p-2.5 sm:p-3 md:p-4">
               <div className="flex items-center gap-2 mb-2 sm:mb-2.5">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                <div className="w-8 h-8 bg-[#1D4ED8] rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
                   <UserGroupIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs sm:text-sm text-blue-800 font-medium">
+                  <p className="text-xs sm:text-sm text-[#1E40AF] font-medium">
                     No tutors available. Please create a tutor first to assign to this course.
                   </p>
                 </div>
@@ -719,14 +720,14 @@ export default function CreateCoursePage() {
       {/* Show assigned tutor info for Tutor users */}
       {user?.role?.toLowerCase() === 'tutor' && (
         <div>
-          <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
+          <label className="block text-xs sm:text-sm font-semibold text-[#334155] mb-1 sm:mb-1.5">
             Course Instructor
           </label>
-          <div className="p-2.5 sm:p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-            <div className="text-xs sm:text-sm text-blue-800">
+          <div className="p-2.5 sm:p-3 bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg">
+            <div className="text-xs sm:text-sm text-[#1E40AF]">
               <strong>{user.firstName} {user.lastName}</strong> (You)
             </div>
-            <div className="text-[10px] sm:text-xs text-blue-600 mt-0.5">
+            <div className="text-[10px] sm:text-xs text-[#1D4ED8] mt-0.5">
               You will be assigned as the instructor for this course
             </div>
           </div>
@@ -734,7 +735,7 @@ export default function CreateCoursePage() {
       )}
 
       <div>
-        <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1 sm:mb-1.5">
+        <label className="block text-xs sm:text-sm font-semibold text-[#334155] mb-1 sm:mb-1.5">
           Course Thumbnail
         </label>
         <FileUpload
@@ -750,19 +751,19 @@ export default function CreateCoursePage() {
   const renderStep2 = () => (
     <div className="space-y-2 sm:space-y-4 md:space-y-5">
       <div className="text-center mb-2 sm:mb-4 md:mb-5">
-        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg mb-1 sm:mb-3">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-[#1D4ED8] shadow-lg mb-1 sm:mb-3">
           <CurrencyRupeeIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
         </div>
-        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#0F172A] mb-0.5 sm:mb-1">
           Course Details
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm px-2">Pricing, level, and requirements</p>
+        <p className="text-[#475569] text-xs sm:text-sm px-2">Pricing, level, and requirements</p>
       </div>
 
       {/* Course Type Selection */}
-      <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-lg p-4 sm:p-6">
-        <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-3">
-          Course Type <span className="text-red-500">*</span>
+      <div className="bg-[#F6F8FA]/30 rounded-lg p-4 sm:p-6">
+        <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-3">
+          Course Type <span className="text-[#F04438]">*</span>
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <button
@@ -774,23 +775,23 @@ export default function CreateCoursePage() {
             className={`
               relative flex items-center justify-center p-4 rounded-lg border-2 transition-all
               ${!formData.isPaid
-                ? 'border-green-500 bg-green-50 shadow-sm'
-                : 'border-slate-200 bg-white hover:border-slate-300'
+                ? 'border-[#17B26A] bg-[#ECFDF3] shadow-sm'
+                : 'border-[#DDE3EA] bg-white hover:border-[#C7D2DE]'
               }
             `}
           >
             <div className="flex items-center gap-3">
               <div className={`
                 w-5 h-5 rounded-full border-2 flex items-center justify-center
-                ${!formData.isPaid ? 'border-green-500' : 'border-slate-300'}
+                ${!formData.isPaid ? 'border-[#17B26A]' : 'border-[#C7D2DE]'}
               `}>
-                {!formData.isPaid && <div className="w-3 h-3 rounded-full bg-green-500"></div>}
+                {!formData.isPaid && <div className="w-3 h-3 rounded-full bg-[#17B26A]"></div>}
               </div>
               <div className="text-left">
-                <p className={`text-sm font-semibold ${!formData.isPaid ? 'text-green-700' : 'text-slate-700'}`}>
+                <p className={`text-sm font-semibold ${!formData.isPaid ? 'text-[#067647]' : 'text-[#334155]'}`}>
                   Free Course
                 </p>
-                <p className="text-xs text-slate-500">Open to all students</p>
+                <p className="text-xs text-[#64748B]">Open to all students</p>
               </div>
             </div>
           </button>
@@ -801,23 +802,23 @@ export default function CreateCoursePage() {
             className={`
               relative flex items-center justify-center p-4 rounded-lg border-2 transition-all
               ${formData.isPaid
-                ? 'border-blue-500 bg-blue-50 shadow-sm'
-                : 'border-slate-200 bg-white hover:border-slate-300'
+                ? 'border-[#1D4ED8] bg-[#EFF4FF] shadow-sm'
+                : 'border-[#DDE3EA] bg-white hover:border-[#C7D2DE]'
               }
             `}
           >
             <div className="flex items-center gap-3">
               <div className={`
                 w-5 h-5 rounded-full border-2 flex items-center justify-center
-                ${formData.isPaid ? 'border-blue-500' : 'border-slate-300'}
+                ${formData.isPaid ? 'border-[#1D4ED8]' : 'border-[#C7D2DE]'}
               `}>
-                {formData.isPaid && <div className="w-3 h-3 rounded-full bg-blue-500"></div>}
+                {formData.isPaid && <div className="w-3 h-3 rounded-full bg-[#1D4ED8]"></div>}
               </div>
               <div className="text-left">
-                <p className={`text-sm font-semibold ${formData.isPaid ? 'text-blue-700' : 'text-slate-700'}`}>
+                <p className={`text-sm font-semibold ${formData.isPaid ? 'text-[#1E40AF]' : 'text-[#334155]'}`}>
                   Paid Course
                 </p>
-                <p className="text-xs text-slate-500">Requires purchase</p>
+                <p className="text-xs text-[#64748B]">Requires purchase</p>
               </div>
             </div>
           </button>
@@ -826,7 +827,7 @@ export default function CreateCoursePage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2">
             Difficulty Level
           </label>
           <Select
@@ -835,13 +836,13 @@ export default function CreateCoursePage() {
             onChange={(value) => handleInputChange('level', value)}
             placeholder="Select difficulty level"
           />
-          {errors.level && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.level}</p>}
+          {errors.level && <p className="text-[#F04438] text-xs sm:text-sm mt-1">{errors.level}</p>}
         </div>
 
         {formData.isPaid && (
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
-              Price (INR) <span className="text-red-500">*</span>
+            <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2">
+              Price (INR) <span className="text-[#F04438]">*</span>
             </label>
             <Input
               type="text"
@@ -860,7 +861,7 @@ export default function CreateCoursePage() {
         )}
 
         <div>
-          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2">
             Course Duration
           </label>
           <Input
@@ -874,7 +875,7 @@ export default function CreateCoursePage() {
       </div>
 
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2 sm:mb-3">
+        <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2 sm:mb-3">
           Requirements
         </label>
         <div className="space-y-1.5 sm:space-y-2">
@@ -911,7 +912,7 @@ export default function CreateCoursePage() {
       </div>
 
       <div>
-        <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-2 sm:mb-3">
+        <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-2 sm:mb-3">
           Prerequisites
         </label>
         <div className="space-y-1.5 sm:space-y-2">
@@ -952,26 +953,26 @@ export default function CreateCoursePage() {
   const renderStep3 = () => (
     <div className="space-y-2 sm:space-y-4 md:space-y-5">
       <div className="text-center mb-2 sm:mb-4 md:mb-5">
-        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg mb-1 sm:mb-3">
+        <div className="inline-flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-[#1D4ED8] shadow-lg mb-1 sm:mb-3">
           <PlayIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
         </div>
-        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#0F172A] mb-0.5 sm:mb-1">
           Course Content
         </h2>
-        <p className="text-slate-600 text-xs sm:text-sm px-2">Structure your course with chapters and materials</p>
+        <p className="text-[#475569] text-xs sm:text-sm px-2">Structure your course with chapters and materials</p>
       </div>
 
       {/* Error message display */}
       {errors.chapters && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-red-500 text-xs sm:text-sm">{errors.chapters}</p>
+        <div className="bg-[#FEF3F2] border border-[#FECDCA] rounded-lg p-3">
+          <p className="text-[#F04438] text-xs sm:text-sm">{errors.chapters}</p>
         </div>
       )}
 
       <div className="space-y-2 sm:space-y-3 md:space-y-4">
         {formData.chapters.map((chapter, chapterIndex) => (
-          <Card key={chapter.id} className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border border-slate-200 rounded-lg overflow-hidden">
-            <CardHeader className="pb-1.5 sm:pb-2.5 p-2 sm:p-3 md:p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-slate-200">
+          <Card key={chapter.id} className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 border border-[#DDE3EA] rounded-lg overflow-hidden">
+            <CardHeader className="pb-1.5 sm:pb-2.5 p-2 sm:p-3 md:p-4 bg-[#EFF4FF] border-b border-[#DDE3EA]">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
@@ -997,7 +998,7 @@ export default function CreateCoursePage() {
                     </Button>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-xs sm:text-sm font-semibold text-slate-900 truncate">Chapter {chapterIndex + 1}</CardTitle>
+                    <CardTitle className="text-xs sm:text-sm font-semibold text-[#0F172A] truncate">Chapter {chapterIndex + 1}</CardTitle>
                   </div>
                 </div>
                 <Button
@@ -1005,7 +1006,7 @@ export default function CreateCoursePage() {
                   size="sm"
                   onClick={() => removeChapter(chapter.id)}
                   type="button"
-                  className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 p-1 sm:p-1.5 flex-shrink-0"
+                  className="text-[#B42318] hover:text-[#912018] border-[#FDA29B] hover:bg-[#FEF3F2] p-1 sm:p-1.5 flex-shrink-0"
                 >
                   <XMarkIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </Button>
@@ -1022,6 +1023,7 @@ export default function CreateCoursePage() {
               </div>
               <div>
                 <Textarea
+                  maxLength={5000}
                   value={chapter.description}
                   onChange={(e) => updateChapter(chapter.id, 'description', e.target.value)}
                   placeholder="Chapter description (optional)"
@@ -1030,31 +1032,31 @@ export default function CreateCoursePage() {
               </div>
 
               {/* Materials Section */}
-              <div className="border-t border-slate-200 pt-3 sm:pt-4">
+              <div className="border-t border-[#DDE3EA] pt-3 sm:pt-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
-                  <h4 className="text-xs sm:text-sm font-medium text-slate-900">Materials</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-[#0F172A]">Materials</h4>
                 </div>
 
                 {errors[`chapter-${chapter.id}-materials`] && (
-                  <p className="text-red-500 text-xs sm:text-sm mb-1.5 sm:mb-2">{errors[`chapter-${chapter.id}-materials`]}</p>
+                  <p className="text-[#F04438] text-xs sm:text-sm mb-1.5 sm:mb-2">{errors[`chapter-${chapter.id}-materials`]}</p>
                 )}
 
                 <div className="space-y-2 sm:space-y-3">
                   {chapter.materials.map((material, materialIndex) => {
                     const MaterialIcon = materialTypes.find(t => t.value === material.type)?.icon || DocumentTextIcon;
                     return (
-                      <div key={material.id} className="border border-slate-200 rounded-lg p-2.5 sm:p-3 bg-gradient-to-r from-slate-50 to-blue-50/20">
+                      <div key={material.id} className="border border-[#DDE3EA] rounded-lg p-2.5 sm:p-3 bg-[#F6F8FA]/20">
                         <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
                           <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
-                            <MaterialIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 flex-shrink-0" />
-                            <span className="text-[10px] sm:text-xs font-medium text-slate-900 truncate">Material {materialIndex + 1}</span>
+                            <MaterialIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#475569] flex-shrink-0" />
+                            <span className="text-[10px] sm:text-xs font-medium text-[#0F172A] truncate">Material {materialIndex + 1}</span>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => removeMaterial(chapter.id, material.id)}
                             type="button"
-                            className="text-red-600 hover:text-red-700 p-1 flex-shrink-0"
+                            className="text-[#B42318] hover:text-[#912018] p-1 flex-shrink-0"
                           >
                             <XMarkIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </Button>
@@ -1081,6 +1083,7 @@ export default function CreateCoursePage() {
 
                         <div className="mt-2 sm:mt-3">
                           <Textarea
+                            maxLength={5000}
                             value={material.description || ''}
                             onChange={(e) => updateMaterial(chapter.id, material.id, 'description', e.target.value)}
                             placeholder="Material description (optional)"
@@ -1113,7 +1116,7 @@ export default function CreateCoursePage() {
                               }
                             />
                             {errors[`material-${material.id}-file`] && (
-                              <p className="text-red-500 text-xs sm:text-sm mt-1">{errors[`material-${material.id}-file`]}</p>
+                              <p className="text-[#F04438] text-xs sm:text-sm mt-1">{errors[`material-${material.id}-file`]}</p>
                             )}
                           </div>
                         )}
@@ -1144,7 +1147,7 @@ export default function CreateCoursePage() {
       {/* Add Chapter Button - Placed at bottom of all chapters */}
       {formData.chapters.length > 0 && (
         <div className="flex justify-center">
-          <Button onClick={addChapter} type="button" size="sm" className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
+          <Button onClick={addChapter} type="button" size="sm" className="w-full sm:w-auto bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]">
             <PlusIcon className="w-4 h-4 mr-2" />
             <span className="text-sm font-semibold">Add Another Chapter</span>
           </Button>
@@ -1152,17 +1155,17 @@ export default function CreateCoursePage() {
       )}
 
       {formData.chapters.length === 0 && (
-        <div className="text-center py-10 sm:py-14 border-2 border-dashed border-indigo-200 rounded-2xl bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-purple-50/50">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-lg">
+        <div className="text-center py-10 sm:py-14 border-2 border-dashed border-[#C7D7FE] rounded-2xl bg-[#EFF4FF]/50 via-[#EFF4FF]/30 to-[#EFF4FF]/50">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#1D4ED8] rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-lg">
             <BookOpenIcon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <p className="text-slate-900 font-bold text-base sm:text-lg mb-2 px-3">No chapters yet</p>
-          <p className="text-slate-600 text-xs sm:text-sm mb-4 sm:mb-5 px-3">Start building your course by adding your first chapter</p>
+          <p className="text-[#0F172A] font-bold text-base sm:text-lg mb-2 px-3">No chapters yet</p>
+          <p className="text-[#475569] text-xs sm:text-sm mb-4 sm:mb-5 px-3">Start building your course by adding your first chapter</p>
           <Button
             onClick={addChapter}
             type="button"
             size="sm"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+            className="bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
             <span className="text-sm font-semibold">Add Your First Chapter</span>
@@ -1175,61 +1178,61 @@ export default function CreateCoursePage() {
   const renderStep4 = () => (
     <div className="space-y-2 sm:space-y-4 md:space-y-5">
       <div className="text-center mb-2 sm:mb-4 md:mb-5">
-        <div className="inline-flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-2xl shadow-green-500/30 mx-auto mb-1 sm:mb-3 animate-pulse-subtle">
+        <div className="inline-flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-2xl bg-[#079455] shadow-2xl shadow-[#17B26A]/30 mx-auto mb-1 sm:mb-3 animate-pulse-subtle">
           <CheckCircleIcon className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
         </div>
-        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 mb-0.5 sm:mb-1">Review Your Course</h2>
-        <p className="text-slate-600 text-xs sm:text-sm px-2">Review all the information below and click "Create Course" to publish</p>
+        <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-[#0F172A] mb-0.5 sm:mb-1">Review Your Course</h2>
+        <p className="text-[#475569] text-xs sm:text-sm px-2">Review all the information below and click "Create Course" to publish</p>
       </div>
 
-      <Card className="bg-white shadow-xl border border-slate-200 rounded-lg overflow-hidden">
-        <CardHeader className="p-2.5 sm:p-4 md:p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-slate-200">
-          <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-slate-900 flex items-center gap-1.5 sm:gap-2">
-            <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+      <Card className="bg-white shadow-xl border border-[#DDE3EA] rounded-lg overflow-hidden">
+        <CardHeader className="p-2.5 sm:p-4 md:p-5 bg-[#EFF4FF] border-b border-[#DDE3EA]">
+          <CardTitle className="text-sm sm:text-base md:text-lg font-bold text-[#0F172A] flex items-center gap-1.5 sm:gap-2">
+            <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#1D4ED8]" />
             Course Overview
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 sm:space-y-3 md:space-y-4 p-2.5 sm:p-3 md:p-4 lg:p-5">
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
-            <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">
+          <div className="bg-[#F6F8FA]/20 rounded-lg p-3 sm:p-4">
+            <h4 className="font-medium text-[#0F172A] text-xs sm:text-sm mb-1.5 sm:mb-2">
               Title:
             </h4>
-            <p className="text-slate-700 text-xs sm:text-sm md:text-base">{formData.title || 'No title provided'}</p>
+            <p className="text-[#334155] text-xs sm:text-sm md:text-base">{formData.title || 'No title provided'}</p>
           </div>
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
-            <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">
+          <div className="bg-[#F6F8FA]/20 rounded-lg p-3 sm:p-4">
+            <h4 className="font-medium text-[#0F172A] text-xs sm:text-sm mb-1.5 sm:mb-2">
               Description:
             </h4>
-            <p className="text-slate-700 text-xs sm:text-sm md:text-base">{formData.description || 'No description provided'}</p>
+            <p className="text-[#334155] text-xs sm:text-sm md:text-base">{formData.description || 'No description provided'}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
-              <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">Level:</h4>
-              <p className="text-slate-700 text-xs sm:text-sm">{levelOptions.find(l => l.value === formData.level)?.label || 'Not specified'}</p>
+            <div className="bg-[#F6F8FA]/20 rounded-lg p-3 sm:p-4">
+              <h4 className="font-medium text-[#0F172A] text-xs sm:text-sm mb-1.5 sm:mb-2">Level:</h4>
+              <p className="text-[#334155] text-xs sm:text-sm">{levelOptions.find(l => l.value === formData.level)?.label || 'Not specified'}</p>
             </div>
-            <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
-              <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">Course Type:</h4>
+            <div className="bg-[#F6F8FA]/20 rounded-lg p-3 sm:p-4">
+              <h4 className="font-medium text-[#0F172A] text-xs sm:text-sm mb-1.5 sm:mb-2">Course Type:</h4>
               {formData.isPaid ? (
                 <div>
-                  <p className="text-blue-700 font-semibold text-xs sm:text-sm">Paid Course</p>
-                  <p className="text-slate-700 text-xs sm:text-sm mt-1">Price: {formatPrice(Number(formData.price))}</p>
+                  <p className="text-[#1E40AF] font-semibold text-xs sm:text-sm">Paid Course</p>
+                  <p className="text-[#334155] text-xs sm:text-sm mt-1">Price: {formatPrice(Number(formData.price))}</p>
                 </div>
               ) : (
-                <p className="text-green-700 font-semibold text-xs sm:text-sm">Free Course</p>
+                <p className="text-[#067647] font-semibold text-xs sm:text-sm">Free Course</p>
               )}
             </div>
-            <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
-              <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">Duration:</h4>
-              <p className="text-slate-700 text-xs sm:text-sm">{formData.duration || 'Not specified'}</p>
+            <div className="bg-[#F6F8FA]/20 rounded-lg p-3 sm:p-4">
+              <h4 className="font-medium text-[#0F172A] text-xs sm:text-sm mb-1.5 sm:mb-2">Duration:</h4>
+              <p className="text-[#334155] text-xs sm:text-sm">{formData.duration || 'Not specified'}</p>
             </div>
           </div>
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50/20 rounded-lg p-3 sm:p-4">
-            <h4 className="font-medium text-slate-900 text-xs sm:text-sm mb-1.5 sm:mb-2">Chapters:</h4>
-            <p className="text-slate-700 text-xs sm:text-sm mb-1.5 sm:mb-2">{formData.chapters.length} chapter(s)</p>
+          <div className="bg-[#F6F8FA]/20 rounded-lg p-3 sm:p-4">
+            <h4 className="font-medium text-[#0F172A] text-xs sm:text-sm mb-1.5 sm:mb-2">Chapters:</h4>
+            <p className="text-[#334155] text-xs sm:text-sm mb-1.5 sm:mb-2">{formData.chapters.length} chapter(s)</p>
             {formData.chapters.length > 0 && (
               <ul className="space-y-1">
                 {formData.chapters.map((chapter, index) => (
-                  <li key={chapter.id} className="text-xs sm:text-sm text-slate-600">
+                  <li key={chapter.id} className="text-xs sm:text-sm text-[#475569]">
                     Chapter {index + 1}: {chapter.title} ({chapter.materials.length} materials)
                   </li>
                 ))}
@@ -1240,8 +1243,8 @@ export default function CreateCoursePage() {
       </Card>
 
       {errors.general && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
-          <p className="text-red-600 text-xs sm:text-sm">{errors.general}</p>
+        <div className="bg-[#FEF3F2] border border-[#FECDCA] rounded-lg p-3 sm:p-4">
+          <p className="text-[#B42318] text-xs sm:text-sm">{errors.general}</p>
         </div>
       )}
     </div>
@@ -1249,12 +1252,12 @@ export default function CreateCoursePage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30 relative overflow-hidden">
+    <div className="min-h-screen bg-[#EFF4FF]/30 via-white to-[#EFF4FF]/30 relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-3xl animate-float-slower"></div>
-        <div className="absolute top-40 right-40 w-80 h-80 bg-purple-400/8 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#6091F0]/10 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-[#6091F0]/10 rounded-full blur-3xl animate-float-slower"></div>
+        <div className="absolute top-40 right-40 w-80 h-80 bg-[#6091F0]/8 rounded-full blur-3xl animate-float-slow"></div>
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6 md:py-8">
@@ -1262,14 +1265,14 @@ export default function CreateCoursePage() {
         <div className="mb-3 sm:mb-6 md:mb-8 animate-fade-in-up">
           <div className="text-center mb-2 sm:mb-4">
             <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
-              <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-lg sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30 animate-glow">
+              <div className="h-10 w-10 sm:h-14 sm:w-14 bg-[#1D4ED8] rounded-lg sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-[#1D4ED8]/30 animate-glow">
                 <BookOpenIcon className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold bg-[#1D4ED8] bg-clip-text text-transparent">
                   Create New Course
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-600">Build your course with chapters and materials</p>
+                <p className="text-xs sm:text-sm text-[#475569]">Build your course with chapters and materials</p>
               </div>
             </div>
           </div>
@@ -1279,11 +1282,11 @@ export default function CreateCoursePage() {
         <div className="mb-3 sm:mb-6 md:mb-8 animate-fade-in">
           <div className="relative group">
             {/* Glow effect */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+            <div className="absolute -inset-0.5 bg-[#1D4ED8] rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
 
-            <div className="relative bg-white rounded-lg sm:rounded-2xl shadow-xl border border-slate-200/50 p-2 sm:p-4 md:p-6 overflow-hidden">
+            <div className="relative bg-white rounded-lg sm:rounded-2xl shadow-xl border border-[#DDE3EA]/50 p-2 sm:p-4 md:p-6 overflow-hidden">
               {/* Animated gradient bar */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#1D4ED8] animate-gradient-x"></div>
 
               {/* Mobile: Show only current step info */}
               <div className="md:hidden">
@@ -1294,8 +1297,8 @@ export default function CreateCoursePage() {
                         <div className={`
                           w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-300
                           ${currentStep >= s.number
-                            ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md'
-                            : 'bg-slate-200 text-slate-400'
+                            ? 'bg-[#1D4ED8] text-white shadow-md'
+                            : 'bg-[#DDE3EA] text-[#94A3B8]'
                           }
                         `}>
                           {currentStep > s.number ? (
@@ -1305,17 +1308,17 @@ export default function CreateCoursePage() {
                           )}
                         </div>
                         {idx < steps.length - 1 && (
-                          <div className={`w-6 h-0.5 rounded-full ${currentStep > s.number ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-slate-200'}`} />
+                          <div className={`w-6 h-0.5 rounded-full ${currentStep > s.number ? 'bg-[#1D4ED8]' : 'bg-[#DDE3EA]'}`} />
                         )}
                       </React.Fragment>
                     ))}
                   </div>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-bold text-slate-900 mb-0.5">
+                  <p className="text-xs font-bold text-[#0F172A] mb-0.5">
                     {steps[currentStep - 1].title}
                   </p>
-                  <p className="text-[10px] text-slate-600">
+                  <p className="text-[10px] text-[#475569]">
                     Step {currentStep} of {steps.length}
                   </p>
                 </div>
@@ -1330,8 +1333,8 @@ export default function CreateCoursePage() {
                       <div className={`
                         relative w-10 h-10 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center text-sm lg:text-base font-bold transition-all duration-500 shadow-md flex-shrink-0
                         ${currentStep >= step.number
-                          ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white scale-110 ring-4 ring-indigo-100'
-                          : 'bg-slate-100 text-slate-500'
+                          ? 'bg-[#1D4ED8] text-white scale-110 ring-4 ring-[#DBE7FE]'
+                          : 'bg-[#E9EEF4] text-[#64748B]'
                         }
                       `}>
                         {currentStep > step.number ? (
@@ -1340,15 +1343,15 @@ export default function CreateCoursePage() {
                           step.number
                         )}
                         {currentStep === step.number && (
-                          <div className="absolute inset-0 rounded-xl animate-ping bg-indigo-400 opacity-20"></div>
+                          <div className="absolute inset-0 rounded-xl animate-ping bg-[#6091F0] opacity-20"></div>
                         )}
                       </div>
                       <div className="text-center w-full">
-                        <p className={`text-[10px] lg:text-xs font-bold leading-tight transition-colors ${currentStep >= step.number ? 'text-slate-900' : 'text-slate-500'}`}
+                        <p className={`text-[10px] lg:text-xs font-bold leading-tight transition-colors ${currentStep >= step.number ? 'text-[#0F172A]' : 'text-[#64748B]'}`}
                            style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {step.title}
                         </p>
-                        <p className="text-[9px] lg:text-[10px] text-slate-600 mt-0.5 hidden lg:block leading-tight"
+                        <p className="text-[9px] lg:text-[10px] text-[#475569] mt-0.5 hidden lg:block leading-tight"
                            style={{ display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {step.description}
                         </p>
@@ -1360,7 +1363,7 @@ export default function CreateCoursePage() {
                       <div className="flex-1 flex items-start pt-4 lg:pt-5 px-1 min-w-[30px]">
                         <div className={`
                           w-full h-1 rounded-full transition-all duration-500
-                          ${currentStep > step.number ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600' : 'bg-slate-200'}
+                          ${currentStep > step.number ? 'bg-[#1D4ED8]' : 'bg-[#DDE3EA]'}
                         `} />
                       </div>
                     )}
@@ -1374,14 +1377,14 @@ export default function CreateCoursePage() {
         {/* Form Content */}
         <div className="relative group animate-fade-in-up">
           {/* Glow effect */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
+          <div className="absolute -inset-0.5 bg-[#1D4ED8] rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
 
-          <Card className="relative bg-white shadow-2xl border border-slate-200/50 rounded-lg sm:rounded-2xl overflow-hidden">
+          <Card className="relative bg-white shadow-2xl border border-[#DDE3EA]/50 rounded-lg sm:rounded-2xl overflow-hidden">
             {/* Animated gradient bar */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+            <div className="absolute top-0 left-0 right-0 h-1 bg-[#1D4ED8] animate-gradient-x"></div>
 
             {/* Subtle background pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30"></div>
+            <div className="absolute inset-0 bg-[#EFF4FF]/30 via-white to-[#EFF4FF]/30"></div>
 
             <CardContent className="relative p-2 sm:p-4 md:p-6 lg:p-8">
               {renderStepContent()}
@@ -1399,7 +1402,7 @@ export default function CreateCoursePage() {
                 disabled={isSubmitting}
                 type="button"
                 size="sm"
-                className="flex items-center gap-1.5 sm:gap-2 hover:bg-slate-50 transition-all duration-200"
+                className="flex items-center gap-1.5 sm:gap-2 hover:bg-[#F6F8FA] transition-all duration-200"
               >
                 <ChevronLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Previous</span>
@@ -1415,7 +1418,7 @@ export default function CreateCoursePage() {
                 disabled={isSubmitting}
                 type="button"
                 size="sm"
-                className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
+                className="flex items-center gap-1.5 sm:gap-2 bg-[#1D4ED8] hover:from-[#1E40AF] hover:via-[#1E40AF] hover:to-[#1E40AF] text-white font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
               >
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -1428,7 +1431,7 @@ export default function CreateCoursePage() {
                 disabled={isSubmitting}
                 type="button"
                 size="sm"
-                className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 text-white font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
+                className="flex items-center gap-1.5 sm:gap-2 bg-[#079455] hover:from-[#067647] hover:via-[#067647] hover:to-[#067647] text-white font-bold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
               >
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>

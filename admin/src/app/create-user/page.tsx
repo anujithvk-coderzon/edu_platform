@@ -80,9 +80,9 @@ export default function CreateUserPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       {/* Hero Header with Gradient */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 pt-8 pb-32 sm:pb-40">
+      <div className="bg-[#1D4ED8] pt-8 pb-32 sm:pb-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-2 ring-white/30">
@@ -90,7 +90,7 @@ export default function CreateUserPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Create User Account</h1>
-              <p className="text-blue-100 text-sm sm:text-base mt-1">Add new admin or tutor to the platform</p>
+              <p className="text-[#DBE7FE] text-sm sm:text-base mt-1">Add new admin or tutor to the platform</p>
             </div>
           </div>
         </div>
@@ -101,15 +101,15 @@ export default function CreateUserPage() {
 
         {/* Success Alert */}
         {success && (
-          <div className="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="mb-6 bg-[#ECFDF3] border-l-4 border-[#47CD89] p-4 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-start">
-              <CheckCircleIcon className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+              <CheckCircleIcon className="h-5 w-5 text-[#47CD89] mt-0.5 flex-shrink-0" />
               <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-green-800">{success}</p>
+                <p className="text-sm font-medium text-[#05603A]">{success}</p>
               </div>
               <button
                 onClick={() => setSuccess(null)}
-                className="ml-3 text-green-500 hover:text-green-600"
+                className="ml-3 text-[#17B26A] hover:text-[#079455]"
               >
                 <XCircleIcon className="h-5 w-5" />
               </button>
@@ -119,15 +119,15 @@ export default function CreateUserPage() {
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="mb-6 bg-[#FEF3F2] border-l-4 border-[#F97066] p-4 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-start">
-              <XCircleIcon className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+              <XCircleIcon className="h-5 w-5 text-[#F97066] mt-0.5 flex-shrink-0" />
               <div className="ml-3 flex-1">
-                <p className="text-sm font-medium text-red-800">{error}</p>
+                <p className="text-sm font-medium text-[#912018]">{error}</p>
               </div>
               <button
                 onClick={() => setError(null)}
-                className="ml-3 text-red-500 hover:text-red-600"
+                className="ml-3 text-[#F04438] hover:text-[#B42318]"
               >
                 <XCircleIcon className="h-5 w-5" />
               </button>
@@ -137,21 +137,21 @@ export default function CreateUserPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Role Selection Card */}
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <ShieldCheckIcon className="h-5 w-5 text-purple-600" />
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] overflow-hidden">
+            <div className="bg-[#EFF4FF] px-6 py-4 border-b border-[#DDE3EA]">
+              <h3 className="text-lg font-semibold text-[#0F172A] flex items-center gap-2">
+                <ShieldCheckIcon className="h-5 w-5 text-[#1D4ED8]" />
                 User Role
               </h3>
-              <p className="text-sm text-slate-600 mt-1">Select the role for this account</p>
+              <p className="text-sm text-[#475569] mt-1">Select the role for this account</p>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label
                   className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
                     formData.role === 'Tutor'
-                      ? 'border-blue-600 bg-blue-50 shadow-md'
-                      : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                      ? 'border-[#1D4ED8] bg-[#EFF4FF] shadow-md'
+                      : 'border-[#DDE3EA] hover:border-[#A4BCFC] hover:bg-[#F6F8FA]'
                   }`}
                 >
                   <input
@@ -164,27 +164,27 @@ export default function CreateUserPage() {
                   />
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      formData.role === 'Tutor' ? 'bg-blue-600' : 'bg-slate-200'
+                      formData.role === 'Tutor' ? 'bg-[#1D4ED8]' : 'bg-[#DDE3EA]'
                     }`}>
-                      <UserIcon className={`h-5 w-5 ${formData.role === 'Tutor' ? 'text-white' : 'text-slate-600'}`} />
+                      <UserIcon className={`h-5 w-5 ${formData.role === 'Tutor' ? 'text-white' : 'text-[#475569]'}`} />
                     </div>
                     <div>
-                      <p className={`font-semibold ${formData.role === 'Tutor' ? 'text-blue-900' : 'text-slate-900'}`}>
+                      <p className={`font-semibold ${formData.role === 'Tutor' ? 'text-[#1E3A8A]' : 'text-[#0F172A]'}`}>
                         Tutor
                       </p>
-                      <p className="text-xs text-slate-600">Content creator</p>
+                      <p className="text-xs text-[#475569]">Content creator</p>
                     </div>
                   </div>
                   {formData.role === 'Tutor' && (
-                    <CheckCircleIcon className="absolute top-3 right-3 h-5 w-5 text-blue-600" />
+                    <CheckCircleIcon className="absolute top-3 right-3 h-5 w-5 text-[#1D4ED8]" />
                   )}
                 </label>
 
                 <label
                   className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
                     formData.role === 'Admin'
-                      ? 'border-purple-600 bg-purple-50 shadow-md'
-                      : 'border-slate-200 hover:border-purple-300 hover:bg-slate-50'
+                      ? 'border-[#1D4ED8] bg-[#EFF4FF] shadow-md'
+                      : 'border-[#DDE3EA] hover:border-[#A4BCFC] hover:bg-[#F6F8FA]'
                   }`}
                 >
                   <input
@@ -197,19 +197,19 @@ export default function CreateUserPage() {
                   />
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      formData.role === 'Admin' ? 'bg-purple-600' : 'bg-slate-200'
+                      formData.role === 'Admin' ? 'bg-[#1D4ED8]' : 'bg-[#DDE3EA]'
                     }`}>
-                      <ShieldCheckIcon className={`h-5 w-5 ${formData.role === 'Admin' ? 'text-white' : 'text-slate-600'}`} />
+                      <ShieldCheckIcon className={`h-5 w-5 ${formData.role === 'Admin' ? 'text-white' : 'text-[#475569]'}`} />
                     </div>
                     <div>
-                      <p className={`font-semibold ${formData.role === 'Admin' ? 'text-purple-900' : 'text-slate-900'}`}>
+                      <p className={`font-semibold ${formData.role === 'Admin' ? 'text-[#1E3A8A]' : 'text-[#0F172A]'}`}>
                         Admin
                       </p>
-                      <p className="text-xs text-slate-600">Full access</p>
+                      <p className="text-xs text-[#475569]">Full access</p>
                     </div>
                   </div>
                   {formData.role === 'Admin' && (
-                    <CheckCircleIcon className="absolute top-3 right-3 h-5 w-5 text-purple-600" />
+                    <CheckCircleIcon className="absolute top-3 right-3 h-5 w-5 text-[#1D4ED8]" />
                   )}
                 </label>
               </div>
@@ -217,18 +217,18 @@ export default function CreateUserPage() {
           </div>
 
           {/* Personal Information Card */}
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <UserIcon className="h-5 w-5 text-slate-600" />
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] overflow-hidden">
+            <div className="bg-[#F6F8FA] px-6 py-4 border-b border-[#DDE3EA]">
+              <h3 className="text-lg font-semibold text-[#0F172A] flex items-center gap-2">
+                <UserIcon className="h-5 w-5 text-[#475569]" />
                 Personal Information
               </h3>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-2">
-                    First Name <span className="text-red-500">*</span>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-[#334155] mb-2">
+                    First Name <span className="text-[#F04438]">*</span>
                   </label>
                   <input
                     type="text"
@@ -236,15 +236,15 @@ export default function CreateUserPage() {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full px-4 py-3 border border-[#C7D2DE] rounded-xl text-[#0F172A] focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all"
                     placeholder="Enter first name"
                     required
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-2">
-                    Last Name <span className="text-red-500">*</span>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-[#334155] mb-2">
+                    Last Name <span className="text-[#F04438]">*</span>
                   </label>
                   <input
                     type="text"
@@ -252,7 +252,7 @@ export default function CreateUserPage() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full px-4 py-3 border border-[#C7D2DE] rounded-xl text-[#0F172A] focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all"
                     placeholder="Enter last name"
                     required
                   />
@@ -262,22 +262,22 @@ export default function CreateUserPage() {
           </div>
 
           {/* Account Credentials Card */}
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <KeyIcon className="h-5 w-5 text-blue-600" />
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] overflow-hidden">
+            <div className="bg-[#EFF4FF] px-6 py-4 border-b border-[#DDE3EA]">
+              <h3 className="text-lg font-semibold text-[#0F172A] flex items-center gap-2">
+                <KeyIcon className="h-5 w-5 text-[#1D4ED8]" />
                 Account Credentials
               </h3>
-              <p className="text-sm text-slate-600 mt-1">Login details for the new account</p>
+              <p className="text-sm text-[#475569] mt-1">Login details for the new account</p>
             </div>
             <div className="p-6 space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                  Email Address <span className="text-red-500">*</span>
+                <label htmlFor="email" className="block text-sm font-medium text-[#334155] mb-2">
+                  Email Address <span className="text-[#F04438]">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <EnvelopeIcon className="h-5 w-5 text-slate-400" />
+                    <EnvelopeIcon className="h-5 w-5 text-[#94A3B8]" />
                   </div>
                   <input
                     type="email"
@@ -285,7 +285,7 @@ export default function CreateUserPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full pl-11 pr-4 py-3 border border-[#C7D2DE] rounded-xl text-[#0F172A] focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all"
                     placeholder="user@example.com"
                     required
                   />
@@ -293,12 +293,12 @@ export default function CreateUserPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                  Password <span className="text-red-500">*</span>
+                <label htmlFor="password" className="block text-sm font-medium text-[#334155] mb-2">
+                  Password <span className="text-[#F04438]">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <KeyIcon className="h-5 w-5 text-slate-400" />
+                    <KeyIcon className="h-5 w-5 text-[#94A3B8]" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -306,7 +306,7 @@ export default function CreateUserPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full pl-11 pr-12 py-3 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    className="w-full pl-11 pr-12 py-3 border border-[#C7D2DE] rounded-xl text-[#0F172A] focus:ring-2 focus:ring-[#1D4ED8] focus:border-[#1D4ED8] outline-none transition-all"
                     placeholder="Enter password (min. 6 characters)"
                     minLength={6}
                     required
@@ -314,7 +314,7 @@ export default function CreateUserPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#94A3B8] hover:text-[#475569] transition-colors"
                   >
                     {showPassword ? (
                       <EyeSlashIcon className="h-5 w-5" />
@@ -323,15 +323,15 @@ export default function CreateUserPage() {
                     )}
                   </button>
                 </div>
-                <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-blue-900 mb-1">Password Requirements:</p>
-                  <ul className="space-y-1 text-xs text-blue-800">
+                <div className="mt-3 bg-[#EFF4FF] border border-[#C7D7FE] rounded-xl p-3">
+                  <p className="text-xs font-semibold text-[#1E3A8A] mb-1">Password Requirements:</p>
+                  <ul className="space-y-1 text-xs text-[#1E40AF]">
                     <li className="flex items-center gap-2">
-                      <CheckCircleIcon className="h-3.5 w-3.5 text-blue-600" />
+                      <CheckCircleIcon className="h-3.5 w-3.5 text-[#1D4ED8]" />
                       Minimum 6 characters
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircleIcon className="h-3.5 w-3.5 text-blue-600" />
+                      <CheckCircleIcon className="h-3.5 w-3.5 text-[#1D4ED8]" />
                       Use a strong, unique password
                     </li>
                   </ul>
@@ -345,7 +345,7 @@ export default function CreateUserPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="flex-1 bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -365,7 +365,7 @@ export default function CreateUserPage() {
             <Button
               type="button"
               onClick={() => router.push('/')}
-              className="sm:w-auto px-8 bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 py-3 rounded-xl font-semibold transition-all"
+              className="sm:w-auto px-8 bg-white border-2 border-[#C7D2DE] text-[#334155] hover:bg-[#F6F8FA] py-3 rounded-xl font-semibold transition-all"
             >
               Cancel
             </Button>

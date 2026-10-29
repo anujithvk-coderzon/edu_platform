@@ -33,7 +33,13 @@ const listCourseReviewsService = async (courseId, query) => {
     const [reviews, totalReviews, grouped] = await Promise.all([
         prisma_1.default.review.findMany({
             where: { courseId },
-            include: {
+            // Explicit select: `include` also shipped studentId on every review,
+            // handing reviewer identities to anyone who opened a course page.
+            select: {
+                id: true,
+                rating: true,
+                comment: true,
+                createdAt: true,
                 student: { select: { firstName: true, lastName: true, avatar: true } },
             },
             orderBy: { createdAt: "desc" },

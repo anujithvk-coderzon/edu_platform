@@ -23,11 +23,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   const baseClasses = 'inline-flex items-center justify-center rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-offset-1 sm:focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] sm:hover:scale-105 active:scale-95 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl';
 
   const variants = {
-    default: 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 focus:ring-indigo-500/50 shadow-xl sm:shadow-2xl hover:shadow-2xl sm:hover:shadow-3xl backdrop-blur-sm',
-    secondary: 'bg-gradient-to-r from-slate-100 via-slate-200 to-slate-300 text-slate-800 hover:from-slate-200 hover:via-slate-300 hover:to-slate-400 focus:ring-slate-500/50 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl backdrop-blur-sm',
-    outline: 'border-2 border-indigo-200 bg-white/80 backdrop-blur-sm text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 focus:ring-indigo-500/50 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl',
-    ghost: 'text-slate-700 hover:bg-white/50 hover:text-indigo-700 focus:ring-slate-500/30 backdrop-blur-sm',
-    destructive: 'bg-gradient-to-r from-red-500 via-red-600 to-red-700 text-white hover:from-red-600 hover:via-red-700 hover:to-red-800 focus:ring-red-500/50 shadow-xl sm:shadow-2xl hover:shadow-2xl sm:hover:shadow-3xl backdrop-blur-sm',
+    default: 'bg-[#1D4ED8] text-white hover:from-[#1E40AF] hover:via-[#1E40AF] hover:to-[#912018] focus:ring-[#1D4ED8]/50 shadow-xl sm:shadow-2xl hover:shadow-2xl sm:hover:shadow-3xl backdrop-blur-sm',
+    secondary: 'bg-[#F6F8FA] text-[#1E293B] hover:from-[#DDE3EA] hover:via-[#C7D2DE] hover:to-[#94A3B8] focus:ring-[#64748B]/50 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl backdrop-blur-sm',
+    outline: 'border-2 border-[#C7D7FE] bg-white/80 backdrop-blur-sm text-[#1E40AF] hover:bg-[#EFF4FF] hover:border-[#A4BCFC] focus:ring-[#1D4ED8]/50 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl',
+    ghost: 'text-[#334155] hover:bg-white/50 hover:text-[#1E40AF] focus:ring-[#64748B]/30 backdrop-blur-sm',
+    destructive: 'bg-[#B42318] text-white hover:from-[#B42318] hover:via-[#912018] hover:to-[#912018] focus:ring-[#F04438]/50 shadow-xl sm:shadow-2xl hover:shadow-2xl sm:hover:shadow-3xl backdrop-blur-sm',
   };
 
   const sizes = {

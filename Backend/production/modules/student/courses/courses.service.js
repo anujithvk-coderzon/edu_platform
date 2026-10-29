@@ -16,15 +16,15 @@ const courseCardSelect = {
     level: true,
     duration: true,
     status: true,
-    isPublic: true,
-    creatorId: true,
     tutorName: true,
     createdAt: true,
+    // isPublic and creatorId are query filters, not card content, and the
+    // creator/tutor account ids are no business of an anonymous browser.
     creator: {
-        select: { id: true, firstName: true, lastName: true, avatar: true },
+        select: { firstName: true, lastName: true, avatar: true },
     },
     tutor: {
-        select: { id: true, firstName: true, lastName: true, avatar: true },
+        select: { firstName: true, lastName: true, avatar: true },
     },
     category: { select: { id: true, name: true } },
     _count: { select: { enrollments: true, reviews: true, materials: true } },
@@ -171,14 +171,22 @@ const getCourseByIdService = async (courseId, studentId) => {
             tutorName: true,
             requirements: true,
             prerequisites: true,
+            // Only what the course page renders: a name and a face. The account id
+            // of an admin or tutor is not something an anonymous visitor needs.
             creator: {
-                select: { id: true, firstName: true, lastName: true, avatar: true },
+                select: { firstName: true, lastName: true, avatar: true },
             },
             tutor: {
-                select: { id: true, firstName: true, lastName: true, avatar: true },
+                select: { firstName: true, lastName: true, avatar: true },
             },
+            // `include` would also ship courseId, createdAt and updatedAt for every
+            // module; the curriculum list uses none of them.
             modules: {
-                include: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    orderIndex: true,
                     materials: {
                         select: {
                             id: true,
@@ -192,10 +200,16 @@ const getCourseByIdService = async (courseId, studentId) => {
                 },
                 orderBy: { orderIndex: "asc" },
             },
+            // `include` here leaked reviewer identity: every review carried its
+            // studentId, and the nested student its id, to anyone loading the page.
             reviews: {
-                include: {
+                select: {
+                    id: true,
+                    rating: true,
+                    comment: true,
+                    createdAt: true,
                     student: {
-                        select: { id: true, firstName: true, lastName: true, avatar: true },
+                        select: { firstName: true, lastName: true, avatar: true },
                     },
                 },
                 orderBy: { createdAt: "desc" },

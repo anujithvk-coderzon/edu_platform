@@ -148,23 +148,23 @@ export default function PendingCoursesPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading pending courses...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1D4ED8] mx-auto"></div>
+          <p className="mt-4 text-[#475569]">Loading pending courses...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-screen bg-[#F6F8FA] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Pending Course Reviews</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="text-3xl font-bold text-[#0F172A]">Pending Course Reviews</h1>
+          <p className="mt-2 text-[#475569]">
             Review and approve or reject course submissions from tutors
           </p>
           {courses.length > 0 && (
-            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-[#DBE7FE] text-[#1E40AF] text-sm font-medium">
               <ClockIcon className="w-4 h-4 mr-2" />
               {courses.length} pending {courses.length === 1 ? 'course' : 'courses'}
             </div>
@@ -174,9 +174,9 @@ export default function PendingCoursesPage() {
         {/* Courses List */}
         {courses.length === 0 ? (
           <Card className="p-12 text-center">
-            <BookOpenIcon className="mx-auto h-12 w-12 text-slate-400" />
-            <h3 className="mt-2 text-sm font-medium text-slate-900">No pending courses</h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <BookOpenIcon className="mx-auto h-12 w-12 text-[#94A3B8]" />
+            <h3 className="mt-2 text-sm font-medium text-[#0F172A]">No pending courses</h3>
+            <p className="mt-1 text-sm text-[#64748B]">
               There are no courses waiting for review at this time.
             </p>
           </Card>
@@ -194,8 +194,8 @@ export default function PendingCoursesPage() {
                         className="w-full md:w-48 h-32 object-cover rounded-lg"
                       />
                     ) : (
-                      <div className="w-full md:w-48 h-32 bg-slate-200 rounded-lg flex items-center justify-center">
-                        <BookOpenIcon className="w-12 h-12 text-slate-400" />
+                      <div className="w-full md:w-48 h-32 bg-[#DDE3EA] rounded-lg flex items-center justify-center">
+                        <BookOpenIcon className="w-12 h-12 text-[#94A3B8]" />
                       </div>
                     )}
                   </div>
@@ -204,25 +204,25 @@ export default function PendingCoursesPage() {
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                        <h3 className="text-xl font-semibold text-[#0F172A] mb-2">
                           {course.title}
                         </h3>
-                        <p className="text-slate-600 text-sm line-clamp-2 mb-3">
+                        <p className="text-[#475569] text-sm line-clamp-2 mb-3">
                           {course.description}
                         </p>
 
-                        <div className="flex flex-wrap gap-4 text-sm text-slate-600 mb-3">
+                        <div className="flex flex-wrap gap-4 text-sm text-[#475569] mb-3">
                           <div className="flex items-center">
                             <UserIcon className="w-4 h-4 mr-1" />
                             <span>By {course.creator.firstName} {course.creator.lastName}</span>
                           </div>
                           {course.category && (
-                            <div className="px-2 py-1 bg-slate-100 rounded text-xs">
+                            <div className="px-2 py-1 bg-[#E9EEF4] rounded text-xs">
                               {course.category.name}
                             </div>
                           )}
                           {course.level && (
-                            <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                            <div className="px-2 py-1 bg-[#DBE7FE] text-[#1E40AF] rounded text-xs">
                               {course.level}
                             </div>
                           )}
@@ -232,12 +232,12 @@ export default function PendingCoursesPage() {
                               {course.duration}h
                             </div>
                           )}
-                          <div className="font-semibold text-green-600">
+                          <div className="font-semibold text-[#079455]">
                             {formatPrice(course.price)}
                           </div>
                         </div>
 
-                        <div className="flex gap-2 text-xs text-slate-500">
+                        <div className="flex gap-2 text-xs text-[#64748B]">
                           <span>{course._count?.modules || 0} modules</span>
                           <span>•</span>
                           <span>{course._count?.materials || 0} materials</span>
@@ -259,7 +259,7 @@ export default function PendingCoursesPage() {
                     <Button
                       onClick={() => handleApprove(course.id)}
                       disabled={processing === course.id}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      className="w-full bg-[#079455] hover:bg-[#067647] text-white"
                     >
                       <CheckCircleIcon className="w-4 h-4 mr-2" />
                       {processing === course.id ? 'Publishing...' : 'Publish'}
@@ -268,7 +268,7 @@ export default function PendingCoursesPage() {
                       onClick={() => handleReject(course.id)}
                       disabled={processing === course.id}
                       variant="outline"
-                      className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                      className="w-full border-[#FDA29B] text-[#B42318] hover:bg-[#FEF3F2]"
                     >
                       <XCircleIcon className="w-4 h-4 mr-2" />
                       {processing === course.id ? 'Rejecting...' : 'Reject'}

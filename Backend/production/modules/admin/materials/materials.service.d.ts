@@ -26,9 +26,9 @@ export declare const getCourseMaterialsService: (courseId: string) => Promise<{
         title: string;
         isPublic: boolean;
         courseId: string;
+        orderIndex: number;
         fileUrl: string | null;
         content: string | null;
-        orderIndex: number;
         moduleId: string | null;
         authorId: string;
     })[];
@@ -59,9 +59,9 @@ export declare const getMaterialByIdService: (callerId: string, materialId: stri
         title: string;
         isPublic: boolean;
         courseId: string;
+        orderIndex: number;
         fileUrl: string | null;
         content: string | null;
-        orderIndex: number;
         moduleId: string | null;
         authorId: string;
     };
@@ -87,9 +87,9 @@ export declare const createMaterialService: (caller: Caller, input: CreateMateri
         title: string;
         isPublic: boolean;
         courseId: string;
+        orderIndex: number;
         fileUrl: string | null;
         content: string | null;
-        orderIndex: number;
         moduleId: string | null;
         authorId: string;
     };
@@ -115,9 +115,9 @@ export declare const updateMaterialService: (caller: Caller, materialId: string,
         title: string;
         isPublic: boolean;
         courseId: string;
+        orderIndex: number;
         fileUrl: string | null;
         content: string | null;
-        orderIndex: number;
         moduleId: string | null;
         authorId: string;
     };

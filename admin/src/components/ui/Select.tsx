@@ -49,32 +49,32 @@ export function Select({
       <button
         type="button"
         className={cn(
-          "flex h-10 sm:h-11 md:h-12 w-full items-center justify-between rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-300 focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50",
-          isOpen && "ring-2 sm:ring-4 ring-indigo-500/20 border-indigo-500"
+          "flex h-10 sm:h-11 md:h-12 w-full items-center justify-between rounded-lg sm:rounded-xl border-2 border-[#DDE3EA] bg-white px-3 py-2 sm:px-3.5 sm:py-2.5 md:px-4 md:py-3 text-sm sm:text-base text-[#0F172A] shadow-sm transition-all duration-200 hover:border-[#C7D2DE] focus:outline-none focus:ring-2 sm:focus:ring-4 focus:ring-[#1D4ED8]/20 focus:border-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-[#F6F8FA]",
+          isOpen && "ring-2 sm:ring-4 ring-[#1D4ED8]/20 border-[#1D4ED8]"
         )}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
       >
-        <span className={cn("text-sm sm:text-base", selectedOption ? "text-slate-900 font-medium" : "text-slate-400")}>
+        <span className={cn("text-sm sm:text-base", selectedOption ? "text-[#0F172A] font-medium" : "text-[#94A3B8]")}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDownIcon
           className={cn(
-            "h-4 w-4 sm:h-5 sm:w-5 text-slate-400 transition-all duration-200",
-            isOpen && "rotate-180 text-indigo-600"
+            "h-4 w-4 sm:h-5 sm:w-5 text-[#94A3B8] transition-all duration-200",
+            isOpen && "rotate-180 text-[#1D4ED8]"
           )}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full z-50 mt-1 sm:mt-2 max-h-48 sm:max-h-60 w-full overflow-auto rounded-lg sm:rounded-xl border-2 border-slate-200 bg-white py-1 sm:py-2 shadow-lg sm:shadow-xl backdrop-blur-sm">
+        <div className="absolute top-full z-50 mt-1 sm:mt-2 max-h-48 sm:max-h-60 w-full overflow-auto rounded-lg sm:rounded-xl border-2 border-[#DDE3EA] bg-white py-1 sm:py-2 shadow-lg sm:shadow-xl backdrop-blur-sm">
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
               className={cn(
-                "flex w-full items-center px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-150 hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none",
-                value === option.value && "bg-indigo-100 text-indigo-700"
+                "flex w-full items-center px-3 py-2 sm:px-4 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-150 hover:bg-[#EFF4FF] focus:bg-[#EFF4FF] focus:outline-none",
+                value === option.value && "bg-[#DBE7FE] text-[#1E40AF]"
               )}
               onClick={() => {
                 onChange(option.value);
@@ -83,7 +83,7 @@ export function Select({
             >
               <span className="flex-1 text-left">{option.label}</span>
               {value === option.value && (
-                <CheckIcon className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-600" />
+                <CheckIcon className="h-3 w-3 sm:h-4 sm:w-4 text-[#1D4ED8]" />
               )}
             </button>
           ))}

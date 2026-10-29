@@ -24,3 +24,9 @@ export declare const AssignmentStatus: {
     readonly GRADED: "GRADED";
 };
 export type AssignmentStatus = (typeof AssignmentStatus)[keyof typeof AssignmentStatus];
+export declare const PaymentStatus: {
+    readonly CREATED: "CREATED";
+    readonly PAID: "PAID";
+    readonly FAILED: "FAILED";
+};
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];

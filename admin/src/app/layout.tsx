@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../contexts/AuthContext";
 import { AuthGuard } from "../components/AuthGuard";
@@ -17,9 +17,19 @@ interface ToastConfig {
   };
 }
 
-const inter = Inter({
+// Same pairing as the student app, so the two surfaces read as one product.
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans-plex",
+});
+
+const plexSerif = IBM_Plex_Serif({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["600"],
+  variable: "--font-serif-plex",
 });
 
 export const metadata: Metadata = {
@@ -29,8 +39,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<LayoutProps>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased bg-gray-50`}>
+    <html lang="en" className={`${plexSans.variable} ${plexSerif.variable}`}>
+      <body className="font-sans antialiased bg-[#F6F8FA]">
         <AuthProvider>
           <AuthGuard>
             {children}

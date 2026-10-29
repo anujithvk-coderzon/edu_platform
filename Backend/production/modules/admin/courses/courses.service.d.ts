@@ -191,9 +191,9 @@ export declare const getCourseByIdService: (id: string, userId: string, userRole
                 description: string;
                 title: string;
                 isPublic: boolean;
+                orderIndex: number;
                 fileUrl: string;
                 content: string;
-                orderIndex: number;
             }[];
         } & {
             id: string;

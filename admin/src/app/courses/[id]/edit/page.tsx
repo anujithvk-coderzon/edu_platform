@@ -699,44 +699,44 @@ export default function CourseEditPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
           <div className="mb-2 sm:mb-3 md:mb-4 hidden sm:block">
-            <Link href="/my-courses" className="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-xs sm:text-sm">
+            <Link href="/my-courses" className="inline-flex items-center px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white text-[#334155] hover:text-[#0F172A] hover:bg-[#F6F8FA] transition-colors rounded-lg border border-[#C7D2DE] shadow-sm font-medium text-xs sm:text-sm">
               <ChevronLeftIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
               <span className="hidden sm:inline">Back to My Courses</span>
               <span className="sm:hidden">Back</span>
             </Link>
           </div>
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-slate-900 mb-1.5 sm:mb-2">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-[#DDE3EA] p-3 sm:p-4 md:p-6">
+            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-[#0F172A] mb-1.5 sm:mb-2">
               Edit Course
             </h1>
             {loading ? (
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                <p className="text-slate-600 text-sm sm:text-base">Loading course data...</p>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#1D4ED8] border-t-transparent"></div>
+                <p className="text-[#475569] text-sm sm:text-base">Loading course data...</p>
               </div>
             ) : course ? (
-              <p className="text-slate-600 text-sm sm:text-base">{course.title}</p>
+              <p className="text-[#475569] text-sm sm:text-base">{course.title}</p>
             ) : (
-              <p className="text-red-600 font-medium">Course not found</p>
+              <p className="text-[#B42318] font-medium">Course not found</p>
             )}
           </div>
         </div>
 
         {/* Tabs */}
         <div className="mb-4 sm:mb-5 md:mb-6">
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-0.5 sm:p-1">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-[#DDE3EA] p-0.5 sm:p-1">
             <nav className="flex space-x-0.5 sm:space-x-1">
               <button
                 onClick={() => setActiveTab('details')}
                 className={`flex-1 py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 rounded-md sm:rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                   activeTab === 'details'
-                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-[#1D4ED8] text-white shadow-sm'
+                    : 'text-[#334155] hover:text-[#0F172A] hover:bg-[#F6F8FA]'
                 }`}
               >
                 <span className="hidden sm:inline">Course Details</span>
@@ -746,8 +746,8 @@ export default function CourseEditPage() {
                 onClick={() => setActiveTab('content')}
                 className={`flex-1 py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 rounded-md sm:rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                   activeTab === 'content'
-                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-[#1D4ED8] text-white shadow-sm'
+                    : 'text-[#334155] hover:text-[#0F172A] hover:bg-[#F6F8FA]'
                 }`}
               >
                 <span className="hidden sm:inline">Course Content</span>
@@ -762,8 +762,8 @@ export default function CourseEditPage() {
                 }}
                 className={`flex-1 py-1.5 sm:py-2 px-2 sm:px-3 md:px-4 rounded-md sm:rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                   activeTab === 'assignments'
-                    ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm'
-                    : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50'
+                    ? 'bg-[#1D4ED8] text-white shadow-sm'
+                    : 'text-[#334155] hover:text-[#0F172A] hover:bg-[#F6F8FA]'
                 }`}
               >
                 <span className="hidden md:inline">Assignments</span>
@@ -775,13 +775,13 @@ export default function CourseEditPage() {
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1D4ED8]"></div>
         </div>
       ) : !course ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Course Not Found</h3>
-            <p className="text-gray-600 mb-6">The course you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to edit it.</p>
+            <h3 className="text-lg font-medium text-[#0F172A] mb-2">Course Not Found</h3>
+            <p className="text-[#475569] mb-6">The course you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to edit it.</p>
             <Link href="/my-courses">
               <Button>Back to My Courses</Button>
             </Link>
@@ -789,17 +789,17 @@ export default function CourseEditPage() {
         </Card>
       ) : activeTab === 'details' ? (
         /* Course Details Tab */
-        <Card className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
-          <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-gradient-to-br from-indigo-50 via-blue-50 to-slate-50 border-b border-slate-100">
+        <Card className="bg-white shadow-sm border border-[#DDE3EA] rounded-xl overflow-hidden">
+          <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-[#EFF4FF] border-b border-[#E9EEF4]">
             <div className="flex items-start gap-3 sm:gap-4">
-              <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-lg">
                 <BookOpenIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                <CardTitle className="text-lg sm:text-xl font-bold text-[#0F172A] mb-1">
                   Course Information
                 </CardTitle>
-                <CardDescription className="text-slate-600 text-sm sm:text-base">
+                <CardDescription className="text-[#475569] text-sm sm:text-base">
                   Update your course details and settings
                 </CardDescription>
               </div>
@@ -809,15 +809,15 @@ export default function CourseEditPage() {
             <div className="space-y-6 sm:space-y-8">
               {/* Basic Information Section */}
               <div className="space-y-5">
-                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide flex items-center gap-2">
+                  <div className="h-1 w-1 rounded-full bg-[#1D4ED8]"></div>
                   Basic Information
                 </h3>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-2">
-                      Course Title <span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-[#0F172A] mb-2">
+                      Course Title <span className="text-[#F04438]">*</span>
                     </label>
                     <Input
                       value={course?.title || ''}
@@ -828,28 +828,29 @@ export default function CourseEditPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-900 mb-2">
-                      Description <span className="text-red-500">*</span>
+                    <label className="block text-sm font-medium text-[#0F172A] mb-2">
+                      Description <span className="text-[#F04438]">*</span>
                     </label>
                     <Textarea
+                      maxLength={5000}
                       value={course?.description || ''}
                       onChange={(e) => setCourse(prev => prev ? ({ ...prev, description: e.target.value }) : prev)}
                       rows={5}
                       placeholder="Describe what students will learn, key topics covered, and expected outcomes..."
                       className="text-base leading-relaxed"
                     />
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs text-[#64748B] mt-2">
                       Provide a clear and engaging description to attract students
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-2">
-                        Price (INR) <span className="text-red-500">*</span>
+                      <label className="block text-sm font-medium text-[#0F172A] mb-2">
+                        Price (INR) <span className="text-[#F04438]">*</span>
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">₹</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] font-medium">₹</span>
                         <Input
                           type="number"
                           min="0"
@@ -860,13 +861,13 @@ export default function CourseEditPage() {
                           className="pl-8 text-base"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-2">
+                      <p className="text-xs text-[#64748B] mt-2">
                         Set to $0 for a free course
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-2">
+                      <label className="block text-sm font-medium text-[#0F172A] mb-2">
                         Tutor/Organization Name
                       </label>
                       <Input
@@ -875,7 +876,7 @@ export default function CourseEditPage() {
                         placeholder="e.g., CODiiN Academy"
                         className="text-base"
                       />
-                      <p className="text-xs text-slate-500 mt-2">
+                      <p className="text-xs text-[#64748B] mt-2">
                         Displayed as &quot;Created by&quot; on course page
                       </p>
                     </div>
@@ -885,18 +886,18 @@ export default function CourseEditPage() {
 
               {/* Requirements & Prerequisites Section */}
               <div className="space-y-5">
-                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide flex items-center gap-2">
+                  <div className="h-1 w-1 rounded-full bg-[#1D4ED8]"></div>
                   Requirements & Prerequisites
                 </h3>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1">
+                      <label className="block text-sm font-medium text-[#0F172A] mb-1">
                         Requirements
                       </label>
-                      <p className="text-xs text-slate-500 mb-3">
+                      <p className="text-xs text-[#64748B] mb-3">
                         What students need before taking this course
                       </p>
                     </div>
@@ -923,7 +924,7 @@ export default function CourseEditPage() {
                               const newReqs = course?.requirements?.filter((_, i) => i !== index) || [];
                               setCourse(prev => prev ? ({ ...prev, requirements: newReqs }) : prev);
                             }}
-                            className="flex-shrink-0 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            className="flex-shrink-0 px-3 text-[#B42318] hover:text-[#912018] hover:bg-[#FEF3F2] border-[#FECDCA]"
                           >
                             <TrashIcon className="h-4 w-4" />
                           </Button>
@@ -946,10 +947,10 @@ export default function CourseEditPage() {
 
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1">
+                      <label className="block text-sm font-medium text-[#0F172A] mb-1">
                         Prerequisites
                       </label>
-                      <p className="text-xs text-slate-500 mb-3">
+                      <p className="text-xs text-[#64748B] mb-3">
                         Recommended prior courses or knowledge
                       </p>
                     </div>
@@ -976,7 +977,7 @@ export default function CourseEditPage() {
                               const newPrereqs = course?.prerequisites?.filter((_, i) => i !== index) || [];
                               setCourse(prev => prev ? ({ ...prev, prerequisites: newPrereqs }) : prev);
                             }}
-                            className="flex-shrink-0 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            className="flex-shrink-0 px-3 text-[#B42318] hover:text-[#912018] hover:bg-[#FEF3F2] border-[#FECDCA]"
                           >
                             <TrashIcon className="h-4 w-4" />
                           </Button>
@@ -1001,12 +1002,12 @@ export default function CourseEditPage() {
 
               {/* Thumbnail Section */}
               <div className="space-y-5">
-                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                  <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide flex items-center gap-2">
+                  <div className="h-1 w-1 rounded-full bg-[#1D4ED8]"></div>
                   Course Thumbnail
                 </h3>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-6">
+                <div className="bg-[#F6F8FA] border border-[#DDE3EA] rounded-xl p-4 sm:p-6">
                   {course?.thumbnail ? (
                     <div className="space-y-4">
                       <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -1014,7 +1015,7 @@ export default function CourseEditPage() {
                           <img
                             src={course.thumbnail || ''}
                             alt="Course thumbnail"
-                            className="w-full sm:w-48 h-auto aspect-video object-cover rounded-lg border-2 border-slate-200 shadow-sm"
+                            className="w-full sm:w-48 h-auto aspect-video object-cover rounded-lg border-2 border-[#DDE3EA] shadow-sm"
                             onError={(e) => {
                               console.error('Failed to load thumbnail:', course.thumbnail);
                               const target = e.currentTarget;
@@ -1024,19 +1025,19 @@ export default function CourseEditPage() {
                             }}
                           />
                           <div
-                            className="w-full sm:w-48 aspect-video bg-slate-100 rounded-lg border-2 border-slate-200 flex flex-col items-center justify-center text-xs text-slate-500 text-center gap-2"
+                            className="w-full sm:w-48 aspect-video bg-[#E9EEF4] rounded-lg border-2 border-[#DDE3EA] flex flex-col items-center justify-center text-xs text-[#64748B] text-center gap-2"
                             style={{ display: 'none' }}
                           >
-                            <PhotoIcon className="w-8 h-8 text-slate-400" />
+                            <PhotoIcon className="w-8 h-8 text-[#94A3B8]" />
                             <span>Failed to load thumbnail</span>
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-2 mb-3">
-                            <CheckCircleIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <CheckCircleIcon className="w-5 h-5 text-[#079455] flex-shrink-0 mt-0.5" />
                             <div>
-                              <p className="text-sm font-medium text-slate-900">Thumbnail uploaded</p>
-                              <p className="text-xs text-slate-500 mt-1">
+                              <p className="text-sm font-medium text-[#0F172A]">Thumbnail uploaded</p>
+                              <p className="text-xs text-[#64748B] mt-1">
                                 Remove this thumbnail to upload a new one
                               </p>
                             </div>
@@ -1064,7 +1065,7 @@ export default function CourseEditPage() {
                                 }
                               }
                             }}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-white hover:bg-red-50 transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-[#FDA29B] text-sm font-medium rounded-lg text-[#912018] bg-white hover:bg-[#FEF3F2] transition-colors shadow-sm"
                           >
                             <TrashIcon className="w-4 h-4" />
                             Remove Thumbnail
@@ -1074,11 +1075,11 @@ export default function CourseEditPage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="flex items-start gap-2 text-sm text-slate-600 mb-4">
-                        <PhotoIcon className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-2 text-sm text-[#475569] mb-4">
+                        <PhotoIcon className="w-5 h-5 text-[#94A3B8] flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-medium text-slate-900 mb-1">No thumbnail uploaded</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="font-medium text-[#0F172A] mb-1">No thumbnail uploaded</p>
+                          <p className="text-xs text-[#64748B]">
                             Recommended size: 1280x720px (16:9 ratio) • Max file size: 5MB
                           </p>
                         </div>
@@ -1100,12 +1101,12 @@ export default function CourseEditPage() {
               {/* Visibility - Admin Only */}
               {user?.role?.toLowerCase() === 'admin' && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                    <div className="h-1 w-1 rounded-full bg-indigo-600"></div>
+                  <h3 className="text-sm font-semibold text-[#0F172A] uppercase tracking-wide flex items-center gap-2">
+                    <div className="h-1 w-1 rounded-full bg-[#1D4ED8]"></div>
                     Visibility Settings
                   </h3>
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                    <label className="block text-sm font-medium text-slate-900 mb-3">
+                  <div className="bg-[#FFFAEB] border border-[#FEDF89] rounded-xl p-4">
+                    <label className="block text-sm font-medium text-[#0F172A] mb-3">
                       Course Visibility
                     </label>
                     <Select
@@ -1116,7 +1117,7 @@ export default function CourseEditPage() {
                       value={course?.isPublic ? 'true' : 'false'}
                       onChange={(value) => setCourse(prev => prev ? ({ ...prev, isPublic: value === 'true' }) : prev)}
                     />
-                    <p className="text-xs text-amber-700 mt-2 flex items-start gap-2">
+                    <p className="text-xs text-[#B45309] mt-2 flex items-start gap-2">
                       <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
                       <span>Course must be both &quot;Published&quot; and &quot;Public&quot; to appear in the student course catalog</span>
                     </p>
@@ -1126,18 +1127,18 @@ export default function CourseEditPage() {
 
               {/* Rejection Reason Alert */}
               {course?.status === 'REJECTED' && course?.rejectionReason && (
-                <div className="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-4 sm:p-6">
+                <div className="bg-[#FEF3F2] border-2 border-[#FECDCA] rounded-xl p-4 sm:p-6">
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                      <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                    <div className="flex-shrink-0 w-10 h-10 bg-[#FEE4E2] rounded-lg flex items-center justify-center">
+                      <ExclamationTriangleIcon className="w-6 h-6 text-[#B42318]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm sm:text-base font-bold text-red-900 mb-2">Course Rejected</h4>
+                      <h4 className="text-sm sm:text-base font-bold text-[#7A271A] mb-2">Course Rejected</h4>
                       <div className="bg-white/50 rounded-lg p-3 mb-3">
-                        <p className="text-sm font-medium text-red-800 mb-1">Rejection Reason:</p>
-                        <p className="text-sm text-red-700 leading-relaxed">{course.rejectionReason}</p>
+                        <p className="text-sm font-medium text-[#912018] mb-1">Rejection Reason:</p>
+                        <p className="text-sm text-[#912018] leading-relaxed">{course.rejectionReason}</p>
                       </div>
-                      <p className="text-xs text-red-600 flex items-start gap-2">
+                      <p className="text-xs text-[#B42318] flex items-start gap-2">
                         <span className="flex-shrink-0">•</span>
                         <span>Please address the feedback above and resubmit your course for review</span>
                       </p>
@@ -1148,14 +1149,14 @@ export default function CourseEditPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t-2 border-slate-200">
+            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6 border-t-2 border-[#DDE3EA]">
               <Button
                 variant="outline"
                 onClick={() => {
                   router.push('/my-courses');
                 }}
                 disabled={loading || saving}
-                className="px-6 py-3 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50 font-medium"
+                className="px-6 py-3 border-2 border-[#C7D2DE] text-[#334155] hover:bg-[#F6F8FA] disabled:opacity-50 font-medium"
               >
                 <XMarkIcon className="w-4 h-4 mr-2" />
                 Cancel
@@ -1165,7 +1166,7 @@ export default function CourseEditPage() {
                 <Button
                   onClick={handleSaveCourse}
                   disabled={saving || loading}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white disabled:opacity-50 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all"
+                  className="px-6 py-3 bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] text-white disabled:opacity-50 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all"
                 >
                   {saving ? (
                     <>
@@ -1185,7 +1186,7 @@ export default function CourseEditPage() {
                   <Button
                     onClick={handleSubmitForReview}
                     disabled={saving || loading}
-                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="px-6 py-3 bg-[#079455] hover:from-[#067647] hover:to-[#067647] text-white disabled:opacity-50 flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     {saving ? (
                       <>
@@ -1207,25 +1208,25 @@ export default function CourseEditPage() {
       ) : activeTab === 'content' ? (
         /* Course Content Tab */
         <div className="space-y-6">
-          <Card className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
-            <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-gradient-to-br from-purple-50 via-blue-50 to-slate-50 border-b border-slate-100">
+          <Card className="bg-white shadow-sm border border-[#DDE3EA] rounded-xl overflow-hidden">
+            <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-[#EFF4FF] border-b border-[#E9EEF4]">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-lg">
                     <FolderIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                    <CardTitle className="text-lg sm:text-xl font-bold text-[#0F172A] mb-1">
                       Course Content
                     </CardTitle>
-                    <CardDescription className="text-slate-600 text-sm sm:text-base">
+                    <CardDescription className="text-[#475569] text-sm sm:text-base">
                       Organize your course into chapters and add learning materials
                     </CardDescription>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowModuleModal(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-5 py-2.5 text-sm font-semibold flex-shrink-0 shadow-lg hover:shadow-xl transition-all"
+                  className="w-full sm:w-auto bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] text-white px-5 py-2.5 text-sm font-semibold flex-shrink-0 shadow-lg hover:shadow-xl transition-all"
                 >
                   <PlusIcon className="w-5 h-5 mr-2" />
                   Add Chapter
@@ -1237,47 +1238,47 @@ export default function CourseEditPage() {
               {course?.modules && course.modules.length > 0 ? (
                 <div className="space-y-5">
                   {course.modules.map((module, moduleIndex) => (
-                    <Card key={module.id} className="bg-gradient-to-br from-white to-slate-50/30 border-2 border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl overflow-hidden">
-                      <CardHeader className="px-4 sm:px-5 py-4 bg-white/80 border-b border-slate-100">
+                    <Card key={module.id} className="bg-white border-2 border-[#DDE3EA] shadow-sm hover:shadow-md transition-all duration-200 rounded-xl overflow-hidden">
+                      <CardHeader className="px-4 sm:px-5 py-4 bg-white/80 border-b border-[#E9EEF4]">
                         <div className="flex flex-col gap-4">
                           <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center">
-                              <FolderIcon className="w-5 h-5 text-purple-600" />
+                            <div className="flex-shrink-0 w-10 h-10 bg-[#EFF4FF] rounded-lg flex items-center justify-center">
+                              <FolderIcon className="w-5 h-5 text-[#1D4ED8]" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="text-base sm:text-lg font-bold text-slate-900 mb-1">
+                              <CardTitle className="text-base sm:text-lg font-bold text-[#0F172A] mb-1">
                                 {module.title}
                               </CardTitle>
                               {module.description && (
-                                <CardDescription className="text-slate-600 text-sm leading-relaxed line-clamp-2">
+                                <CardDescription className="text-[#475569] text-sm leading-relaxed line-clamp-2">
                                   {module.description}
                                 </CardDescription>
                               )}
-                              <p className="text-xs text-slate-500 mt-2">
+                              <p className="text-xs text-[#64748B] mt-2">
                                 {module.materials.length} material{module.materials.length !== 1 ? 's' : ''}
                               </p>
                             </div>
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2">
-                            <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                            <div className="flex items-center bg-white border border-[#DDE3EA] rounded-lg overflow-hidden shadow-sm">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => moveModule(module.id, 'up')}
                                 disabled={moduleIndex === 0}
-                                className="rounded-none border-0 px-3 py-2 text-xs font-medium hover:bg-slate-50 disabled:opacity-40"
+                                className="rounded-none border-0 px-3 py-2 text-xs font-medium hover:bg-[#F6F8FA] disabled:opacity-40"
                                 title="Move up"
                               >
                                 <ArrowUpIcon className="w-4 h-4" />
                               </Button>
-                              <div className="w-px h-6 bg-slate-200"></div>
+                              <div className="w-px h-6 bg-[#DDE3EA]"></div>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => moveModule(module.id, 'down')}
                                 disabled={moduleIndex === (course?.modules.length || 0) - 1}
-                                className="rounded-none border-0 px-3 py-2 text-xs font-medium hover:bg-slate-50 disabled:opacity-40"
+                                className="rounded-none border-0 px-3 py-2 text-xs font-medium hover:bg-[#F6F8FA] disabled:opacity-40"
                                 title="Move down"
                               >
                                 <ArrowDownIcon className="w-4 h-4" />
@@ -1288,7 +1289,7 @@ export default function CourseEditPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => setShowMaterialModal({ moduleId: module.id })}
-                              className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 text-xs font-semibold px-4 py-2 rounded-lg"
+                              className="bg-[#EFF4FF] text-[#1E40AF] border-[#C7D7FE] hover:bg-[#DBE7FE] text-xs font-semibold px-4 py-2 rounded-lg"
                             >
                               <PlusIcon className="w-4 h-4 mr-1.5" />
                               Add Material
@@ -1299,10 +1300,10 @@ export default function CourseEditPage() {
                               size="sm"
                               onClick={() => handleDeleteModule(module.id)}
                               disabled={deletingModuleId === module.id}
-                              className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 disabled:opacity-50 text-xs font-semibold px-4 py-2 rounded-lg ml-auto"
+                              className="bg-[#FEF3F2] text-[#912018] border-[#FECDCA] hover:bg-[#FEE4E2] disabled:opacity-50 text-xs font-semibold px-4 py-2 rounded-lg ml-auto"
                             >
                               {deletingModuleId === module.id ? (
-                                <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                                <div className="w-4 h-4 animate-spin rounded-full border-2 border-[#FDA29B] border-t-red-600"></div>
                               ) : (
                                 <>
                                   <TrashIcon className="w-4 h-4 mr-1.5" />
@@ -1319,23 +1320,23 @@ export default function CourseEditPage() {
                             {module.materials.map((material, materialIndex) => {
                               const MaterialIcon = getMaterialIcon(material.type);
                               const iconColors = {
-                                PDF: 'text-red-600 bg-red-50',
-                                VIDEO: 'text-purple-600 bg-purple-50',
-                                LINK: 'text-blue-600 bg-blue-50'
+                                PDF: 'text-[#B42318] bg-[#FEF3F2]',
+                                VIDEO: 'text-[#1D4ED8] bg-[#EFF4FF]',
+                                LINK: 'text-[#1D4ED8] bg-[#EFF4FF]'
                               };
-                              const typeColor = iconColors[material.type as keyof typeof iconColors] || 'text-slate-600 bg-slate-50';
+                              const typeColor = iconColors[material.type as keyof typeof iconColors] || 'text-[#475569] bg-[#F6F8FA]';
 
                               return (
-                                <div key={material.id} className="group flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-all">
+                                <div key={material.id} className="group flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 bg-white hover:bg-[#F6F8FA] rounded-lg border border-[#DDE3EA] hover:border-[#C7D2DE] transition-all">
                                   <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
                                     <div className={`flex-shrink-0 w-9 h-9 ${typeColor.split(' ')[1]} rounded-lg flex items-center justify-center`}>
                                       <MaterialIcon className={`w-5 h-5 ${typeColor.split(' ')[0]}`} />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                      <p className="font-semibold text-slate-900 text-sm sm:text-base mb-1 truncate">
+                                      <p className="font-semibold text-[#0F172A] text-sm sm:text-base mb-1 truncate">
                                         {material.title}
                                       </p>
-                                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                                      <div className="flex flex-wrap items-center gap-2 text-xs text-[#475569]">
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-md font-medium ${typeColor}`}>
                                           {material.type}
                                         </span>
@@ -1347,24 +1348,24 @@ export default function CourseEditPage() {
                                   </div>
 
                                   <div className="flex items-center gap-2 flex-shrink-0 justify-end">
-                                    <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                                    <div className="flex items-center bg-white border border-[#DDE3EA] rounded-lg overflow-hidden shadow-sm">
                                       <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => moveMaterial(module.id, material.id, 'up')}
                                         disabled={materialIndex === 0}
-                                        className="rounded-none border-0 px-2.5 py-1.5 hover:bg-slate-50 disabled:opacity-40"
+                                        className="rounded-none border-0 px-2.5 py-1.5 hover:bg-[#F6F8FA] disabled:opacity-40"
                                         title="Move up"
                                       >
                                         <ArrowUpIcon className="w-3.5 h-3.5" />
                                       </Button>
-                                      <div className="w-px h-5 bg-slate-200"></div>
+                                      <div className="w-px h-5 bg-[#DDE3EA]"></div>
                                       <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => moveMaterial(module.id, material.id, 'down')}
                                         disabled={materialIndex === module.materials.length - 1}
-                                        className="rounded-none border-0 px-2.5 py-1.5 hover:bg-slate-50 disabled:opacity-40"
+                                        className="rounded-none border-0 px-2.5 py-1.5 hover:bg-[#F6F8FA] disabled:opacity-40"
                                         title="Move down"
                                       >
                                         <ArrowDownIcon className="w-3.5 h-3.5" />
@@ -1376,10 +1377,10 @@ export default function CourseEditPage() {
                                       size="sm"
                                       onClick={() => handleDeleteMaterial(module.id, material.id)}
                                       disabled={deletingMaterialId === material.id}
-                                      className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700 disabled:opacity-50 px-3 py-1.5 rounded-lg"
+                                      className="bg-[#FEF3F2] text-[#B42318] border-[#FECDCA] hover:bg-[#FEE4E2] hover:text-[#912018] disabled:opacity-50 px-3 py-1.5 rounded-lg"
                                     >
                                       {deletingMaterialId === material.id ? (
-                                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-red-300 border-t-red-600"></div>
+                                        <div className="w-4 h-4 animate-spin rounded-full border-2 border-[#FDA29B] border-t-red-600"></div>
                                       ) : (
                                         <TrashIcon className="w-4 h-4" />
                                       )}
@@ -1391,11 +1392,11 @@ export default function CourseEditPage() {
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                              <DocumentIcon className="w-8 h-8 text-slate-400" />
+                            <div className="w-16 h-16 bg-[#E9EEF4] rounded-full flex items-center justify-center mb-4">
+                              <DocumentIcon className="w-8 h-8 text-[#94A3B8]" />
                             </div>
-                            <p className="text-slate-600 font-medium mb-1">No materials yet</p>
-                            <p className="text-sm text-slate-500">Add your first learning material to get started</p>
+                            <p className="text-[#475569] font-medium mb-1">No materials yet</p>
+                            <p className="text-sm text-[#64748B]">Add your first learning material to get started</p>
                           </div>
                         )}
                       </CardContent>
@@ -1405,20 +1406,20 @@ export default function CourseEditPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
                   <div className="relative mb-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center">
-                      <FolderPlusIcon className="w-10 h-10 text-purple-600" />
+                    <div className="w-20 h-20 bg-[#EFF4FF] rounded-2xl flex items-center justify-center">
+                      <FolderPlusIcon className="w-10 h-10 text-[#1D4ED8]" />
                     </div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#1D4ED8] rounded-full flex items-center justify-center">
                       <PlusIcon className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No chapters yet</h3>
-                  <p className="text-slate-600 mb-6 text-sm sm:text-base max-w-md leading-relaxed">
+                  <h3 className="text-lg sm:text-xl font-bold text-[#0F172A] mb-2">No chapters yet</h3>
+                  <p className="text-[#475569] mb-6 text-sm sm:text-base max-w-md leading-relaxed">
                     Start organizing your course content by creating chapters and adding learning materials.
                   </p>
                   <Button
                     onClick={() => setShowModuleModal(true)}
-                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="w-full sm:w-auto bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     <PlusIcon className="w-5 h-5 mr-2" />
                     Create Your First Chapter
@@ -1431,25 +1432,25 @@ export default function CourseEditPage() {
       ) : activeTab === 'assignments' ? (
         /* Assignments Tab */
         <div className="space-y-6">
-          <Card className="bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden">
-            <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-gradient-to-br from-green-50 via-emerald-50 to-slate-50 border-b border-slate-100">
+          <Card className="bg-white shadow-sm border border-[#DDE3EA] rounded-xl overflow-hidden">
+            <CardHeader className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-[#ECFDF3] border-b border-[#E9EEF4]">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-[#079455] rounded-xl flex items-center justify-center shadow-lg">
                     <ClipboardDocumentListIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+                    <CardTitle className="text-lg sm:text-xl font-bold text-[#0F172A] mb-1">
                       Assignments
                     </CardTitle>
-                    <CardDescription className="text-slate-600 text-sm sm:text-base">
+                    <CardDescription className="text-[#475569] text-sm sm:text-base">
                       Create and manage assignments for your students
                     </CardDescription>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowAssignmentModal(true)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-5 py-2.5 text-sm font-semibold flex-shrink-0 shadow-lg hover:shadow-xl transition-all"
+                  className="w-full sm:w-auto bg-[#079455] hover:from-[#067647] hover:to-[#067647] text-white px-5 py-2.5 text-sm font-semibold flex-shrink-0 shadow-lg hover:shadow-xl transition-all"
                 >
                   <PlusIcon className="w-5 h-5 mr-2" />
                   Create Assignment
@@ -1460,8 +1461,8 @@ export default function CourseEditPage() {
             <CardContent className="px-4 sm:px-6 lg:px-8 py-6">
               {loadingAssignments ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-green-600 mb-4"></div>
-                  <p className="text-sm text-slate-600">Loading assignments...</p>
+                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#DDE3EA] border-t-green-600 mb-4"></div>
+                  <p className="text-sm text-[#475569]">Loading assignments...</p>
                 </div>
               ) : assignments.length > 0 ? (
                 <div className="space-y-4">
@@ -1473,8 +1474,8 @@ export default function CourseEditPage() {
                     return (
                       <Card key={assignment.id} className={`border-2 transition-all duration-200 hover:shadow-lg rounded-xl overflow-hidden ${
                         isOverdue
-                          ? 'bg-gradient-to-br from-red-50 via-pink-50 to-red-50/50 border-red-200 hover:border-red-300'
-                          : 'bg-gradient-to-br from-white to-slate-50/30 border-slate-200 hover:border-green-300'
+                          ? 'bg-[#FEF3F2]/50 border-[#FECDCA] hover:border-[#FDA29B]'
+                          : 'bg-white border-[#DDE3EA] hover:border-[#75E0A7]'
                       }`}>
                         <CardContent className="p-5 sm:p-6">
                           <div className="flex flex-col gap-5">
@@ -1483,22 +1484,22 @@ export default function CourseEditPage() {
                               <div className="flex items-start gap-3 min-w-0 flex-1">
                                 <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${
                                   isOverdue
-                                    ? 'bg-gradient-to-br from-red-500 to-pink-600'
-                                    : 'bg-gradient-to-br from-green-500 to-emerald-600'
+                                    ? 'bg-[#B42318]'
+                                    : 'bg-[#079455]'
                                 }`}>
                                   <ClipboardDocumentListIcon className="h-6 w-6 text-white" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-start gap-2 flex-wrap mb-2">
-                                    <h3 className="font-bold text-base sm:text-lg text-slate-900">{assignment.title}</h3>
+                                    <h3 className="font-bold text-base sm:text-lg text-[#0F172A]">{assignment.title}</h3>
                                     {isOverdue && (
-                                      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full font-semibold border border-red-200 shadow-sm">
+                                      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-[#FEE4E2] text-[#912018] rounded-full font-semibold border border-[#FECDCA] shadow-sm">
                                         <CalendarIcon className="w-3.5 h-3.5" />
                                         Overdue
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-slate-600 text-sm leading-relaxed line-clamp-2">
+                                  <p className="text-[#475569] text-sm leading-relaxed line-clamp-2">
                                     {assignment.description}
                                   </p>
                                 </div>
@@ -1506,7 +1507,7 @@ export default function CourseEditPage() {
                             </div>
 
                             {/* Description (full on mobile) */}
-                            <p className="text-slate-600 text-sm leading-relaxed sm:hidden">
+                            <p className="text-[#475569] text-sm leading-relaxed sm:hidden">
                               {assignment.description}
                             </p>
 
@@ -1515,57 +1516,57 @@ export default function CourseEditPage() {
                               {assignment.dueDate && (
                                 <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm ${
                                   isOverdue
-                                    ? 'bg-red-100 text-red-700 border border-red-200'
-                                    : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                    ? 'bg-[#FEE4E2] text-[#912018] border border-[#FECDCA]'
+                                    : 'bg-[#EFF4FF] text-[#1E40AF] border border-[#DBE7FE]'
                                 }`}>
                                   <CalendarIcon className="h-4 w-4" />
                                   <span>{isOverdue ? 'Was due' : 'Due'}: {new Date(assignment.dueDate).toLocaleDateString()}</span>
                                 </div>
                               )}
 
-                              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold shadow-sm border border-indigo-100">
+                              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#EFF4FF] text-[#1E40AF] rounded-lg text-xs font-semibold shadow-sm border border-[#DBE7FE]">
                                 <span>🎯</span>
                                 <span>Max: {assignment.maxScore} pts</span>
                               </div>
 
                               <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold shadow-sm border ${
                                 submissionCount > 0
-                                  ? 'bg-green-50 text-green-700 border-green-100'
-                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                                  ? 'bg-[#ECFDF3] text-[#067647] border-[#DCFAE6]'
+                                  : 'bg-[#E9EEF4] text-[#475569] border-[#DDE3EA]'
                               }`}>
                                 <span>📄</span>
                                 <span>{submissionCount} submission{submissionCount !== 1 ? 's' : ''}</span>
                               </div>
 
                               {ungradedCount > 0 && (
-                                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-orange-100 text-orange-700 border-2 border-orange-300 shadow-sm animate-pulse">
+                                <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[#FEF0C7] text-[#B45309] border-2 border-[#FEC84B] shadow-sm animate-pulse">
                                   <span>⚠️</span>
                                   <span>{ungradedCount} ungraded</span>
                                 </div>
                               )}
 
-                              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium border border-slate-200">
+                              <div className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#E9EEF4] text-[#475569] rounded-lg text-xs font-medium border border-[#DDE3EA]">
                                 <span className="hidden sm:inline">Created:</span>
                                 <span>{new Date(assignment.createdAt).toLocaleDateString()}</span>
                               </div>
                             </div>
 
                             {/* Actions */}
-                            <div className="flex flex-col sm:flex-row items-stretch gap-2 pt-2 border-t border-slate-200">
+                            <div className="flex flex-col sm:flex-row items-stretch gap-2 pt-2 border-t border-[#DDE3EA]">
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleViewSubmissions(assignment.id)}
                                 className={`flex-1 justify-center py-2.5 font-semibold ${
                                   ungradedCount > 0
-                                    ? 'bg-orange-50 text-orange-700 border-orange-300 hover:bg-orange-100 hover:border-orange-400'
-                                    : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:border-green-300'
+                                    ? 'bg-[#FFFAEB] text-[#B45309] border-[#FEC84B] hover:bg-[#FEF0C7] hover:border-[#FDB022]'
+                                    : 'bg-[#ECFDF3] text-[#067647] border-[#ABEFC6] hover:bg-[#DCFAE6] hover:border-[#75E0A7]'
                                 }`}
                               >
                                 <DocumentIcon className="h-4 w-4 mr-2" />
                                 <span>Review Submissions</span>
                                 {ungradedCount > 0 ? (
-                                  <span className="ml-2 px-2 py-0.5 bg-orange-200 text-orange-800 rounded-full text-xs font-bold">
+                                  <span className="ml-2 px-2 py-0.5 bg-[#FEDF89] text-[#93370D] rounded-full text-xs font-bold">
                                     {ungradedCount} new
                                   </span>
                                 ) : submissionCount > 0 ? (
@@ -1581,7 +1582,7 @@ export default function CourseEditPage() {
                                     handleDeleteAssignment(assignment.id);
                                   }
                                 }}
-                                className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 hover:border-red-300 font-semibold py-2.5"
+                                className="bg-[#FEF3F2] text-[#912018] border-[#FECDCA] hover:bg-[#FEE4E2] hover:border-[#FDA29B] font-semibold py-2.5"
                               >
                                 <TrashIcon className="w-4 h-4 mr-2" />
                                 Delete Assignment
@@ -1596,20 +1597,20 @@ export default function CourseEditPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
                   <div className="relative mb-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center">
-                      <ClipboardDocumentListIcon className="w-10 h-10 text-green-600" />
+                    <div className="w-20 h-20 bg-[#ECFDF3] rounded-2xl flex items-center justify-center">
+                      <ClipboardDocumentListIcon className="w-10 h-10 text-[#079455]" />
                     </div>
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#079455] rounded-full flex items-center justify-center">
                       <PlusIcon className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">No assignments yet</h3>
-                  <p className="text-slate-600 mb-6 text-sm sm:text-base max-w-md leading-relaxed">
+                  <h3 className="text-lg sm:text-xl font-bold text-[#0F172A] mb-2">No assignments yet</h3>
+                  <p className="text-[#475569] mb-6 text-sm sm:text-base max-w-md leading-relaxed">
                     Create assignments to test your students' knowledge and track their progress.
                   </p>
                   <Button
                     onClick={() => setShowAssignmentModal(true)}
-                    className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
+                    className="w-full sm:w-auto bg-[#079455] hover:from-[#067647] hover:to-[#067647] text-white px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     <PlusIcon className="w-5 h-5 mr-2" />
                     Create Your First Assignment
@@ -1624,21 +1625,21 @@ export default function CourseEditPage() {
       {/* Add Module Modal */}
       {showModuleModal && (
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-[#DDE3EA]">
+            <CardHeader className="bg-[#F6F8FA] border-b border-[#DDE3EA]">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg shadow-sm">
+                <div className="p-2 bg-[#1D4ED8] rounded-lg shadow-sm">
                   <FolderPlusIcon className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-semibold text-slate-900">Add New Chapter</CardTitle>
-                  <CardDescription className="text-slate-600">Create a new chapter to organize your course content</CardDescription>
+                  <CardTitle className="text-xl font-semibold text-[#0F172A]">Add New Chapter</CardTitle>
+                  <CardDescription className="text-[#475569]">Create a new chapter to organize your course content</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Chapter Title *
                 </label>
                 <Input
@@ -1649,28 +1650,29 @@ export default function CourseEditPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Description (Optional)
                 </label>
                 <Textarea
+                  maxLength={5000}
                   placeholder="Brief description of this chapter"
                   value={newModule.description}
                   onChange={(e) => setNewModule(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
                 />
               </div>
-              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-[#DDE3EA]">
                 <Button
                   variant="outline"
                   onClick={() => setShowModuleModal(false)}
-                  className="order-2 sm:order-1 px-6 py-2.5 font-medium hover:bg-slate-50 border-slate-300"
+                  className="order-2 sm:order-1 px-6 py-2.5 font-medium hover:bg-[#F6F8FA] border-[#C7D2DE]"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleAddModule}
                   disabled={!newModule.title.trim() || creatingModule}
-                  className="order-1 sm:order-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="order-1 sm:order-2 px-6 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creatingModule ? (
                     <>
@@ -1690,21 +1692,21 @@ export default function CourseEditPage() {
       {/* Add Material Modal */}
       {showMaterialModal && (
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200">
+          <Card className="w-full max-w-lg mx-auto my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-[#DDE3EA]">
+            <CardHeader className="bg-[#F6F8FA] border-b border-[#DDE3EA]">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg shadow-sm">
+                <div className="p-2 bg-[#1D4ED8] rounded-lg shadow-sm">
                   <DocumentIcon className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-semibold text-slate-900">Add New Material</CardTitle>
-                  <CardDescription className="text-slate-600">Add a new material to this module</CardDescription>
+                  <CardTitle className="text-xl font-semibold text-[#0F172A]">Add New Material</CardTitle>
+                  <CardDescription className="text-[#475569]">Add a new material to this module</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Material Title *
                 </label>
                 <Input
@@ -1714,7 +1716,7 @@ export default function CourseEditPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Material Type *
                 </label>
                 <Select
@@ -1724,10 +1726,11 @@ export default function CourseEditPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Description (Optional)
                 </label>
                 <Textarea
+                  maxLength={5000}
                   placeholder="Brief description of this material"
                   value={newMaterial.description}
                   onChange={(e) => setNewMaterial(prev => ({ ...prev, description: e.target.value }))}
@@ -1736,7 +1739,7 @@ export default function CourseEditPage() {
               </div>
               {newMaterial.type === 'LINK' ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     URL *
                   </label>
                   <Input
@@ -1747,7 +1750,7 @@ export default function CourseEditPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     Upload File
                   </label>
                   <FileUpload
@@ -1770,11 +1773,11 @@ export default function CourseEditPage() {
                   />
                 </div>
               )}
-              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-[#DDE3EA]">
                 <Button
                   variant="outline"
                   onClick={() => setShowMaterialModal(null)}
-                  className="order-2 sm:order-1 px-6 py-2.5 font-medium hover:bg-slate-50 border-slate-300"
+                  className="order-2 sm:order-1 px-6 py-2.5 font-medium hover:bg-[#F6F8FA] border-[#C7D2DE]"
                 >
                   Cancel
                 </Button>
@@ -1785,7 +1788,7 @@ export default function CourseEditPage() {
                     creatingMaterial ||
                     (newMaterial.type !== 'LINK' && !selectedFile && !newMaterial.fileUrl)
                   }
-                  className="order-1 sm:order-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="order-1 sm:order-2 px-6 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creatingMaterial ? (
                     <>
@@ -1805,27 +1808,27 @@ export default function CourseEditPage() {
       {/* Assignment Creation Modal - Fully Responsive */}
       {showAssignmentModal && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
-          <Card className="w-full max-w-4xl bg-white shadow-2xl border border-slate-200 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 sticky top-0 z-10 p-4 sm:p-6">
+          <Card className="w-full max-w-4xl bg-white shadow-2xl border border-[#DDE3EA] max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-4">
+            <CardHeader className="bg-[#F6F8FA] border-b border-[#DDE3EA] sticky top-0 z-10 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                  <div className="p-2 sm:p-2.5 bg-blue-600 rounded-lg shadow-sm flex-shrink-0">
+                  <div className="p-2 sm:p-2.5 bg-[#1D4ED8] rounded-lg shadow-sm flex-shrink-0">
                     <ClipboardDocumentListIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg sm:text-xl font-semibold text-slate-900 truncate">
+                    <CardTitle className="text-lg sm:text-xl font-semibold text-[#0F172A] truncate">
                       Create New Assignment
                     </CardTitle>
-                    <CardDescription className="text-slate-600 text-xs sm:text-sm mt-0.5 hidden sm:block">
+                    <CardDescription className="text-[#475569] text-xs sm:text-sm mt-0.5 hidden sm:block">
                       Set up a new assignment for your students
                     </CardDescription>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowAssignmentModal(false)}
-                  className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0 ml-2"
+                  className="p-1.5 sm:p-2 hover:bg-[#E9EEF4] rounded-lg transition-colors flex-shrink-0 ml-2"
                 >
-                  <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
+                  <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#64748B]" />
                 </button>
               </div>
             </CardHeader>
@@ -1833,63 +1836,64 @@ export default function CourseEditPage() {
               {/* Assignment Details Section */}
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center space-x-2 mb-2 sm:mb-3">
-                  <div className="h-0.5 w-6 sm:w-8 bg-blue-600 rounded-full"></div>
-                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">Assignment Information</h3>
+                  <div className="h-0.5 w-6 sm:w-8 bg-[#1D4ED8] rounded-full"></div>
+                  <h3 className="text-sm sm:text-base font-semibold text-[#0F172A]">Assignment Information</h3>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:gap-5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
-                      Assignment Title <span className="text-red-500">*</span>
+                    <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-1.5">
+                      Assignment Title <span className="text-[#F04438]">*</span>
                     </label>
                     <Input
                       placeholder="e.g., Final Project - Web Application Development"
                       value={newAssignment.title}
                       onChange={(e) => setNewAssignment(prev => ({ ...prev, title: e.target.value }))}
-                      className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
+                      className="border-[#C7D2DE] focus:border-[#1D4ED8] focus:ring-1 focus:ring-[#1D4ED8] text-sm sm:text-base"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Choose a clear, descriptive title</p>
+                    <p className="text-xs text-[#64748B] mt-1">Choose a clear, descriptive title</p>
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
-                      Assignment Instructions <span className="text-red-500">*</span>
+                    <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-1.5">
+                      Assignment Instructions <span className="text-[#F04438]">*</span>
                     </label>
                     <Textarea
+                      maxLength={5000}
                       placeholder="Describe the assignment objectives, requirements, and evaluation criteria..."
                       value={newAssignment.description}
                       onChange={(e) => setNewAssignment(prev => ({ ...prev, description: e.target.value }))}
                       rows={4}
-                      className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base resize-none"
+                      className="border-[#C7D2DE] focus:border-[#1D4ED8] focus:ring-1 focus:ring-[#1D4ED8] text-sm sm:text-base resize-none"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Provide clear instructions and expectations</p>
+                    <p className="text-xs text-[#64748B] mt-1">Provide clear instructions and expectations</p>
                   </div>
                 </div>
               </div>
 
               {/* Configuration Section */}
-              <div className="space-y-3 sm:space-y-4 border-t border-slate-200 pt-4 sm:pt-5">
+              <div className="space-y-3 sm:space-y-4 border-t border-[#DDE3EA] pt-4 sm:pt-5">
                 <div className="flex items-center space-x-2 mb-2 sm:mb-3">
-                  <div className="h-0.5 w-6 sm:w-8 bg-blue-600 rounded-full"></div>
-                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">Settings</h3>
+                  <div className="h-0.5 w-6 sm:w-8 bg-[#1D4ED8] rounded-full"></div>
+                  <h3 className="text-sm sm:text-base font-semibold text-[#0F172A]">Settings</h3>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-1.5">
                       Due Date
                     </label>
                     <Input
                       type="datetime-local"
                       value={newAssignment.dueDate}
                       onChange={(e) => setNewAssignment(prev => ({ ...prev, dueDate: e.target.value }))}
-                      className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
+                      className="border-[#C7D2DE] focus:border-[#1D4ED8] focus:ring-1 focus:ring-[#1D4ED8] text-sm sm:text-base"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Optional deadline for submission</p>
+                    <p className="text-xs text-[#64748B] mt-1">Optional deadline for submission</p>
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-xs sm:text-sm font-medium text-[#334155] mb-1.5">
                       Maximum Score
                     </label>
                     <div className="flex items-center space-x-2">
@@ -1901,17 +1905,17 @@ export default function CourseEditPage() {
                         placeholder="100"
                         value={newAssignment.maxScore}
                         onChange={(e) => setNewAssignment(prev => ({ ...prev, maxScore: parseInt(e.target.value) || 100 }))}
-                        className="border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm sm:text-base"
+                        className="border-[#C7D2DE] focus:border-[#1D4ED8] focus:ring-1 focus:ring-[#1D4ED8] text-sm sm:text-base"
                       />
-                      <span className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">points</span>
+                      <span className="text-xs sm:text-sm text-[#475569] whitespace-nowrap">points</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">Total available points</p>
+                    <p className="text-xs text-[#64748B] mt-1">Total available points</p>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons - Fully Responsive */}
-              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-4 sm:pt-5 border-t border-[#DDE3EA]">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -1923,14 +1927,14 @@ export default function CourseEditPage() {
                       maxScore: 100
                     });
                   }}
-                  className="order-2 sm:order-1 w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50 text-sm px-4 py-2"
+                  className="order-2 sm:order-1 w-full sm:w-auto border-[#C7D2DE] text-[#334155] hover:bg-[#F6F8FA] text-sm px-4 py-2"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleAddAssignment}
                   disabled={!newAssignment.title.trim() || !newAssignment.description.trim() || creatingAssignment}
-                  className="order-1 sm:order-2 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white transition-colors text-sm px-4 py-2"
+                  className="order-1 sm:order-2 w-full sm:w-auto bg-[#1D4ED8] hover:bg-[#1E40AF] text-white transition-colors text-sm px-4 py-2"
                 >
                   {creatingAssignment ? (
                     <>
@@ -1954,18 +1958,18 @@ export default function CourseEditPage() {
       {/* Assignment Submissions Modal - Mobile Optimized */}
       {showSubmissionsModal && selectedAssignmentId && (
         <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center p-1 sm:p-4 z-50">
-          <Card className="w-full max-w-7xl bg-white shadow-2xl border border-slate-200 max-h-[99vh] sm:max-h-[95vh] overflow-hidden mx-1 sm:mx-4">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-200 p-2 sm:p-4 lg:p-6">
+          <Card className="w-full max-w-7xl bg-white shadow-2xl border border-[#DDE3EA] max-h-[99vh] sm:max-h-[95vh] overflow-hidden mx-1 sm:mx-4">
+            <CardHeader className="bg-[#F6F8FA] border-b border-[#DDE3EA] p-2 sm:p-4 lg:p-6">
               <div className="flex justify-between items-center">
                 <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                  <div className="p-1.5 sm:p-2.5 bg-blue-600 rounded-lg shadow-sm flex-shrink-0">
+                  <div className="p-1.5 sm:p-2.5 bg-[#1D4ED8] rounded-lg shadow-sm flex-shrink-0">
                     <DocumentIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base sm:text-xl font-semibold text-slate-900 truncate">
+                    <CardTitle className="text-base sm:text-xl font-semibold text-[#0F172A] truncate">
                       Submissions
                     </CardTitle>
-                    <CardDescription className="text-slate-600 text-xs sm:text-sm mt-0.5 hidden sm:block">
+                    <CardDescription className="text-[#475569] text-xs sm:text-sm mt-0.5 hidden sm:block">
                       Review and grade student submissions
                     </CardDescription>
                   </div>
@@ -1976,17 +1980,17 @@ export default function CourseEditPage() {
                     setSelectedAssignmentId(null);
                     setSubmissions([]);
                   }}
-                  className="p-1 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0 ml-1 sm:ml-2"
+                  className="p-1 sm:p-2 hover:bg-[#E9EEF4] rounded-lg transition-colors flex-shrink-0 ml-1 sm:ml-2"
                 >
-                  <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500" />
+                  <XMarkIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#64748B]" />
                 </button>
               </div>
             </CardHeader>
             <CardContent className="overflow-y-auto max-h-[85vh] sm:max-h-[70vh] p-2 sm:p-4 lg:p-6">
               {loadingSubmissions ? (
                 <div className="flex items-center justify-center py-8 sm:py-12">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 border-2 sm:border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="ml-2 sm:ml-3 text-slate-600 font-medium text-sm sm:text-base">Loading submissions...</span>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 border-2 sm:border-3 border-[#1D4ED8] border-t-transparent rounded-full animate-spin"></div>
+                  <span className="ml-2 sm:ml-3 text-[#475569] font-medium text-sm sm:text-base">Loading submissions...</span>
                 </div>
               ) : submissions.length > 0 ? (
                 <div className="space-y-2 sm:space-y-4">
@@ -2000,25 +2004,25 @@ export default function CourseEditPage() {
                     return (
                       <Card key={submission.id} className={`border transition-all duration-200 ${
                         isGraded
-                          ? 'bg-green-50/30 border-green-200'
-                          : 'bg-white border-slate-200 hover:border-blue-300'
+                          ? 'bg-[#ECFDF3]/30 border-[#ABEFC6]'
+                          : 'bg-white border-[#DDE3EA] hover:border-[#A4BCFC]'
                       } shadow-sm hover:shadow-md`}>
                         <CardContent className="p-2 sm:p-4 lg:p-5">
                           {/* Student Info Header - Mobile Optimized */}
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 mb-2 sm:mb-4">
                             <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                               <div className={`w-6 h-6 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                isGraded ? 'bg-green-100' : 'bg-slate-100'
+                                isGraded ? 'bg-[#DCFAE6]' : 'bg-[#E9EEF4]'
                               }`}>
-                                <span className={`text-xs sm:text-base font-semibold ${isGraded ? 'text-green-600' : 'text-slate-600'}`}>
+                                <span className={`text-xs sm:text-base font-semibold ${isGraded ? 'text-[#079455]' : 'text-[#475569]'}`}>
                                   {submission.student?.firstName?.charAt(0)}{submission.student?.lastName?.charAt(0)}
                                 </span>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-xs sm:text-base text-slate-900 leading-tight">
+                                <h4 className="font-semibold text-xs sm:text-base text-[#0F172A] leading-tight">
                                   {submission.student ? `${submission.student.firstName} ${submission.student.lastName}` : 'Unknown Student'}
                                 </h4>
-                                <div className="flex flex-col text-xs text-slate-500 mt-0.5">
+                                <div className="flex flex-col text-xs text-[#64748B] mt-0.5">
                                   <span className="truncate">{submission.student?.email}</span>
                                   <span>{new Date(submission.submittedAt).toLocaleDateString()} {new Date(submission.submittedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                                 </div>
@@ -2027,17 +2031,17 @@ export default function CourseEditPage() {
                             <div className="text-right sm:text-right w-full sm:w-auto">
                               {isGraded ? (
                                 <div className="space-y-1">
-                                  <div className="text-base sm:text-lg font-bold text-green-600">
+                                  <div className="text-base sm:text-lg font-bold text-[#079455]">
                                     {currentGrade}/{submission.assignment?.maxScore} ({gradePercentage}%)
                                   </div>
-                                  <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded-full inline-block">
+                                  <div className="text-xs text-[#067647] bg-[#DCFAE6] px-2 py-1 rounded-full inline-block">
                                     ✓ Graded
                                   </div>
                                 </div>
                               ) : (
                                 <div className="text-center sm:text-right">
-                                  <div className="text-xs sm:text-sm text-slate-500 mb-1">Pending Review</div>
-                                  <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-full inline-block">
+                                  <div className="text-xs sm:text-sm text-[#64748B] mb-1">Pending Review</div>
+                                  <div className="text-xs text-[#B45309] bg-[#FEF0C7] px-2 py-1 rounded-full inline-block">
                                     ⏳ Not graded
                                   </div>
                                 </div>
@@ -2046,21 +2050,21 @@ export default function CourseEditPage() {
                           </div>
 
                           {/* Submission Summary - Mobile Optimized */}
-                          <div className="mb-2 sm:mb-4 p-2 sm:p-3 bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg border border-slate-200">
+                          <div className="mb-2 sm:mb-4 p-2 sm:p-3 bg-[#F6F8FA] rounded-lg border border-[#DDE3EA]">
                             <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                              <span className="font-medium text-slate-700 text-xs sm:text-sm">Includes:</span>
+                              <span className="font-medium text-[#334155] text-xs sm:text-sm">Includes:</span>
                               {submission.fileUrl && submission.fileUrl.trim() !== '' && (
-                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-[#DBE7FE] text-[#1E40AF] rounded-full text-xs font-medium">
                                   📎 File
                                 </span>
                               )}
                               {submission.content && submission.content.trim() !== '' && (
-                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
+                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-[#FEF0C7] text-[#B45309] rounded-full text-xs font-medium">
                                   ✍️ Text
                                 </span>
                               )}
                               {(!submission.fileUrl || submission.fileUrl.trim() === '') && (!submission.content || submission.content.trim() === '') && (
-                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                                <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 bg-[#E9EEF4] text-[#475569] rounded-full text-xs">
                                   ⚠️ Empty
                                 </span>
                               )}
@@ -2071,12 +2075,12 @@ export default function CourseEditPage() {
                           <div className="space-y-2 sm:space-y-4">
                             {/* File Submission */}
                             {submission.fileUrl && submission.fileUrl.trim() !== '' && (
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-4">
+                              <div className="bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg p-2 sm:p-4">
                                 <div className="flex items-center justify-between mb-2 sm:mb-3">
-                                  <h5 className="font-semibold text-blue-900 text-sm sm:text-lg flex items-center">
+                                  <h5 className="font-semibold text-[#1E3A8A] text-sm sm:text-lg flex items-center">
                                     📎 <span className="hidden sm:inline ml-1">Submitted Document</span><span className="sm:hidden ml-1">File</span>
                                   </h5>
-                                  <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-medium">
+                                  <span className="text-xs bg-[#DBE7FE] text-[#1E40AF] px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-medium">
                                     {(() => {
                                       const extension = submission.fileUrl.split('.').pop()?.toUpperCase();
                                       return extension || 'FILE';
@@ -2084,13 +2088,13 @@ export default function CourseEditPage() {
                                   </span>
                                 </div>
 
-                                <div className="bg-white border border-blue-200 rounded-lg p-2 sm:p-3 mb-2 sm:mb-3">
+                                <div className="bg-white border border-[#C7D7FE] rounded-lg p-2 sm:p-3 mb-2 sm:mb-3">
                                   <div className="flex items-start space-x-2 sm:space-x-3">
-                                    <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                                      <DocumentIcon className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600" />
+                                    <div className="p-1.5 sm:p-2 bg-[#DBE7FE] rounded-lg flex-shrink-0">
+                                      <DocumentIcon className="h-3 w-3 sm:h-5 sm:w-5 text-[#1D4ED8]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-xs sm:text-sm font-medium text-slate-900 break-words leading-tight">
+                                      <p className="text-xs sm:text-sm font-medium text-[#0F172A] break-words leading-tight">
                                         {(() => {
                                           const filename = submission.fileUrl.split('/').pop() || 'Submitted File';
                                           // Remove timestamp prefix if present (format: timestamp-filename)
@@ -2100,7 +2104,7 @@ export default function CourseEditPage() {
                                           return cleanName || filename;
                                         })()}
                                       </p>
-                                      <p className="text-xs text-slate-500 mt-0.5">
+                                      <p className="text-xs text-[#64748B] mt-0.5">
                                         {new Date(submission.submittedAt).toLocaleDateString()}
                                       </p>
                                     </div>
@@ -2116,7 +2120,7 @@ export default function CourseEditPage() {
                                     })()}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-blue-600 text-white text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium text-center flex items-center justify-center space-x-1 sm:space-x-2"
+                                    className="w-full px-3 py-2 sm:px-4 sm:py-3 bg-[#1D4ED8] text-white text-xs sm:text-sm rounded-lg hover:bg-[#1E40AF] transition-colors font-medium text-center flex items-center justify-center space-x-1 sm:space-x-2"
                                   >
                                     <span>👁️</span>
                                     <span className="hidden sm:inline">Open Document</span>
@@ -2128,16 +2132,16 @@ export default function CourseEditPage() {
 
                             {/* Text Submission */}
                             {submission.content && submission.content.trim() !== '' && (
-                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 sm:p-4">
+                              <div className="bg-[#FFFAEB] border border-[#FEDF89] rounded-lg p-2 sm:p-4">
                                 <div className="flex items-center justify-between mb-2 sm:mb-3">
-                                  <h5 className="font-semibold text-amber-900 text-sm sm:text-lg flex items-center">
+                                  <h5 className="font-semibold text-[#7A2E0E] text-sm sm:text-lg flex items-center">
                                     ✍️ <span className="hidden sm:inline ml-1">Student&apos;s Written Response</span><span className="sm:hidden ml-1">Text</span>
                                   </h5>
-                                  <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-medium">
+                                  <span className="text-xs bg-[#FEF0C7] text-[#B45309] px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full font-medium">
                                     {submission.content.length} chars
                                   </span>
                                 </div>
-                                <div className="bg-white p-2 sm:p-4 rounded-lg border border-amber-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap max-h-48 sm:max-h-96 overflow-y-auto">
+                                <div className="bg-white p-2 sm:p-4 rounded-lg border border-[#FEDF89] text-xs sm:text-sm text-[#334155] leading-relaxed whitespace-pre-wrap max-h-48 sm:max-h-96 overflow-y-auto">
                                   {submission.content}
                                 </div>
                               </div>
@@ -2145,20 +2149,20 @@ export default function CourseEditPage() {
 
                             {/* Existing Feedback */}
                             {submission.feedback && (
-                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h5 className="font-medium text-blue-900 mb-2">💬 Current Feedback</h5>
-                                <p className="text-sm text-blue-800 italic">
+                              <div className="bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg p-4">
+                                <h5 className="font-medium text-[#1E3A8A] mb-2">💬 Current Feedback</h5>
+                                <p className="text-sm text-[#1E40AF] italic">
                                   {submission.feedback}
                                 </p>
                               </div>
                             )}
 
                             {/* Grading Section - Mobile Optimized */}
-                            <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-lg p-2 sm:p-4">
-                              <h5 className="font-medium text-slate-900 mb-2 sm:mb-4 text-sm sm:text-base">🎯 <span className="hidden sm:inline">Grade This Submission</span><span className="sm:hidden">Grade</span></h5>
+                            <div className="bg-[#F6F8FA] border border-[#DDE3EA] rounded-lg p-2 sm:p-4">
+                              <h5 className="font-medium text-[#0F172A] mb-2 sm:mb-4 text-sm sm:text-base">🎯 <span className="hidden sm:inline">Grade This Submission</span><span className="sm:hidden">Grade</span></h5>
                               <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-1 md:grid-cols-4 sm:gap-4">
                                 <div className="sm:md:col-span-1">
-                                  <label className="block text-xs font-medium text-slate-700 mb-1">Score</label>
+                                  <label className="block text-xs font-medium text-[#334155] mb-1">Score</label>
                                   <div className="relative">
                                     <Input
                                       type="number"
@@ -2172,17 +2176,18 @@ export default function CourseEditPage() {
                                           s.id === submission.id ? { ...s, grade: newGrade, score: newGrade } : s
                                         ));
                                       }}
-                                      className="text-center font-bold text-base sm:text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                                      className="text-center font-bold text-base sm:text-lg border-[#C7D2DE] focus:border-[#1D4ED8] focus:ring-[#1D4ED8]"
                                     />
-                                    <div className="text-center text-xs text-slate-500 mt-1">
+                                    <div className="text-center text-xs text-[#64748B] mt-1">
                                       out of {submission.assignment?.maxScore}
                                     </div>
                                   </div>
                                 </div>
                                 <div className="sm:md:col-span-2">
-                                  <label className="block text-xs font-medium text-slate-700 mb-1">Feedback <span className="text-slate-500">(Optional)</span></label>
+                                  <label className="block text-xs font-medium text-[#334155] mb-1">Feedback <span className="text-[#64748B]">(Optional)</span></label>
                                   <textarea
                                     placeholder="Provide feedback to help the student improve..."
+                                    maxLength={5000}
                                     value={submission.feedback || ''}
                                     onChange={(e) => {
                                       const newFeedback = e.target.value;
@@ -2191,14 +2196,19 @@ export default function CourseEditPage() {
                                       ));
                                     }}
                                     rows={2}
-                                    className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 text-xs sm:text-sm resize-none"
+                                    className="w-full px-2 py-1.5 sm:px-3 sm:py-2 border border-[#C7D2DE] rounded-lg focus:border-[#1D4ED8] focus:ring-[#1D4ED8] text-xs sm:text-sm resize-none"
                                   />
+                                  <div className="mt-1 flex justify-end">
+                                    <span className="text-xs tabular-nums text-[#64748B]">
+                                      {(submission.feedback || '').length.toLocaleString('en-IN')} / 5,000
+                                    </span>
+                                  </div>
                                 </div>
                                 <div className="sm:md:col-span-1 flex items-end">
                                   <Button
                                     onClick={() => currentGrade !== undefined && handleGradeSubmission(submission.id, currentGrade, submission.feedback)}
                                     disabled={currentGrade === null || currentGrade === undefined}
-                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium transition-colors text-xs sm:text-sm py-2"
+                                    className="w-full bg-[#079455] hover:bg-[#067647] text-white font-medium transition-colors text-xs sm:text-sm py-2"
                                   >
                                     <span className="hidden sm:inline">{isGraded ? '🔄 Update Grade' : '✅ Submit Grade'}</span>
                                     <span className="sm:hidden">{isGraded ? 'Update' : 'Grade'}</span>
@@ -2214,11 +2224,11 @@ export default function CourseEditPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 sm:py-12">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                    <DocumentIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#E9EEF4] rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <DocumentIcon className="w-6 h-6 sm:w-8 sm:h-8 text-[#94A3B8]" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-medium text-slate-900 mb-2">No submissions yet</h3>
-                  <p className="text-sm sm:text-base text-slate-600 px-4">Students haven&apos;t submitted any work for this assignment yet.</p>
+                  <h3 className="text-base sm:text-lg font-medium text-[#0F172A] mb-2">No submissions yet</h3>
+                  <p className="text-sm sm:text-base text-[#475569] px-4">Students haven&apos;t submitted any work for this assignment yet.</p>
                 </div>
               )}
             </CardContent>

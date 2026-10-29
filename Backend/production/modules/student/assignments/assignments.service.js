@@ -19,7 +19,12 @@ const listCourseAssignmentsService = async (studentId, courseId) => {
     }
     const assignments = await prisma_1.default.assignment.findMany({
         where: { courseId },
-        include: {
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            dueDate: true,
+            maxScore: true,
             submissions: {
                 where: { studentId },
                 select: {
@@ -39,8 +44,14 @@ exports.listCourseAssignmentsService = listCourseAssignmentsService;
 const submitAssignmentService = async (studentId, assignmentId, input) => {
     const assignment = await prisma_1.default.assignment.findUnique({
         where: { id: assignmentId },
-        include: {
-            course: { include: { enrollments: { where: { studentId } } } },
+        // Used only to authorise and to check the deadline, so pull just that.
+        select: {
+            id: true,
+            dueDate: true,
+            courseId: true,
+            course: {
+                select: { enrollments: { where: { studentId }, select: { id: true } } },
+            },
         },
     });
     if (!assignment) {
@@ -66,7 +77,15 @@ const submitAssignmentService = async (studentId, assignmentId, input) => {
             studentId,
             status: "SUBMITTED",
         },
-        include: {
+        select: {
+            id: true,
+            content: true,
+            fileUrl: true,
+            status: true,
+            score: true,
+            feedback: true,
+            submittedAt: true,
+            gradedAt: true,
             assignment: { select: { title: true, maxScore: true, dueDate: true } },
         },
     });
@@ -116,7 +135,15 @@ exports.submitAssignmentService = submitAssignmentService;
 const getSubmissionService = async (studentId, assignmentId) => {
     const submission = await prisma_1.default.assignmentSubmission.findUnique({
         where: { assignmentId_studentId: { assignmentId, studentId } },
-        include: {
+        select: {
+            id: true,
+            content: true,
+            fileUrl: true,
+            status: true,
+            score: true,
+            feedback: true,
+            submittedAt: true,
+            gradedAt: true,
             assignment: { select: { title: true, maxScore: true, dueDate: true } },
         },
     });

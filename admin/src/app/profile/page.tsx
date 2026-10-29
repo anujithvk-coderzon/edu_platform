@@ -177,9 +177,9 @@ export default function ProfilePage() {
     for (let i = 1; i <= 5; i++) {
       stars.push(
         i <= Math.floor(rating) ? (
-          <StarIconSolid key={i} className={`${size} text-yellow-400`} />
+          <StarIconSolid key={i} className={`${size} text-[#FDB022]`} />
         ) : (
-          <StarIcon key={i} className={`${size} text-gray-300`} />
+          <StarIcon key={i} className={`${size} text-[#C7D2DE]`} />
         )
       );
     }
@@ -188,19 +188,19 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F8FA] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-slate-600 font-medium">Loading profile...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1D4ED8] border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-[#475569] font-medium">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       {/* Hero Header with Gradient */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 pt-8 pb-44 sm:pb-52">
+      <div className="bg-[#1D4ED8] pt-8 pb-44 sm:pb-52">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-2 ring-white/30">
@@ -221,11 +221,11 @@ export default function ProfilePage() {
           {/* Left Column - Profile Info */}
           <div className="lg:col-span-1 space-y-6">
             {/* Profile Card */}
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-200">
+            <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] overflow-hidden">
+              <div className="p-6 border-b border-[#DDE3EA]">
                 <div className="text-center">
                   <div className="relative h-24 w-24 mx-auto mb-4">
-                    <div className="h-full w-full rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-lg">
+                    <div className="h-full w-full rounded-full bg-[#E9EEF4] border-2 border-[#DDE3EA] flex items-center justify-center overflow-hidden shadow-lg">
                       {avatarPreview ? (
                         <img
                           src={avatarPreview}
@@ -241,12 +241,12 @@ export default function ProfilePage() {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <UserIcon className="h-12 w-12 text-slate-400" />
+                        <UserIcon className="h-12 w-12 text-[#94A3B8]" />
                       )}
                     </div>
                     <button
                       onClick={handleAvatarClick}
-                      className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2.5 border-2 border-white shadow-lg transition-colors"
+                      className="absolute bottom-0 right-0 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white rounded-full p-2.5 border-2 border-white shadow-lg transition-colors"
                       type="button"
                     >
                       <CameraIcon className="h-4 w-4" />
@@ -262,13 +262,13 @@ export default function ProfilePage() {
 
                   {/* Avatar Upload Actions */}
                   {selectedAvatarFile && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
-                      <p className="text-xs text-slate-700 font-semibold truncate">Selected: {selectedAvatarFile.name}</p>
+                    <div className="mb-4 p-3 bg-[#EFF4FF] border border-[#C7D7FE] rounded-xl space-y-2">
+                      <p className="text-xs text-[#334155] font-semibold truncate">Selected: {selectedAvatarFile.name}</p>
                       <div className="flex justify-center gap-2">
                         <Button
                           onClick={handleAvatarUpload}
                           disabled={avatarUploading}
-                          className="text-xs px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md"
+                          className="text-xs px-4 py-2 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white rounded-lg shadow-md"
                         >
                           {avatarUploading ? (
                             <div className="flex items-center gap-1.5">
@@ -282,26 +282,26 @@ export default function ProfilePage() {
                         </Button>
                         <Button
                           onClick={handleAvatarCancel}
-                          className="text-xs px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg"
+                          className="text-xs px-4 py-2 bg-white border border-[#C7D2DE] text-[#334155] hover:bg-[#F6F8FA] rounded-lg"
                         >
                           Cancel
                         </Button>
                       </div>
                     </div>
                   )}
-                  <h2 className="text-xl font-bold text-slate-900 mb-2">{user?.firstName} {user?.lastName}</h2>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-600 shadow-md" style={{ color: 'white' }}>
+                  <h2 className="text-xl font-bold text-[#0F172A] mb-2">{user?.firstName} {user?.lastName}</h2>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#1D4ED8] shadow-md" style={{ color: 'white' }}>
                     {user?.role}
                   </span>
 
                   {stats.averageRating > 0 && (
                     <div className="flex items-center justify-center mt-4">
-                      <div className="flex items-center gap-1 bg-slate-50 px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                      <div className="flex items-center gap-1 bg-[#F6F8FA] px-4 py-2 rounded-lg border border-[#DDE3EA] shadow-sm">
                         {renderStars(stats.averageRating, 'w-4 h-4')}
-                        <span className="ml-1.5 text-sm font-bold text-slate-900">
+                        <span className="ml-1.5 text-sm font-bold text-[#0F172A]">
                           {stats.averageRating.toFixed(1)}
                         </span>
-                        <span className="text-xs text-slate-600">
+                        <span className="text-xs text-[#475569]">
                           ({stats.totalReviews})
                         </span>
                       </div>
@@ -309,28 +309,28 @@ export default function ProfilePage() {
                   )}
 
                   {user?.bio && (
-                    <p className="text-slate-700 text-sm mt-4 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-200">{user.bio}</p>
+                    <p className="text-[#334155] text-sm mt-4 leading-relaxed bg-[#F6F8FA] p-3 rounded-lg border border-[#DDE3EA]">{user.bio}</p>
                   )}
                 </div>
               </div>
 
               <div className="p-6 space-y-3">
-                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200">
-                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                <div className="flex items-start gap-3 p-3 bg-[#F6F8FA] rounded-xl hover:bg-[#E9EEF4] transition-colors border border-[#DDE3EA]">
+                  <div className="w-10 h-10 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                     <EnvelopeIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-slate-500 mb-0.5">Email</p>
-                    <p className="text-sm font-medium text-slate-900 break-all">{user?.email}</p>
+                    <p className="text-xs font-semibold text-[#64748B] mb-0.5">Email</p>
+                    <p className="text-sm font-medium text-[#0F172A] break-all">{user?.email}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200">
-                  <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                <div className="flex items-start gap-3 p-3 bg-[#F6F8FA] rounded-xl hover:bg-[#E9EEF4] transition-colors border border-[#DDE3EA]">
+                  <div className="w-10 h-10 bg-[#079455] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                     <CalendarIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-semibold text-slate-500 mb-0.5">Joined</p>
-                    <p className="text-sm font-medium text-slate-900">{new Date(stats.joinDate).toLocaleDateString('en-US', {
+                    <p className="text-xs font-semibold text-[#64748B] mb-0.5">Joined</p>
+                    <p className="text-sm font-medium text-[#0F172A]">{new Date(stats.joinDate).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
@@ -338,13 +338,13 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 {user?.timezone && (
-                  <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200">
-                    <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                  <div className="flex items-start gap-3 p-3 bg-[#F6F8FA] rounded-xl hover:bg-[#E9EEF4] transition-colors border border-[#DDE3EA]">
+                    <div className="w-10 h-10 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                       <GlobeAltIcon className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-semibold text-slate-500 mb-0.5">Timezone</p>
-                      <p className="text-sm font-medium text-slate-900">{user.timezone}</p>
+                      <p className="text-xs font-semibold text-[#64748B] mb-0.5">Timezone</p>
+                      <p className="text-sm font-medium text-[#0F172A]">{user.timezone}</p>
                     </div>
                   </div>
                 )}
@@ -355,18 +355,18 @@ export default function ProfilePage() {
           {/* Right Column - Courses */}
           <div className="lg:col-span-2">
             {/* Courses */}
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200">
+            <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] overflow-hidden">
+              <div className="px-6 py-4 border-b border-[#DDE3EA]">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                      <AcademicCapIcon className="w-5 h-5 text-slate-600" />
+                    <h3 className="text-base font-semibold text-[#0F172A] flex items-center gap-2">
+                      <AcademicCapIcon className="w-5 h-5 text-[#475569]" />
                       My Courses ({stats.totalCourses})
                     </h3>
-                    <p className="text-sm text-slate-600 mt-1">Courses you've created and are teaching</p>
+                    <p className="text-sm text-[#475569] mt-1">Courses you've created and are teaching</p>
                   </div>
                   <Link href="/my-courses">
-                    <Button className="w-full sm:w-auto text-xs px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md font-semibold">
+                    <Button className="w-full sm:w-auto text-xs px-4 py-2 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white rounded-lg shadow-md font-semibold">
                       View More Courses
                     </Button>
                   </Link>
@@ -376,28 +376,28 @@ export default function ProfilePage() {
                 {courses.length > 0 ? (
                   <div className="space-y-3">
                     {courses.slice(0, 5).map((course) => (
-                      <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200">
+                      <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-[#F6F8FA] hover:bg-[#E9EEF4] rounded-xl transition-colors border border-[#DDE3EA]">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <div className="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                          <div className="w-11 h-11 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                             <BookOpenIcon className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-slate-900 text-sm mb-1.5 line-clamp-1">
+                            <h4 className="font-bold text-[#0F172A] text-sm mb-1.5 line-clamp-1">
                               {course.title}
                             </h4>
                             <div className="flex flex-wrap items-center gap-2 text-xs">
                               <div className="flex items-center gap-1.5">
-                                <UserGroupIcon className="w-3.5 h-3.5 text-slate-500" />
-                                <span className="font-medium text-slate-700">{course._count?.enrollments || 0}</span>
+                                <UserGroupIcon className="w-3.5 h-3.5 text-[#64748B]" />
+                                <span className="font-medium text-[#334155]">{course._count?.enrollments || 0}</span>
                               </div>
-                              <span className="text-slate-400">•</span>
-                              <span className="font-semibold text-green-600">{formatPrice(course.price)}</span>
+                              <span className="text-[#94A3B8]">•</span>
+                              <span className="font-semibold text-[#079455]">{formatPrice(course.price)}</span>
                               {course.averageRating && (
                                 <>
-                                  <span className="text-slate-400">•</span>
+                                  <span className="text-[#94A3B8]">•</span>
                                   <div className="flex items-center gap-1">
-                                    <StarIcon className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                                    <span className="font-medium text-slate-700">{course.averageRating.toFixed(1)}</span>
+                                    <StarIcon className="w-3.5 h-3.5 text-[#F79009] fill-[#F79009]" />
+                                    <span className="font-medium text-[#334155]">{course.averageRating.toFixed(1)}</span>
                                   </div>
                                 </>
                               )}
@@ -405,10 +405,10 @@ export default function ProfilePage() {
                             <div className="mt-2">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${
                                 course.status === 'PUBLISHED'
-                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  ? 'bg-[#ECFDF3] text-[#067647] border-[#ABEFC6]'
                                   : course.status === 'DRAFT'
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                  : 'bg-slate-50 text-slate-700 border-slate-200'
+                                  ? 'bg-[#FFFAEB] text-[#B45309] border-[#FEDF89]'
+                                  : 'bg-[#F6F8FA] text-[#334155] border-[#DDE3EA]'
                               }`}>
                                 {course.status.charAt(0) + course.status.slice(1).toLowerCase()}
                               </span>
@@ -416,7 +416,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <Link href={`/courses/${course.id}/edit`} className="self-end sm:self-center">
-                          <Button className="w-full sm:w-auto text-xs px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg flex items-center gap-1.5 shadow-sm font-semibold">
+                          <Button className="w-full sm:w-auto text-xs px-4 py-2 bg-[#334155] hover:bg-[#1E293B] text-white rounded-lg flex items-center gap-1.5 shadow-sm font-semibold">
                             <PencilIcon className="w-3.5 h-3.5" />
                             Edit
                           </Button>
@@ -424,9 +424,9 @@ export default function ProfilePage() {
                       </div>
                     ))}
                     {courses.length > 5 && (
-                      <div className="text-center pt-4 border-t border-slate-200 mt-2">
+                      <div className="text-center pt-4 border-t border-[#DDE3EA] mt-2">
                         <Link href="/my-courses">
-                          <Button className="w-full sm:w-auto text-xs px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md">
+                          <Button className="w-full sm:w-auto text-xs px-6 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white rounded-lg font-semibold shadow-md">
                             View More Courses
                           </Button>
                         </Link>
@@ -435,13 +435,13 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="text-center py-16">
-                    <div className="w-20 h-20 bg-slate-100 border-2 border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-sm">
-                      <BookOpenIcon className="w-10 h-10 text-slate-400" />
+                    <div className="w-20 h-20 bg-[#E9EEF4] border-2 border-[#DDE3EA] rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-sm">
+                      <BookOpenIcon className="w-10 h-10 text-[#94A3B8]" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">No courses yet</h3>
-                    <p className="text-slate-600 mb-6 text-sm max-w-md mx-auto">Start creating courses to build your teaching profile and reach students worldwide!</p>
+                    <h3 className="text-xl font-bold text-[#0F172A] mb-2">No courses yet</h3>
+                    <p className="text-[#475569] mb-6 text-sm max-w-md mx-auto">Start creating courses to build your teaching profile and reach students worldwide!</p>
                     <Link href="/create-course">
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg">
+                      <Button className="bg-[#1D4ED8] hover:bg-[#1E40AF] text-white px-8 py-3 rounded-lg font-semibold shadow-lg">
                         Create Your First Course
                       </Button>
                     </Link>

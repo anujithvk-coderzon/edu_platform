@@ -122,23 +122,23 @@ export default function TutorRegistrationsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading tutor registration requests...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1D4ED8] mx-auto"></div>
+          <p className="mt-4 text-[#475569]">Loading tutor registration requests...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
+    <div className="min-h-screen bg-[#F6F8FA] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Pending Tutor Registration Requests</h1>
-          <p className="mt-2 text-slate-600">
+          <h1 className="text-3xl font-bold text-[#0F172A]">Pending Tutor Registration Requests</h1>
+          <p className="mt-2 text-[#475569]">
             Review and approve or reject tutor registration requests
           </p>
           {requests.length > 0 && (
-            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">
+            <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full bg-[#FEF0C7] text-[#93370D] text-sm font-medium">
               <ClockIcon className="w-4 h-4 mr-2" />
               {requests.length} pending {requests.length === 1 ? 'request' : 'requests'}
             </div>
@@ -148,9 +148,9 @@ export default function TutorRegistrationsPage() {
         {/* Requests List */}
         {requests.length === 0 ? (
           <Card className="p-12 text-center">
-            <UserIcon className="mx-auto h-12 w-12 text-slate-400" />
-            <h3 className="mt-2 text-sm font-medium text-slate-900">No pending requests</h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <UserIcon className="mx-auto h-12 w-12 text-[#94A3B8]" />
+            <h3 className="mt-2 text-sm font-medium text-[#0F172A]">No pending requests</h3>
+            <p className="mt-1 text-sm text-[#64748B]">
               There are no pending tutor registration requests at this time.
             </p>
           </Card>
@@ -163,21 +163,21 @@ export default function TutorRegistrationsPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center space-x-3">
-                          <h3 className="text-lg font-semibold text-slate-900">
+                          <h3 className="text-lg font-semibold text-[#0F172A]">
                             {request.firstName} {request.lastName}
                           </h3>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FEF0C7] text-[#93370D]">
                             <ClockIcon className="w-4 h-4 mr-1" />
                             PENDING
                           </span>
                         </div>
-                        <div className="mt-1 flex items-center text-sm text-slate-500">
+                        <div className="mt-1 flex items-center text-sm text-[#64748B]">
                           <EnvelopeIcon className="h-4 w-4 mr-1" />
                           {request.email}
                         </div>
                       </div>
                     </div>
-                    <div className="mt-3 text-xs text-slate-500">
+                    <div className="mt-3 text-xs text-[#64748B]">
                       <p>Submitted: {formatDate(request.createdAt)}</p>
                     </div>
                   </div>
@@ -186,7 +186,7 @@ export default function TutorRegistrationsPage() {
                     <Button
                       onClick={() => handleAccept(request.id)}
                       disabled={processing === request.id}
-                      className="bg-green-600 hover:bg-green-700 text-white inline-flex items-center"
+                      className="bg-[#079455] hover:bg-[#067647] text-white inline-flex items-center"
                     >
                       <CheckCircleIcon className="h-4 w-4 mr-2" />
                       {processing === request.id ? 'Accepting...' : 'Accept'}
@@ -195,7 +195,7 @@ export default function TutorRegistrationsPage() {
                       onClick={() => handleReject(request.id)}
                       disabled={processing === request.id}
                       variant="outline"
-                      className="border-red-300 text-red-600 hover:bg-red-50 inline-flex items-center"
+                      className="border-[#FDA29B] text-[#B42318] hover:bg-[#FEF3F2] inline-flex items-center"
                     >
                       <XCircleIcon className="h-4 w-4 mr-2" />
                       {processing === request.id ? 'Rejecting...' : 'Reject'}

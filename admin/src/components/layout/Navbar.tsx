@@ -171,7 +171,7 @@ const Navbar = () => {
   // If user is not authenticated, show login button
   if (!user && !loading) {
     return (
-      <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+      <nav className="bg-white shadow-sm border-b border-[#DDE3EA] sticky top-0 z-50 backdrop-blur-sm bg-white/95">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-18 md:h-20 lg:h-24">
             <div className="flex items-center flex-shrink-0">
@@ -189,7 +189,7 @@ const Navbar = () => {
             </div>
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <Link href="/login">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4">
+                <Button size="sm" className="bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs sm:text-sm px-3 sm:px-4">
                   <span className="hidden sm:inline">Organization </span>Login
                 </Button>
               </Link>
@@ -201,7 +201,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50 backdrop-blur-sm bg-white/95">
+    <nav className="bg-white shadow-sm border-b border-[#DDE3EA] sticky top-0 z-50 backdrop-blur-sm bg-white/95">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-18 md:h-20 lg:h-24">
           {/* Logo and Main Nav */}
@@ -230,13 +230,13 @@ const Navbar = () => {
                     className={cn(
                       'inline-flex items-center px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg text-sm lg:text-base font-medium transition-all duration-200',
                       isActive
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                        ? 'bg-[#1D4ED8] text-white shadow-sm'
+                        : 'text-[#475569] hover:text-[#1D4ED8] hover:bg-[#F6F8FA]'
                     )}
                   >
                     <item.icon className={cn(
                       "w-4 h-4 lg:w-5 lg:h-5 mr-2 flex-shrink-0",
-                      isActive ? "text-white" : "text-slate-500"
+                      isActive ? "text-white" : "text-[#64748B]"
                     )} />
                     <span className="whitespace-nowrap">{item.name}</span>
                   </Link>
@@ -251,12 +251,12 @@ const Navbar = () => {
             {user?.role?.toLowerCase() !== 'tutor' && (
               <Link
                 href="/registrations"
-                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-purple-600 hover:bg-slate-50 rounded-lg transition-all duration-200"
+                className="relative inline-flex items-center justify-center p-2 text-[#475569] hover:text-[#1D4ED8] hover:bg-[#F6F8FA] rounded-lg transition-all duration-200"
                 aria-label={`Tutor registration requests${pendingRequestsCount > 0 ? ` (${pendingRequestsCount} pending)` : ''}`}
               >
                 <UserPlusIcon className="h-5 w-5" />
                 {pendingRequestsCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-gradient-to-br from-purple-500 to-purple-600 rounded-full border-2 border-white shadow-sm">
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-[#1D4ED8] rounded-full border-2 border-white shadow-sm">
                     {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
                   </span>
                 )}
@@ -267,12 +267,12 @@ const Navbar = () => {
             {user?.role?.toLowerCase() === 'admin' && (
               <Link
                 href="/pending-courses"
-                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-green-600 hover:bg-slate-50 rounded-lg transition-all duration-200"
+                className="relative inline-flex items-center justify-center p-2 text-[#475569] hover:text-[#079455] hover:bg-[#F6F8FA] rounded-lg transition-all duration-200"
                 aria-label={`Pending course reviews${pendingCoursesCount > 0 ? ` (${pendingCoursesCount} pending)` : ''}`}
               >
                 <BookOpenIcon className="h-5 w-5" />
                 {pendingCoursesCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-gradient-to-br from-green-500 to-green-600 rounded-full border-2 border-white shadow-sm">
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 text-[10px] font-bold text-white bg-[#079455] rounded-full border-2 border-white shadow-sm">
                     {pendingCoursesCount > 9 ? '9+' : pendingCoursesCount}
                   </span>
                 )}
@@ -283,11 +283,11 @@ const Navbar = () => {
             <div className="relative" ref={userMenuRef}>
               <div>
                 <button
-                  className="flex items-center text-sm rounded-lg p-1.5 md:p-2 hover:bg-slate-50 transition-all duration-200"
+                  className="flex items-center text-sm rounded-lg p-1.5 md:p-2 hover:bg-[#F6F8FA] transition-all duration-200"
                   onClick={() => setState(prev => ({ ...prev, userMenuOpen: !prev.userMenuOpen }))}
                 >
                   <span className="sr-only">Open user menu</span>
-                  <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center ring-2 ring-transparent hover:ring-blue-100 transition-all">
+                  <div className="h-8 w-8 rounded-lg bg-[#E9EEF4] flex items-center justify-center ring-2 ring-transparent hover:ring-[#DBE7FE] transition-all">
                     {user?.avatar ? (
                       <img
                         className="h-8 w-8 rounded-lg object-cover"
@@ -296,50 +296,50 @@ const Navbar = () => {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <UserIcon className="h-4 w-4 text-slate-600" />
+                      <UserIcon className="h-4 w-4 text-[#475569]" />
                     )}
                   </div>
                   <div className="ml-2 md:ml-3 text-left hidden lg:block">
-                    <p className="text-sm font-medium text-slate-900 leading-tight">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-slate-500 font-medium">{user?.email}</p>
+                    <p className="text-sm font-medium text-[#0F172A] leading-tight">{user?.firstName} {user?.lastName}</p>
+                    <p className="text-xs text-[#64748B] font-medium">{user?.email}</p>
                   </div>
                   <ChevronDownIcon className={cn(
-                    "ml-1.5 md:ml-2 h-4 w-4 text-slate-500 transition-transform duration-200",
+                    "ml-1.5 md:ml-2 h-4 w-4 text-[#64748B] transition-transform duration-200",
                     userMenuOpen && "rotate-180"
                   )} />
                 </button>
               </div>
 
               {userMenuOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-lg py-1.5 bg-white ring-1 ring-black/5 z-50 border border-slate-200 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="px-3 py-2.5 border-b border-slate-200">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
+                <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-xl shadow-lg py-1.5 bg-white ring-1 ring-black/5 z-50 border border-[#DDE3EA] animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-3 py-2.5 border-b border-[#DDE3EA]">
+                    <p className="text-sm font-semibold text-[#0F172A] truncate">{user?.firstName} {user?.lastName}</p>
+                    <p className="text-xs text-[#64748B] truncate mt-0.5">{user?.email}</p>
                   </div>
                   <Link
                     href="/profile"
-                    className="flex items-center px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                    className="flex items-center px-3 py-2.5 text-sm text-[#334155] hover:bg-[#F6F8FA] transition-colors"
                     onClick={() => setState(prev => ({ ...prev, userMenuOpen: false }))}
                   >
-                    <UserIcon className="h-4 w-4 mr-2.5 text-slate-400" />
+                    <UserIcon className="h-4 w-4 mr-2.5 text-[#94A3B8]" />
                     Your Profile
                   </Link>
                   {user?.role?.toLowerCase() !== 'tutor' && (
                     <>
                       <Link
                         href="/create-user"
-                        className="flex items-center px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="flex items-center px-3 py-2.5 text-sm text-[#334155] hover:bg-[#F6F8FA] transition-colors"
                         onClick={() => setState(prev => ({ ...prev, userMenuOpen: false }))}
                       >
-                        <UserPlusIcon className="h-4 w-4 mr-2.5 text-slate-400" />
+                        <UserPlusIcon className="h-4 w-4 mr-2.5 text-[#94A3B8]" />
                         Create User
                       </Link>
                       <Link
                         href="/manage-users"
-                        className="flex items-center px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="flex items-center px-3 py-2.5 text-sm text-[#334155] hover:bg-[#F6F8FA] transition-colors"
                         onClick={() => setState(prev => ({ ...prev, userMenuOpen: false }))}
                       >
-                        <Cog6ToothIcon className="h-4 w-4 mr-2.5 text-slate-400" />
+                        <Cog6ToothIcon className="h-4 w-4 mr-2.5 text-[#94A3B8]" />
                         Manage Users
                       </Link>
                     </>
@@ -349,9 +349,9 @@ const Navbar = () => {
                       setState(prev => ({ ...prev, userMenuOpen: false }));
                       handleLogout();
                     }}
-                    className="flex items-center w-full text-left px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors mt-1 border-t border-slate-100"
+                    className="flex items-center w-full text-left px-3 py-2.5 text-sm text-[#B42318] hover:bg-[#FEF3F2] transition-colors mt-1 border-t border-[#E9EEF4]"
                   >
-                    <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2.5 text-red-400" />
+                    <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2.5 text-[#F97066]" />
                     Sign out
                   </button>
                 </div>
@@ -365,12 +365,12 @@ const Navbar = () => {
             {user?.role?.toLowerCase() !== 'tutor' && (
               <Link
                 href="/registrations"
-                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-purple-600 hover:bg-slate-50 rounded-lg transition-all duration-200"
+                className="relative inline-flex items-center justify-center p-2 text-[#475569] hover:text-[#1D4ED8] hover:bg-[#F6F8FA] rounded-lg transition-all duration-200"
                 aria-label={`Tutor registration requests${pendingRequestsCount > 0 ? ` (${pendingRequestsCount} pending)` : ''}`}
               >
                 <UserPlusIcon className="h-5 w-5" />
                 {pendingRequestsCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-4 w-4 text-[9px] font-bold text-white bg-gradient-to-br from-purple-500 to-purple-600 rounded-full border-2 border-white shadow-sm">
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-4 w-4 text-[9px] font-bold text-white bg-[#1D4ED8] rounded-full border-2 border-white shadow-sm">
                     {pendingRequestsCount > 9 ? '9+' : pendingRequestsCount}
                   </span>
                 )}
@@ -381,12 +381,12 @@ const Navbar = () => {
             {user?.role?.toLowerCase() === 'admin' && (
               <Link
                 href="/pending-courses"
-                className="relative inline-flex items-center justify-center p-2 text-slate-600 hover:text-green-600 hover:bg-slate-50 rounded-lg transition-all duration-200"
+                className="relative inline-flex items-center justify-center p-2 text-[#475569] hover:text-[#079455] hover:bg-[#F6F8FA] rounded-lg transition-all duration-200"
                 aria-label={`Pending course reviews${pendingCoursesCount > 0 ? ` (${pendingCoursesCount} pending)` : ''}`}
               >
                 <BookOpenIcon className="h-5 w-5" />
                 {pendingCoursesCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-4 w-4 text-[9px] font-bold text-white bg-gradient-to-br from-green-500 to-green-600 rounded-full border-2 border-white shadow-sm">
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center h-4 w-4 text-[9px] font-bold text-white bg-[#079455] rounded-full border-2 border-white shadow-sm">
                     {pendingCoursesCount > 9 ? '9+' : pendingCoursesCount}
                   </span>
                 )}
@@ -394,24 +394,24 @@ const Navbar = () => {
             )}
 
             <button
-              className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border border-[#DDE3EA] hover:bg-[#F6F8FA] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:ring-offset-2"
               onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: !prev.mobileMenuOpen }))}
               aria-label="Toggle menu"
             >
               <span className="sr-only">Open main menu</span>
               <div className="w-5 h-4 relative flex flex-col justify-between">
                 <span
-                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`w-full h-0.5 bg-[#334155] rounded-full transition-all duration-300 ease-in-out ${
                     mobileMenuOpen ? 'rotate-45 translate-y-[7px]' : ''
                   }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`w-full h-0.5 bg-[#334155] rounded-full transition-all duration-300 ease-in-out ${
                     mobileMenuOpen ? 'opacity-0' : ''
                   }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-slate-700 rounded-full transition-all duration-300 ease-in-out ${
+                  className={`w-full h-0.5 bg-[#334155] rounded-full transition-all duration-300 ease-in-out ${
                     mobileMenuOpen ? '-rotate-45 -translate-y-[7px]' : ''
                   }`}
                 />
@@ -423,14 +423,14 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-slate-50 border-t border-slate-200 shadow-lg">
+        <div className="md:hidden bg-[#F6F8FA] border-t border-[#DDE3EA] shadow-lg">
           <div className="max-h-[calc(100vh-5rem)] overflow-y-auto">
             {/* User Profile Card */}
             {user && (
               <div className="p-4 bg-white">
-                <div className="flex items-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                <div className="flex items-center p-3 bg-[#EFF4FF] rounded-xl border border-[#DBE7FE]">
                   <div className="flex-shrink-0">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center ring-2 ring-white shadow-md">
+                    <div className="h-12 w-12 rounded-xl bg-[#1D4ED8] flex items-center justify-center ring-2 ring-white shadow-md">
                       {user.avatar ? (
                         <img
                           className="h-12 w-12 rounded-xl object-cover"
@@ -444,8 +444,8 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="ml-3 min-w-0 flex-1">
-                    <div className="text-sm font-bold text-slate-900 truncate">{user.firstName} {user.lastName}</div>
-                    <div className="text-xs text-slate-600 truncate mt-0.5">{user.email}</div>
+                    <div className="text-sm font-bold text-[#0F172A] truncate">{user.firstName} {user.lastName}</div>
+                    <div className="text-xs text-[#475569] truncate mt-0.5">{user.email}</div>
                   </div>
                 </div>
               </div>
@@ -453,7 +453,7 @@ const Navbar = () => {
 
             {/* Navigation Section */}
             <div className="px-4 pt-4 pb-2">
-              <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                 Navigation
               </h3>
               <div className="space-y-1">
@@ -466,14 +466,14 @@ const Navbar = () => {
                       className={cn(
                         'flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all',
                         isActive
-                          ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                          : 'text-slate-700 bg-white hover:bg-slate-50 active:scale-[0.98]'
+                          ? 'bg-[#1D4ED8] text-white shadow-md shadow-[#1D4ED8]/20'
+                          : 'text-[#334155] bg-white hover:bg-[#F6F8FA] active:scale-[0.98]'
                       )}
                       onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
                     >
                       <item.icon className={cn(
                         "w-5 h-5 mr-3 flex-shrink-0",
-                        isActive ? "text-white" : "text-slate-400"
+                        isActive ? "text-white" : "text-[#94A3B8]"
                       )} />
                       <span>{item.name}</span>
                       {isActive && (
@@ -490,18 +490,18 @@ const Navbar = () => {
             {/* Account Section */}
             {user && (
               <div className="px-4 pt-3 pb-4">
-                <h3 className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <h3 className="px-3 mb-2 text-xs font-semibold text-[#64748B] uppercase tracking-wider">
                   Account
                 </h3>
                 <div className="space-y-1">
                   <Link
                     href="/profile"
-                    className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#334155] bg-white hover:bg-[#F6F8FA] transition-all active:scale-[0.98]"
                     onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
                   >
-                    <UserIcon className="h-5 w-5 mr-3 text-slate-400 flex-shrink-0" />
+                    <UserIcon className="h-5 w-5 mr-3 text-[#94A3B8] flex-shrink-0" />
                     <span>Your Profile</span>
-                    <svg className="ml-auto w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="ml-auto w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
@@ -510,24 +510,24 @@ const Navbar = () => {
                     <>
                       <Link
                         href="/create-user"
-                        className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-[0.98]"
+                        className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#334155] bg-white hover:bg-[#F6F8FA] transition-all active:scale-[0.98]"
                         onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
                       >
-                        <UserPlusIcon className="h-5 w-5 mr-3 text-slate-400 flex-shrink-0" />
+                        <UserPlusIcon className="h-5 w-5 mr-3 text-[#94A3B8] flex-shrink-0" />
                         <span>Create User</span>
-                        <svg className="ml-auto w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="ml-auto w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </Link>
 
                       <Link
                         href="/manage-users"
-                        className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-[0.98]"
+                        className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-[#334155] bg-white hover:bg-[#F6F8FA] transition-all active:scale-[0.98]"
                         onClick={() => setState(prev => ({ ...prev, mobileMenuOpen: false }))}
                       >
-                        <Cog6ToothIcon className="h-5 w-5 mr-3 text-slate-400 flex-shrink-0" />
+                        <Cog6ToothIcon className="h-5 w-5 mr-3 text-[#94A3B8] flex-shrink-0" />
                         <span>Manage Users</span>
-                        <svg className="ml-auto w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="ml-auto w-4 h-4 text-[#94A3B8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                         </svg>
                       </Link>
@@ -539,11 +539,11 @@ const Navbar = () => {
                       setState(prev => ({ ...prev, mobileMenuOpen: false }));
                       handleLogout();
                     }}
-                    className="flex items-center w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-red-600 bg-white hover:bg-red-50 transition-all active:scale-[0.98]"
+                    className="flex items-center w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-[#B42318] bg-white hover:bg-[#FEF3F2] transition-all active:scale-[0.98]"
                   >
-                    <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3 text-red-500 flex-shrink-0" />
+                    <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3 text-[#F04438] flex-shrink-0" />
                     <span>Sign Out</span>
-                    <svg className="ml-auto w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="ml-auto w-4 h-4 text-[#F97066]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>

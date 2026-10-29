@@ -88,9 +88,9 @@ export declare const getEnrollmentProgressService: (studentId: string, courseId:
         type: import("../../../generated/prisma/enums").MaterialType;
         description: string;
         title: string;
+        orderIndex: number;
         fileUrl: string;
         content: string;
-        orderIndex: number;
         moduleId: string;
         module: {
             id: string;

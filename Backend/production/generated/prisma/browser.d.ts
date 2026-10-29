@@ -62,3 +62,8 @@ export type TutorRequest = Prisma.TutorRequestModel;
  *
  */
 export type Review = Prisma.ReviewModel;
+/**
+ * Model Payment
+ *
+ */
+export type Payment = Prisma.PaymentModel;

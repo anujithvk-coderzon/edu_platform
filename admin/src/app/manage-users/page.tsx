@@ -140,19 +140,19 @@ export default function ManageUsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F6F8FA] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-slate-600 font-medium">Loading tutors...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1D4ED8] border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-[#475569] font-medium">Loading tutors...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       {/* Hero Header with Gradient */}
-      <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 pt-8 pb-44 sm:pb-52">
+      <div className="bg-[#1D4ED8] pt-8 pb-44 sm:pb-52">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-2 ring-white/30">
@@ -160,7 +160,7 @@ export default function ManageUsersPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Manage Users</h1>
-              <p className="text-blue-100 text-sm sm:text-base mt-1">Control tutor accounts and permissions</p>
+              <p className="text-[#DBE7FE] text-sm sm:text-base mt-1">Control tutor accounts and permissions</p>
             </div>
           </div>
         </div>
@@ -171,49 +171,49 @@ export default function ManageUsersPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 sm:p-6 hover:shadow-2xl transition-all">
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] p-4 sm:p-6 hover:shadow-2xl transition-all">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-lg">
                 <UserGroupIcon className="h-5 w-5 text-white" />
               </div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-600">Total Tutors</p>
+              <p className="text-xs sm:text-sm font-semibold text-[#475569]">Total Tutors</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-blue-600 to-blue-700 bg-clip-text text-transparent">{stats.total}</p>
+            <p className="text-2xl sm:text-3xl font-bold bg-[#1D4ED8] bg-clip-text text-transparent">{stats.total}</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 sm:p-6 hover:shadow-2xl transition-all">
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] p-4 sm:p-6 hover:shadow-2xl transition-all">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-[#079455] rounded-xl flex items-center justify-center shadow-lg">
                 <CheckCircleIcon className="h-5 w-5 text-white" />
               </div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-600">Active</p>
+              <p className="text-xs sm:text-sm font-semibold text-[#475569]">Active</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-green-600 to-green-700 bg-clip-text text-transparent">{stats.active}</p>
+            <p className="text-2xl sm:text-3xl font-bold bg-[#079455] bg-clip-text text-transparent">{stats.active}</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 sm:p-6 hover:shadow-2xl transition-all">
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] p-4 sm:p-6 hover:shadow-2xl transition-all">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-[#B45309] rounded-xl flex items-center justify-center shadow-lg">
                 <XCircleIcon className="h-5 w-5 text-white" />
               </div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-600">Inactive</p>
+              <p className="text-xs sm:text-sm font-semibold text-[#475569]">Inactive</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-amber-600 to-amber-700 bg-clip-text text-transparent">{stats.inactive}</p>
+            <p className="text-2xl sm:text-3xl font-bold bg-[#B45309] bg-clip-text text-transparent">{stats.inactive}</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 sm:p-6 hover:shadow-2xl transition-all">
+          <div className="bg-white rounded-2xl shadow-xl border border-[#DDE3EA] p-4 sm:p-6 hover:shadow-2xl transition-all">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-[#1D4ED8] rounded-xl flex items-center justify-center shadow-lg">
                 <BookOpenIcon className="h-5 w-5 text-white" />
               </div>
-              <p className="text-xs sm:text-sm font-semibold text-slate-600">Total Courses</p>
+              <p className="text-xs sm:text-sm font-semibold text-[#475569]">Total Courses</p>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-br from-purple-600 to-purple-700 bg-clip-text text-transparent">{stats.totalCourses}</p>
+            <p className="text-2xl sm:text-3xl font-bold bg-[#1D4ED8] bg-clip-text text-transparent">{stats.totalCourses}</p>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 mb-6">
+        <div className="bg-white rounded-xl border border-[#DDE3EA] p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -222,7 +222,7 @@ export default function ManageUsersPage() {
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 focus:border-slate-400 outline-none transition-all text-sm"
+                className="w-full px-4 py-2.5 border border-[#C7D2DE] rounded-lg focus:ring-2 focus:ring-[#94A3B8] focus:border-[#94A3B8] outline-none transition-all text-sm"
               />
             </div>
 
@@ -238,8 +238,8 @@ export default function ManageUsersPage() {
                   onClick={() => setFilterStatus(key as typeof filterStatus)}
                   className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${
                     filterStatus === key
-                      ? 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                      ? 'bg-[#0F172A] text-white border-[#0F172A]'
+                      : 'bg-white text-[#334155] border-[#C7D2DE] hover:bg-[#F6F8FA]'
                   }`}
                 >
                   {label} ({count})
@@ -250,21 +250,21 @@ export default function ManageUsersPage() {
         </div>
 
         {/* Tutors List */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 border-b border-slate-200">
-            <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-              <UserGroupIcon className="h-5 w-5 text-slate-600" />
+        <div className="bg-white rounded-xl border border-[#DDE3EA] overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 border-b border-[#DDE3EA]">
+            <h2 className="text-base font-semibold text-[#0F172A] flex items-center gap-2">
+              <UserGroupIcon className="h-5 w-5 text-[#475569]" />
               All Tutors ({tutors.length})
             </h2>
           </div>
 
           {tutors.length === 0 && !loading ? (
             <div className="p-8 sm:p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <UserIcon className="w-8 h-8 text-slate-400" />
+              <div className="w-16 h-16 bg-[#E9EEF4] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <UserIcon className="w-8 h-8 text-[#94A3B8]" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No tutors found</h3>
-              <p className="text-slate-600">
+              <h3 className="text-lg font-semibold text-[#0F172A] mb-2">No tutors found</h3>
+              <p className="text-[#475569]">
                 {searchQuery ? 'Try adjusting your search criteria' : 'No tutors available'}
               </p>
             </div>
@@ -274,75 +274,75 @@ export default function ManageUsersPage() {
               <div className="hidden lg:block overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <tr className="border-b border-[#DDE3EA]">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#64748B] uppercase tracking-wider">
                         Tutor
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#64748B] uppercase tracking-wider">
                         Email
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#64748B] uppercase tracking-wider">
                         Courses
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#64748B] uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-right text-xs font-medium text-[#64748B] uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-slate-100">
+                  <tbody className="bg-white divide-y divide-[#E9EEF4]">
                     {tutors.map((tutor) => (
-                      <tr key={tutor.id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={tutor.id} className="hover:bg-[#F6F8FA] transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="relative h-10 w-10 flex-shrink-0">
                               {tutor.avatar ? (
                                 <img
-                                  className="h-10 w-10 rounded-lg object-cover border border-slate-200"
+                                  className="h-10 w-10 rounded-lg object-cover border border-[#DDE3EA]"
                                   src={tutor.avatar || ''}
                                   alt={`${tutor.firstName} ${tutor.lastName}`}
                                   referrerPolicy="no-referrer"
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">
-                                  <UserIcon className="h-5 w-5 text-slate-400" />
+                                <div className="h-10 w-10 rounded-lg bg-[#E9EEF4] border border-[#DDE3EA] flex items-center justify-center">
+                                  <UserIcon className="h-5 w-5 text-[#94A3B8]" />
                                 </div>
                               )}
                               {/* Status Indicator */}
                               <div className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                                tutor.isActive ? 'bg-green-500' : 'bg-slate-400'
+                                tutor.isActive ? 'bg-[#17B26A]' : 'bg-[#94A3B8]'
                               }`}></div>
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-semibold text-slate-900">
+                              <div className="text-sm font-semibold text-[#0F172A]">
                                 {tutor.firstName} {tutor.lastName}
                               </div>
-                              <div className="text-xs text-slate-500">
+                              <div className="text-xs text-[#64748B]">
                                 Joined {new Date(tutor.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-600">
+                          <div className="text-sm text-[#475569]">
                             {tutor.email}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">
-                              <BookOpenIcon className="h-3.5 w-3.5 text-slate-600" />
+                            <div className="w-7 h-7 rounded-lg bg-[#E9EEF4] border border-[#DDE3EA] flex items-center justify-center">
+                              <BookOpenIcon className="h-3.5 w-3.5 text-[#475569]" />
                             </div>
-                            <span className="text-sm font-semibold text-slate-900">{tutor._count?.createdCourses || 0}</span>
+                            <span className="text-sm font-semibold text-[#0F172A]">{tutor._count?.createdCourses || 0}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${
                             tutor.isActive
-                              ? 'bg-green-50 text-green-700 border-green-200'
-                              : 'bg-slate-50 text-slate-600 border-slate-200'
+                              ? 'bg-[#ECFDF3] text-[#067647] border-[#ABEFC6]'
+                              : 'bg-[#F6F8FA] text-[#475569] border-[#DDE3EA]'
                           }`}>
                             {tutor.isActive ? 'Active' : 'Inactive'}
                           </span>
@@ -350,11 +350,11 @@ export default function ManageUsersPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           {deleteConfirmId === tutor.id ? (
                             <div className="flex items-center justify-end gap-2">
-                              <span className="text-xs text-amber-700 font-medium mr-2">Confirm deletion?</span>
+                              <span className="text-xs text-[#B45309] font-medium mr-2">Confirm deletion?</span>
                               <Button
                                 onClick={() => handleDeleteUser(tutor.id)}
                                 disabled={deletingId === tutor.id}
-                                className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:bg-red-400"
+                                className="bg-[#B42318] hover:bg-[#912018] text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:bg-[#F97066]"
                               >
                                 {deletingId === tutor.id ? (
                                   <div className="flex items-center gap-1.5">
@@ -371,7 +371,7 @@ export default function ManageUsersPage() {
                               <Button
                                 onClick={() => setDeleteConfirmId(null)}
                                 disabled={deletingId === tutor.id}
-                                className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
+                                className="bg-white hover:bg-[#F6F8FA] border border-[#C7D2DE] text-[#334155] text-xs px-3 py-1.5 rounded-lg font-medium transition-colors"
                               >
                                 Cancel
                               </Button>
@@ -383,8 +383,8 @@ export default function ManageUsersPage() {
                                 disabled={updatingId === tutor.id || deletingId === tutor.id}
                                 className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
                                   tutor.isActive
-                                    ? 'bg-white hover:bg-slate-50 border border-slate-300 text-slate-700'
-                                    : 'bg-green-600 hover:bg-green-700 text-white'
+                                    ? 'bg-white hover:bg-[#F6F8FA] border border-[#C7D2DE] text-[#334155]'
+                                    : 'bg-[#079455] hover:bg-[#067647] text-white'
                                 }`}
                               >
                                 {updatingId === tutor.id ? (
@@ -411,7 +411,7 @@ export default function ManageUsersPage() {
                               <Button
                                 onClick={() => setDeleteConfirmId(tutor.id)}
                                 disabled={updatingId === tutor.id || deletingId === tutor.id}
-                                className="px-2.5 py-1.5 bg-white hover:bg-red-50 border border-slate-300 hover:border-red-300 text-slate-600 hover:text-red-600 rounded-lg transition-colors disabled:opacity-50"
+                                className="px-2.5 py-1.5 bg-white hover:bg-[#FEF3F2] border border-[#C7D2DE] hover:border-[#FDA29B] text-[#475569] hover:text-[#B42318] rounded-lg transition-colors disabled:opacity-50"
                                 title="Delete user"
                               >
                                 <TrashIcon className="w-4 h-4" />
@@ -428,27 +428,27 @@ export default function ManageUsersPage() {
               {/* Mobile Card View */}
               <div className="lg:hidden p-4 space-y-3">
                 {tutors.map((tutor) => (
-                  <div key={tutor.id} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-slate-300 hover:shadow-md transition-all">
+                  <div key={tutor.id} className="bg-white rounded-xl border border-[#DDE3EA] overflow-hidden hover:border-[#C7D2DE] hover:shadow-md transition-all">
                     {/* Card Header */}
-                    <div className="p-4 border-b border-slate-100">
+                    <div className="p-4 border-b border-[#E9EEF4]">
                       <div className="flex items-start gap-3">
                         {/* Avatar */}
                         <div className="relative flex-shrink-0">
                           {tutor.avatar ? (
                             <img
-                              className="h-12 w-12 rounded-lg object-cover border border-slate-200"
+                              className="h-12 w-12 rounded-lg object-cover border border-[#DDE3EA]"
                               src={tutor.avatar || ''}
                               alt={`${tutor.firstName} ${tutor.lastName}`}
                               referrerPolicy="no-referrer"
                             />
                           ) : (
-                            <div className="h-12 w-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">
-                              <UserIcon className="h-6 w-6 text-slate-400" />
+                            <div className="h-12 w-12 rounded-lg bg-[#E9EEF4] border border-[#DDE3EA] flex items-center justify-center">
+                              <UserIcon className="h-6 w-6 text-[#94A3B8]" />
                             </div>
                           )}
                           {/* Status Indicator */}
                           <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
-                            tutor.isActive ? 'bg-green-500' : 'bg-slate-400'
+                            tutor.isActive ? 'bg-[#17B26A]' : 'bg-[#94A3B8]'
                           }`} title={tutor.isActive ? 'Active' : 'Inactive'}></div>
                         </div>
 
@@ -456,17 +456,17 @@ export default function ManageUsersPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-sm font-semibold text-slate-900 truncate">
+                              <h3 className="text-sm font-semibold text-[#0F172A] truncate">
                                 {tutor.firstName} {tutor.lastName}
                               </h3>
-                              <p className="text-xs text-slate-500 truncate mt-0.5">
+                              <p className="text-xs text-[#64748B] truncate mt-0.5">
                                 {tutor.email}
                               </p>
                             </div>
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium flex-shrink-0 ${
                               tutor.isActive
-                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                : 'bg-slate-50 text-slate-600 border border-slate-200'
+                                ? 'bg-[#ECFDF3] text-[#067647] border border-[#ABEFC6]'
+                                : 'bg-[#F6F8FA] text-[#475569] border border-[#DDE3EA]'
                             }`}>
                               {tutor.isActive ? 'Active' : 'Inactive'}
                             </span>
@@ -476,27 +476,27 @@ export default function ManageUsersPage() {
                     </div>
 
                     {/* Card Body - Stats */}
-                    <div className="px-4 py-3 bg-slate-50">
+                    <div className="px-4 py-3 bg-[#F6F8FA]">
                       <div className="grid grid-cols-2 gap-3">
                         {/* Courses Stat */}
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
-                            <BookOpenIcon className="h-4 w-4 text-slate-600" />
+                          <div className="w-8 h-8 rounded-lg bg-white border border-[#DDE3EA] flex items-center justify-center flex-shrink-0">
+                            <BookOpenIcon className="h-4 w-4 text-[#475569]" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs text-slate-500 font-medium">Courses</p>
-                            <p className="text-sm font-semibold text-slate-900">{tutor._count?.createdCourses || 0}</p>
+                            <p className="text-xs text-[#64748B] font-medium">Courses</p>
+                            <p className="text-sm font-semibold text-[#0F172A]">{tutor._count?.createdCourses || 0}</p>
                           </div>
                         </div>
 
                         {/* Joined Stat */}
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
-                            <CalendarIcon className="h-4 w-4 text-slate-600" />
+                          <div className="w-8 h-8 rounded-lg bg-white border border-[#DDE3EA] flex items-center justify-center flex-shrink-0">
+                            <CalendarIcon className="h-4 w-4 text-[#475569]" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs text-slate-500 font-medium">Joined</p>
-                            <p className="text-xs font-semibold text-slate-900">
+                            <p className="text-xs text-[#64748B] font-medium">Joined</p>
+                            <p className="text-xs font-semibold text-[#0F172A]">
                               {new Date(tutor.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                             </p>
                           </div>
@@ -505,11 +505,11 @@ export default function ManageUsersPage() {
                     </div>
 
                     {/* Card Footer - Actions */}
-                    <div className="p-3 border-t border-slate-100">
+                    <div className="p-3 border-t border-[#E9EEF4]">
                       {deleteConfirmId === tutor.id ? (
                         <div className="space-y-2">
-                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                            <p className="text-xs font-medium text-amber-900">
+                          <div className="bg-[#FFFAEB] border border-[#FEDF89] rounded-lg p-2.5">
+                            <p className="text-xs font-medium text-[#7A2E0E]">
                               Confirm deletion of this user?
                             </p>
                           </div>
@@ -517,7 +517,7 @@ export default function ManageUsersPage() {
                             <Button
                               onClick={() => handleDeleteUser(tutor.id)}
                               disabled={deletingId === tutor.id}
-                              className="bg-red-600 hover:bg-red-700 text-white text-xs py-2 rounded-lg font-medium transition-colors disabled:bg-red-400"
+                              className="bg-[#B42318] hover:bg-[#912018] text-white text-xs py-2 rounded-lg font-medium transition-colors disabled:bg-[#F97066]"
                             >
                               {deletingId === tutor.id ? (
                                 <div className="flex items-center justify-center gap-1.5">
@@ -534,7 +534,7 @@ export default function ManageUsersPage() {
                             <Button
                               onClick={() => setDeleteConfirmId(null)}
                               disabled={deletingId === tutor.id}
-                              className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs py-2 rounded-lg font-medium transition-colors"
+                              className="bg-white hover:bg-[#F6F8FA] border border-[#C7D2DE] text-[#334155] text-xs py-2 rounded-lg font-medium transition-colors"
                             >
                               Cancel
                             </Button>
@@ -547,8 +547,8 @@ export default function ManageUsersPage() {
                             disabled={updatingId === tutor.id || deletingId === tutor.id}
                             className={`text-xs py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
                               tutor.isActive
-                                ? 'bg-white hover:bg-slate-50 border border-slate-300 text-slate-700'
-                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                ? 'bg-white hover:bg-[#F6F8FA] border border-[#C7D2DE] text-[#334155]'
+                                : 'bg-[#079455] hover:bg-[#067647] text-white'
                             }`}
                           >
                             {updatingId === tutor.id ? (
@@ -574,7 +574,7 @@ export default function ManageUsersPage() {
                           <Button
                             onClick={() => setDeleteConfirmId(tutor.id)}
                             disabled={updatingId === tutor.id || deletingId === tutor.id}
-                            className="px-3 bg-white hover:bg-red-50 border border-slate-300 hover:border-red-300 text-slate-600 hover:text-red-600 rounded-lg transition-colors disabled:opacity-50"
+                            className="px-3 bg-white hover:bg-[#FEF3F2] border border-[#C7D2DE] hover:border-[#FDA29B] text-[#475569] hover:text-[#B42318] rounded-lg transition-colors disabled:opacity-50"
                             title="Delete user"
                           >
                             <TrashIcon className="w-4 h-4" />
@@ -590,11 +590,11 @@ export default function ManageUsersPage() {
 
           {/* Load More Button */}
           {hasMore && tutors.length > 0 && (
-            <div className="p-4 sm:p-6 border-t border-slate-200 bg-slate-50">
+            <div className="p-4 sm:p-6 border-t border-[#DDE3EA] bg-[#F6F8FA]">
               <Button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors disabled:bg-blue-400"
+                className="w-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-medium py-3 rounded-lg transition-colors disabled:bg-[#6091F0]"
               >
                 {loadingMore ? (
                   <div className="flex items-center justify-center gap-2">

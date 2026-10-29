@@ -10,4 +10,5 @@ export type * from './models/Assignment';
 export type * from './models/AssignmentSubmission';
 export type * from './models/TutorRequest';
 export type * from './models/Review';
+export type * from './models/Payment';
 export type * from './commonInputTypes';

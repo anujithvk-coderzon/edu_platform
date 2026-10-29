@@ -14,7 +14,10 @@ const title = z
   .min(1, "Title is required")
   .max(200, "Title must be at most 200 characters");
 
-const description = z.string().trim();
+const description = z
+  .string()
+  .trim()
+  .max(5000, "Description must be at most 5000 characters");
 
 const materialType = z.enum(["PDF", "VIDEO", "LINK"], {
   error: "Type must be one of PDF, VIDEO or LINK",

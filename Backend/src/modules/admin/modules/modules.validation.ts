@@ -17,7 +17,7 @@ const title = z
 const description = z
   .string()
   .trim()
-  .max(1000, "Description must be at most 1000 characters");
+  .max(5000, "Description must be at most 5000 characters");
 
 const orderIndex = z.coerce
   .number({ error: "Order index is required" })

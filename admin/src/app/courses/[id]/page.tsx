@@ -199,15 +199,15 @@ export default function CourseViewPage() {
   const getStatusColor = (status: Course['status']) => {
     switch (status) {
       case 'PUBLISHED':
-        return 'bg-green-100 text-green-800 border border-green-200';
+        return 'bg-[#DCFAE6] text-[#05603A] border border-[#ABEFC6]';
       case 'PENDING_REVIEW':
-        return 'bg-blue-100 text-blue-800 border border-blue-200';
+        return 'bg-[#DBE7FE] text-[#1E40AF] border border-[#C7D7FE]';
       case 'DRAFT':
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+        return 'bg-[#FEF0C7] text-[#93370D] border border-[#FEDF89]';
       case 'ARCHIVED':
-        return 'bg-slate-100 text-slate-800 border border-slate-200';
+        return 'bg-[#E9EEF4] text-[#1E293B] border border-[#DDE3EA]';
       default:
-        return 'bg-slate-100 text-slate-800 border border-slate-200';
+        return 'bg-[#E9EEF4] text-[#1E293B] border border-[#DDE3EA]';
     }
   };
 
@@ -228,12 +228,12 @@ export default function CourseViewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F6F8FA]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-slate-200 rounded w-1/2 mb-8"></div>
-            <div className="h-96 bg-white rounded-xl shadow-sm border border-slate-200"></div>
+            <div className="h-8 bg-[#DDE3EA] rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-[#DDE3EA] rounded w-1/2 mb-8"></div>
+            <div className="h-96 bg-white rounded-xl shadow-sm border border-[#DDE3EA]"></div>
           </div>
         </div>
       </div>
@@ -242,18 +242,18 @@ export default function CourseViewPage() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-[#F6F8FA]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="mb-4">
-            <Link href="/my-courses" className="inline-flex items-center text-slate-700 hover:text-slate-900">
+            <Link href="/my-courses" className="inline-flex items-center text-[#334155] hover:text-[#0F172A]">
               <ChevronLeftIcon className="w-4 h-4 mr-2" />
               Back to My Courses
             </Link>
           </div>
-          <Card className="bg-white shadow-sm border border-slate-200">
+          <Card className="bg-white shadow-sm border border-[#DDE3EA]">
             <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Course Not Found</h3>
-              <p className="text-slate-600 mb-6">{error}</p>
+              <h3 className="text-lg font-semibold text-[#0F172A] mb-2">Course Not Found</h3>
+              <p className="text-[#475569] mb-6">{error}</p>
               <Link href="/my-courses">
                 <Button>Back to My Courses</Button>
               </Link>
@@ -267,27 +267,27 @@ export default function CourseViewPage() {
   const isOwner = user && course.creator && user.id === course.creator.id;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-6 sm:mb-8">
           <div className="mb-4">
-            <Link href="/my-courses" className="inline-flex items-center px-3 py-2 bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors rounded-lg border border-slate-300 shadow-sm font-medium text-sm">
+            <Link href="/my-courses" className="inline-flex items-center px-3 py-2 bg-white text-[#334155] hover:text-[#0F172A] hover:bg-[#F6F8FA] transition-colors rounded-lg border border-[#C7D2DE] shadow-sm font-medium text-sm">
               <ChevronLeftIcon className="w-4 h-4 mr-2" />
               Back to My Courses
             </Link>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-[#DDE3EA] p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-                  <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-[#0F172A]">
                     {course.title}
                   </h1>
                   <span className={`px-3 py-1 rounded text-xs font-medium ${getStatusColor(course.status)} w-fit`}>
                     {getStatusLabel(course.status)}
                   </span>
                 </div>
-                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">{course.description}</p>
+                <p className="text-[#475569] text-sm sm:text-base leading-relaxed">{course.description}</p>
               </div>
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2">
@@ -301,24 +301,24 @@ export default function CourseViewPage() {
                 )}
                 {/* Tutor: Submit for Review button (only for DRAFT courses) */}
                 {user?.role === 'Tutor' && isOwner && course.status === 'DRAFT' && (
-                  <Button onClick={handleSubmitForReview} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleSubmitForReview} className="w-full sm:w-auto bg-[#1D4ED8] hover:bg-[#1E40AF]">
                     Submit for Review
                   </Button>
                 )}
                 {/* Admin: Publish and Reject buttons (only for PENDING_REVIEW courses) */}
                 {user?.role === 'Admin' && course.status === 'PENDING_REVIEW' && (
                   <>
-                    <Button onClick={handlePublish} className="w-full sm:w-auto bg-green-600 hover:bg-green-700">
+                    <Button onClick={handlePublish} className="w-full sm:w-auto bg-[#079455] hover:bg-[#067647]">
                       Publish Course
                     </Button>
-                    <Button onClick={handleReject} variant="outline" className="w-full sm:w-auto border-red-300 text-red-600 hover:bg-red-50">
+                    <Button onClick={handleReject} variant="outline" className="w-full sm:w-auto border-[#FDA29B] text-[#B42318] hover:bg-[#FEF3F2]">
                       Reject Course
                     </Button>
                   </>
                 )}
                 {/* Admin: Publish button (for DRAFT courses if admin wants to publish directly) */}
                 {user?.role === 'Admin' && course.status === 'DRAFT' && (
-                  <Button onClick={handlePublish} className="w-full sm:w-auto bg-green-600 hover:bg-green-700">
+                  <Button onClick={handlePublish} className="w-full sm:w-auto bg-[#079455] hover:bg-[#067647]">
                     Publish Course
                   </Button>
                 )}
@@ -326,47 +326,47 @@ export default function CourseViewPage() {
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="flex items-center text-slate-700">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <UsersIcon className="w-4 h-4 text-blue-600" />
+              <div className="bg-[#F6F8FA] rounded-lg p-3 border border-[#DDE3EA]">
+                <div className="flex items-center text-[#334155]">
+                  <div className="w-8 h-8 bg-[#DBE7FE] rounded-lg flex items-center justify-center mr-3">
+                    <UsersIcon className="w-4 h-4 text-[#1D4ED8]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900 text-lg">{course._count?.enrollments || 0}</div>
-                    <div className="text-xs text-slate-600">Students</div>
+                    <div className="font-semibold text-[#0F172A] text-lg">{course._count?.enrollments || 0}</div>
+                    <div className="text-xs text-[#475569]">Students</div>
                     </div>
                   </div>
                 </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="flex items-center text-slate-700">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                    <CurrencyRupeeIcon className="w-4 h-4 text-green-600" />
+              <div className="bg-[#F6F8FA] rounded-lg p-3 border border-[#DDE3EA]">
+                <div className="flex items-center text-[#334155]">
+                  <div className="w-8 h-8 bg-[#DCFAE6] rounded-lg flex items-center justify-center mr-3">
+                    <CurrencyRupeeIcon className="w-4 h-4 text-[#079455]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900 text-lg">{formatPrice(course.price)}</div>
-                    <div className="text-xs text-slate-600">Price</div>
+                    <div className="font-semibold text-[#0F172A] text-lg">{formatPrice(course.price)}</div>
+                    <div className="text-xs text-[#475569]">Price</div>
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="flex items-center text-slate-700">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
-                    <StarIcon className="w-4 h-4 text-yellow-600" />
+              <div className="bg-[#F6F8FA] rounded-lg p-3 border border-[#DDE3EA]">
+                <div className="flex items-center text-[#334155]">
+                  <div className="w-8 h-8 bg-[#FEF0C7] rounded-lg flex items-center justify-center mr-3">
+                    <StarIcon className="w-4 h-4 text-[#DC6803]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900 text-lg">{course.averageRating ? course.averageRating.toFixed(1) : 'N/A'}</div>
-                    <div className="text-xs text-slate-600">Rating</div>
+                    <div className="font-semibold text-[#0F172A] text-lg">{course.averageRating ? course.averageRating.toFixed(1) : 'N/A'}</div>
+                    <div className="text-xs text-[#475569]">Rating</div>
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
-                <div className="flex items-center text-slate-700">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                    <ClockIcon className="w-4 h-4 text-purple-600" />
+              <div className="bg-[#F6F8FA] rounded-lg p-3 border border-[#DDE3EA]">
+                <div className="flex items-center text-[#334155]">
+                  <div className="w-8 h-8 bg-[#DBE7FE] rounded-lg flex items-center justify-center mr-3">
+                    <ClockIcon className="w-4 h-4 text-[#1D4ED8]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-slate-900 text-lg">{course.duration || 0}h</div>
-                    <div className="text-xs text-slate-600">Duration</div>
+                    <div className="font-semibold text-[#0F172A] text-lg">{course.duration || 0}h</div>
+                    <div className="text-xs text-[#475569]">Duration</div>
                   </div>
                 </div>
               </div>
@@ -374,20 +374,20 @@ export default function CourseViewPage() {
 
             <div className="flex flex-wrap gap-2 mt-4">
               {course.category && (
-                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
+                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-[#1E40AF] bg-[#EFF4FF] border border-[#C7D7FE]">
                   {course.category.name}
                 </div>
               )}
               {course.level && (
-                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-slate-700 bg-slate-100 border border-slate-300">
+                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-[#334155] bg-[#E9EEF4] border border-[#C7D2DE]">
                   Level: {course.level}
                 </div>
               )}
-              <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
+              <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-[#1E40AF] bg-[#EFF4FF] border border-[#C7D7FE]">
                 Created by: {course.creator.firstName} {course.creator.lastName}
               </div>
               {(course.tutor && course.tutor.id !== course.creator.id) && (
-                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200">
+                <div className="inline-flex items-center px-3 py-1 rounded text-xs font-medium text-[#1E40AF] bg-[#EFF4FF] border border-[#C7D7FE]">
                   Assigned to: {course.tutor.firstName} {course.tutor.lastName}
                 </div>
               )}
@@ -408,13 +408,13 @@ export default function CourseViewPage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="bg-white shadow-sm border border-slate-200">
+          <Card className="bg-white shadow-sm border border-[#DDE3EA]">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-lg font-semibold text-slate-900">
-                <AcademicCapIcon className="w-5 h-5 text-slate-600" />
+              <CardTitle className="flex items-center gap-3 text-lg font-semibold text-[#0F172A]">
+                <AcademicCapIcon className="w-5 h-5 text-[#475569]" />
                 Course Content
               </CardTitle>
-              <CardDescription className="text-slate-600 text-sm">
+              <CardDescription className="text-[#475569] text-sm">
                 {course.modules?.length || 0} modules • {course._count?.materials || 0} materials
               </CardDescription>
             </CardHeader>
@@ -422,16 +422,16 @@ export default function CourseViewPage() {
               {course.modules && course.modules.length > 0 ? (
                 <div className="space-y-6">
                   {course.modules.map((module, moduleIndex) => (
-                    <Card key={module.id} className="bg-slate-50 border border-slate-200">
+                    <Card key={module.id} className="bg-[#F6F8FA] border border-[#DDE3EA]">
                       <CardHeader className="pb-3">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                            <FolderIcon className="w-4 h-4 text-blue-600" />
+                          <div className="w-8 h-8 bg-[#DBE7FE] rounded-lg flex items-center justify-center mr-3">
+                            <FolderIcon className="w-4 h-4 text-[#1D4ED8]" />
                           </div>
                           <div>
-                            <CardTitle className="text-base font-semibold text-slate-900">{module.title}</CardTitle>
+                            <CardTitle className="text-base font-semibold text-[#0F172A]">{module.title}</CardTitle>
                             {module.description && (
-                              <CardDescription className="mt-1 text-slate-600 text-sm">{module.description}</CardDescription>
+                              <CardDescription className="mt-1 text-[#475569] text-sm">{module.description}</CardDescription>
                             )}
                           </div>
                         </div>
@@ -443,18 +443,18 @@ export default function CourseViewPage() {
                               const MaterialIcon = getMaterialIcon(material.type);
                               const materialUrl = material.fileUrl || '';
                               return (
-                                <div key={material.id} className="p-3 bg-white rounded-lg border border-slate-200">
+                                <div key={material.id} className="p-3 bg-white rounded-lg border border-[#DDE3EA]">
                                   <div className="flex items-center">
-                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mr-3">
-                                      <MaterialIcon className="w-4 h-4 text-slate-600" />
+                                    <div className="w-8 h-8 bg-[#E9EEF4] rounded-lg flex items-center justify-center mr-3">
+                                      <MaterialIcon className="w-4 h-4 text-[#475569]" />
                                     </div>
                                     <div className="flex-1">
-                                      <p className="font-medium text-slate-900 text-sm">{material.title}</p>
+                                      <p className="font-medium text-[#0F172A] text-sm">{material.title}</p>
                                       {material.description && (
-                                        <p className="text-slate-600 mt-1 text-xs">{material.description}</p>
+                                        <p className="text-[#475569] mt-1 text-xs">{material.description}</p>
                                       )}
                                       <div className="flex items-center mt-2 space-x-3">
-                                        <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                                        <span className="text-xs font-medium text-[#475569] bg-[#E9EEF4] px-2 py-1 rounded">
                                           {material.type}
                                         </span>
                                         {material.fileUrl && (
@@ -501,12 +501,12 @@ export default function CourseViewPage() {
                                       )}
                                       {material.type === 'PDF' && (
                                         <div className="bg-white border rounded-lg p-4">
-                                          <p className="text-sm text-gray-600 mb-2">PDF Document</p>
+                                          <p className="text-sm text-[#475569] mb-2">PDF Document</p>
                                           <a
                                             href={materialUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 underline"
+                                            className="text-[#1D4ED8] hover:text-[#1E40AF] underline"
                                           >
                                             Open PDF in new tab
                                           </a>
@@ -538,12 +538,12 @@ export default function CourseViewPage() {
                                       )}
                                       {(material.type === 'DOCUMENT' || material.type === 'LINK') && (
                                         <div className="bg-white border rounded-lg p-4">
-                                          <p className="text-sm text-gray-600 mb-2">{material.type === 'LINK' ? 'External Link' : 'Document'}</p>
+                                          <p className="text-sm text-[#475569] mb-2">{material.type === 'LINK' ? 'External Link' : 'Document'}</p>
                                           <a
                                             href={material.type === 'LINK' ? material.fileUrl : materialUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-800 underline"
+                                            className="text-[#1D4ED8] hover:text-[#1E40AF] underline"
                                           >
                                             {material.type === 'LINK' ? 'Open Link' : 'Download Document'}
                                           </a>
@@ -557,10 +557,10 @@ export default function CourseViewPage() {
                           </div>
                         ) : (
                           <div className="text-center py-8">
-                            <div className="w-16 h-16 bg-gradient-to-br from-slate-300 to-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-[#0F172A] rounded-full flex items-center justify-center mx-auto mb-4">
                               <span className="text-white text-2xl">📝</span>
                             </div>
-                            <p className="text-slate-600 font-medium text-lg">
+                            <p className="text-[#475569] font-medium text-lg">
                               No materials in this module yet.
                             </p>
                           </div>
@@ -571,16 +571,16 @@ export default function CourseViewPage() {
                 </div>
               ) : (
                 <div className="text-center py-16">
-                  <div className="w-24 h-24 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="w-24 h-24 bg-[#1D4ED8] rounded-full flex items-center justify-center mx-auto mb-6">
                     <span className="text-white text-4xl">📁</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-slate-800 mb-4">No content yet ✨</h3>
-                  <p className="text-slate-700 mb-8 text-lg font-medium max-w-md mx-auto">
+                  <h3 className="text-2xl font-bold text-[#1E293B] mb-4">No content yet ✨</h3>
+                  <p className="text-[#334155] mb-8 text-lg font-medium max-w-md mx-auto">
                     This course does not have any modules or materials yet. Start creating amazing content!
                   </p>
                   {isOwner && (
                     <Link href={`/courses/${courseId}/edit`}>
-                      <div className="inline-flex items-center bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 cursor-pointer">
+                      <div className="inline-flex items-center bg-[#1D4ED8] hover:from-[#1E40AF] hover:to-[#1E40AF] text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 cursor-pointer">
                         <PencilIcon className="w-5 h-5 mr-3" />
                         <span>🚀 Add Content</span>
                       </div>

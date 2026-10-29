@@ -41,9 +41,9 @@ export declare const getModuleByIdService: (id: string, userId: string, userRole
             title: string;
             isPublic: boolean;
             courseId: string;
+            orderIndex: number;
             fileUrl: string | null;
             content: string | null;
-            orderIndex: number;
             moduleId: string | null;
             authorId: string;
         })[];
@@ -73,9 +73,9 @@ export declare const createModuleService: (input: CreateModuleInput, userId: str
             title: string;
             isPublic: boolean;
             courseId: string;
+            orderIndex: number;
             fileUrl: string | null;
             content: string | null;
-            orderIndex: number;
             moduleId: string | null;
             authorId: string;
         }[];

@@ -23,7 +23,8 @@ const title = z
 const description = z
   .string({ error: "Description is required" })
   .trim()
-  .min(1, "Description is required");
+  .min(1, "Description is required")
+  .max(5000, "Description must be at most 5000 characters");
 
 /**
  * `isISO8601()` accepted both full timestamps and bare calendar dates, so the
@@ -73,7 +74,12 @@ export const updateAssignmentSchema = z.object({
 
 export const gradeSubmissionSchema = z.object({
   score,
-  feedback: z.string().trim().nullable().optional(),
+  feedback: z
+    .string()
+    .trim()
+    .max(5000, "Feedback must be at most 5000 characters")
+    .nullable()
+    .optional(),
 });
 
 export const assignmentIdParamSchema = z.object({

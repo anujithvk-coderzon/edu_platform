@@ -11,21 +11,17 @@ export declare const submitReviewService: (studentId: string, input: SubmitRevie
     };
 }>;
 export declare const listCourseReviewsService: (courseId: string, query: ReviewQuery) => Promise<{
-    reviews: ({
+    reviews: {
         student: {
             firstName: string;
             lastName: string;
             avatar: string;
         };
-    } & {
         id: string;
         createdAt: Date;
-        updatedAt: Date;
         rating: number;
-        comment: string | null;
-        courseId: string;
-        studentId: string;
-    })[];
+        comment: string;
+    }[];
     averageRating: number;
     totalReviews: number;
     ratingDistribution: Record<number, number>;

@@ -266,11 +266,11 @@ const Page = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+          <div className="h-8 bg-[#DDE3EA] rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-[#DDE3EA] rounded w-1/2 mb-8"></div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              <div key={i} className="h-24 bg-[#DDE3EA] rounded"></div>
             ))}
           </div>
         </div>
@@ -281,12 +281,12 @@ const Page = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Dashboard</h2>
-          <p className="text-red-600 mb-4">{error}</p>
+        <div className="bg-[#FEF3F2] border border-[#FECDCA] rounded-lg p-6 text-center">
+          <h2 className="text-lg font-semibold text-[#912018] mb-2">Error Loading Dashboard</h2>
+          <p className="text-[#B42318] mb-4">{error}</p>
           <Button 
             onClick={() => window.location.reload()} 
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-[#B42318] hover:bg-[#912018] text-white"
           >
             Retry
           </Button>
@@ -300,29 +300,29 @@ const Page = () => {
 
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F8FA]">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6">
         {/* Header */}
         <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-[#DDE3EA] p-3 sm:p-4 md:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-1">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#1D4ED8] rounded-lg flex items-center justify-center shadow-sm">
                     <span className="text-white font-semibold text-xs sm:text-sm md:text-base">
                       {user?.firstName?.charAt(0) || 'T'}
                     </span>
                   </div>
-                  <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-semibold text-slate-900">
+                  <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-semibold text-[#0F172A]">
                     Welcome back, {user?.firstName || 'Tutor'}
                   </h1>
                 </div>
-                <p className="text-slate-600 text-xs sm:text-sm md:text-base ml-10 sm:ml-11 md:ml-13">
+                <p className="text-[#475569] text-xs sm:text-sm md:text-base ml-10 sm:ml-11 md:ml-13">
                   Manage your courses and track student progress
                 </p>
               </div>
               <div className="text-right sm:text-right">
-                <div className="text-[10px] sm:text-xs font-medium text-slate-500 uppercase tracking-wide">
+                <div className="text-[10px] sm:text-xs font-medium text-[#64748B] uppercase tracking-wide">
                   {new Date().toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'short',
@@ -330,8 +330,8 @@ const Page = () => {
                   })}
                 </div>
                 <div className="flex items-center justify-end space-x-1 mt-0.5 sm:mt-1">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-[10px] sm:text-xs text-slate-600">Online</span>
+                  <div className="w-1.5 h-1.5 bg-[#17B26A] rounded-full animate-pulse"></div>
+                  <span className="text-[10px] sm:text-xs text-[#475569]">Online</span>
                 </div>
               </div>
             </div>
@@ -341,42 +341,42 @@ const Page = () => {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6 lg:mb-8">
           <Link href="/create-course" className="group">
-            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+            <div className="bg-white hover:bg-[#F6F8FA] border border-[#DDE3EA] rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center group-hover:from-blue-200 group-hover:to-blue-300 transition-all shadow-sm">
-                  <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#EFF4FF] rounded-lg flex items-center justify-center group-hover:from-[#C7D7FE] group-hover:to-[#A4BCFC] transition-all shadow-sm">
+                  <PlusIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#1D4ED8]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 text-xs sm:text-sm md:text-base truncate">Create Course</h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Add new course content</p>
+                  <h3 className="font-semibold text-[#0F172A] text-xs sm:text-sm md:text-base truncate">Create Course</h3>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Add new course content</p>
                 </div>
               </div>
             </div>
           </Link>
 
           <Link href="/my-courses" className="group">
-            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+            <div className="bg-white hover:bg-[#F6F8FA] border border-[#DDE3EA] rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center group-hover:from-green-200 group-hover:to-green-300 transition-all shadow-sm">
-                  <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#ECFDF3] rounded-lg flex items-center justify-center group-hover:from-[#ABEFC6] group-hover:to-[#75E0A7] transition-all shadow-sm">
+                  <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#079455]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 text-xs sm:text-sm md:text-base truncate">Manage Courses</h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Edit and organize content</p>
+                  <h3 className="font-semibold text-[#0F172A] text-xs sm:text-sm md:text-base truncate">Manage Courses</h3>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Edit and organize content</p>
                 </div>
               </div>
             </div>
           </Link>
 
           <Link href="/students" className="group">
-            <div className="bg-white hover:bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+            <div className="bg-white hover:bg-[#F6F8FA] border border-[#DDE3EA] rounded-lg p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center group-hover:from-purple-200 group-hover:to-purple-300 transition-all shadow-sm">
-                  <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#EFF4FF] rounded-lg flex items-center justify-center group-hover:from-[#C7D7FE] group-hover:to-[#A4BCFC] transition-all shadow-sm">
+                  <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#1D4ED8]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-900 text-xs sm:text-sm md:text-base truncate">View Students</h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Monitor student progress</p>
+                  <h3 className="font-semibold text-[#0F172A] text-xs sm:text-sm md:text-base truncate">View Students</h3>
+                  <p className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Monitor student progress</p>
                 </div>
               </div>
             </div>
@@ -386,16 +386,16 @@ const Page = () => {
         {/* Recent Activity Section - Admin Only */}
         {user?.role?.toLowerCase() === 'admin' && (
           <div className="mb-6 sm:mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-[#DDE3EA] p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-1">Recent Activity</h2>
-                  <p className="text-sm text-slate-600">Track recent student registrations</p>
+                  <h2 className="text-lg sm:text-xl font-semibold text-[#0F172A] mb-1">Recent Activity</h2>
+                  <p className="text-sm text-[#475569]">Track recent student registrations</p>
                 </div>
               {filteredStudents.length > 1 && (
                 <div className="flex items-center gap-2">
-                  <ChartBarIcon className="w-5 h-5 text-slate-500" />
-                  <span className="text-sm text-slate-600">
+                  <ChartBarIcon className="w-5 h-5 text-[#64748B]" />
+                  <span className="text-sm text-[#475569]">
                     {filteredStudents.length} registrations
                   </span>
                 </div>
@@ -405,8 +405,8 @@ const Page = () => {
             {/* Time Period Filter */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
-                <FunnelIcon className="w-4 h-4 text-slate-600" />
-                <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                <FunnelIcon className="w-4 h-4 text-[#475569]" />
+                <h3 className="text-xs font-semibold text-[#334155] uppercase tracking-wide">
                   Filter by Time Period
                 </h3>
               </div>
@@ -419,8 +419,8 @@ const Page = () => {
                     size="sm"
                     className={`
                       ${selectedPeriod === period
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300'
+                        ? 'bg-[#1D4ED8] hover:bg-[#1E40AF] text-white'
+                        : 'bg-white hover:bg-[#F6F8FA] text-[#334155] border-[#C7D2DE]'
                       }
                     `}
                   >
@@ -437,24 +437,24 @@ const Page = () => {
                 {filteredStudents.slice(0, 5).map((student) => (
                   <div
                     key={student.id}
-                    className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4 hover:bg-white hover:shadow-sm transition-all duration-200"
+                    className="bg-[#F6F8FA] border border-[#DDE3EA] rounded-lg p-3 sm:p-4 hover:bg-white hover:shadow-sm transition-all duration-200"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                       {/* Student Info */}
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-[#1D4ED8] flex items-center justify-center text-white font-semibold text-sm shadow-md flex-shrink-0">
                           {student.firstName.charAt(0)}{student.lastName.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500 flex-shrink-0" />
-                            <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate">
+                            <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#64748B] flex-shrink-0" />
+                            <h3 className="text-sm sm:text-base font-semibold text-[#0F172A] truncate">
                               {student.firstName} {student.lastName}
                             </h3>
                           </div>
                           <div className="flex items-center gap-2">
-                            <EnvelopeIcon className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500 flex-shrink-0" />
-                            <p className="text-xs sm:text-sm text-slate-600 truncate">
+                            <EnvelopeIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#64748B] flex-shrink-0" />
+                            <p className="text-xs sm:text-sm text-[#475569] truncate">
                               {student.email}
                             </p>
                           </div>
@@ -464,14 +464,14 @@ const Page = () => {
                       {/* Registration Date */}
                       <div className="flex flex-col sm:items-end gap-1 flex-shrink-0 pl-13 sm:pl-0">
                         <div className="flex items-center gap-1 sm:gap-2">
-                          <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-slate-500" />
-                          <span className="text-xs sm:text-sm font-medium text-slate-700">
+                          <CalendarIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#64748B]" />
+                          <span className="text-xs sm:text-sm font-medium text-[#334155]">
                             {formatDate(student.createdAt)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 sm:justify-end">
-                          <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                          <span className="text-xs text-blue-600 font-medium">
+                          <ClockIcon className="w-3 h-3 sm:w-4 sm:h-4 text-[#1D4ED8]" />
+                          <span className="text-xs text-[#1D4ED8] font-medium">
                             {getTimeAgo(student.createdAt)}
                           </span>
                         </div>
@@ -482,13 +482,13 @@ const Page = () => {
               </div>
             ) : (
               <div className="text-center py-8 px-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <UserGroupIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-600" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#E9EEF4] rounded-lg flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <UserGroupIcon className="w-6 h-6 sm:w-8 sm:h-8 text-[#475569]" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-[#0F172A] mb-2">
                   No registrations found
                 </h3>
-                <p className="text-slate-600 text-xs sm:text-sm max-w-md mx-auto">
+                <p className="text-[#475569] text-xs sm:text-sm max-w-md mx-auto">
                   No students registered in the selected time period.
                 </p>
               </div>
@@ -500,14 +500,14 @@ const Page = () => {
                 <Link href="/students">
                   <Button
                     variant="outline"
-                    className="w-full sm:w-auto bg-white hover:bg-blue-50 text-blue-600 border-blue-300 hover:border-blue-400"
+                    className="w-full sm:w-auto bg-white hover:bg-[#EFF4FF] text-[#1D4ED8] border-[#A4BCFC] hover:border-[#6091F0]"
                   >
                     View All Registrations
                     <ArrowRightIcon className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
                 {filteredStudents.length > 5 && (
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-[#64748B] mt-2">
                     Showing 5 of {filteredStudents.length} registrations
                   </p>
                 )}
@@ -519,62 +519,62 @@ const Page = () => {
 
         {/* Statistics */}
         <div className="mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4 md:p-6">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-[#DDE3EA] p-3 sm:p-4 md:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-5 md:mb-6">
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900">Overview</h2>
-              <div className="flex items-center space-x-1 text-sm text-slate-500">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-[#0F172A]">Overview</h2>
+              <div className="flex items-center space-x-1 text-sm text-[#64748B]">
+                <div className="w-2 h-2 bg-[#17B26A] rounded-full animate-pulse"></div>
                 <span className="text-[10px] sm:text-xs md:text-sm">Live data</span>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+              <div className="p-3 sm:p-4 bg-[#F6F8FA] rounded-lg hover:bg-[#E9EEF4] transition-all duration-200 border border-[#E9EEF4]">
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center shadow-sm">
-                    <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#EFF4FF] rounded-lg flex items-center justify-center shadow-sm">
+                    <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#1D4ED8]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalCourses}</div>
-                    <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Courses</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#0F172A]">{stats.totalCourses}</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Total Courses</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+              <div className="p-3 sm:p-4 bg-[#F6F8FA] rounded-lg hover:bg-[#E9EEF4] transition-all duration-200 border border-[#E9EEF4]">
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center shadow-sm">
-                    <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#ECFDF3] rounded-lg flex items-center justify-center shadow-sm">
+                    <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#079455]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalStudents}</div>
-                    <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Students</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#0F172A]">{stats.totalStudents}</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Total Students</div>
                   </div>
                 </div>
               </div>
 
               {user?.role?.toLowerCase() !== 'tutor' && (
-                <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+                <div className="p-3 sm:p-4 bg-[#F6F8FA] rounded-lg hover:bg-[#E9EEF4] transition-all duration-200 border border-[#E9EEF4]">
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center shadow-sm">
-                      <CurrencyRupeeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#EFF4FF] rounded-lg flex items-center justify-center shadow-sm">
+                      <CurrencyRupeeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#1D4ED8]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{formatAmount(stats.totalEarnings)}</div>
-                      <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Earnings</div>
+                      <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#0F172A]">{formatAmount(stats.totalEarnings)}</div>
+                      <div className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Total Earnings</div>
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="p-3 sm:p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-all duration-200 border border-slate-100">
+              <div className="p-3 sm:p-4 bg-[#F6F8FA] rounded-lg hover:bg-[#E9EEF4] transition-all duration-200 border border-[#E9EEF4]">
                 <div className="flex items-center space-x-2 sm:space-x-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center shadow-sm">
-                    <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#FFFAEB] rounded-lg flex items-center justify-center shadow-sm">
+                    <UserGroupIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#DC6803]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{stats.totalEnrollments}</div>
-                    <div className="text-[10px] sm:text-xs md:text-sm text-slate-600 truncate">Total Enrollments</div>
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#0F172A]">{stats.totalEnrollments}</div>
+                    <div className="text-[10px] sm:text-xs md:text-sm text-[#475569] truncate">Total Enrollments</div>
                   </div>
                 </div>
               </div>
@@ -583,9 +583,9 @@ const Page = () => {
         </div>
         {/* Recent Courses */}
         <div className="mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-[#DDE3EA] p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-slate-900">My Courses</h2>
+              <h2 className="text-lg sm:text-xl font-semibold text-[#0F172A]">My Courses</h2>
               <Link href="/my-courses">
                 <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   View All
@@ -596,19 +596,19 @@ const Page = () => {
             <div className="space-y-3">
               {myCourses.length > 0 ? (
                 myCourses.slice(0, 3).map((course) => (
-                  <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
+                  <div key={course.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-[#F6F8FA] hover:bg-[#E9EEF4] rounded-lg transition-colors">
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#DBE7FE] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <BookOpenIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[#1D4ED8]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-slate-900 text-sm sm:text-base truncate">{course.title}</h3>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs text-slate-600 mt-1 space-y-1 sm:space-y-0">
+                        <h3 className="font-medium text-[#0F172A] text-sm sm:text-base truncate">{course.title}</h3>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs text-[#475569] mt-1 space-y-1 sm:space-y-0">
                           <span>{course._count?.enrollments || 0} students</span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium self-start ${
                             course.status === 'PUBLISHED'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-yellow-100 text-yellow-700'
+                              ? 'bg-[#DCFAE6] text-[#067647]'
+                              : 'bg-[#FEF0C7] text-[#B45309]'
                           }`}>
                             {course.status}
                           </span>
@@ -624,10 +624,10 @@ const Page = () => {
                 ))
               ) : (
                 <div className="text-center py-8 sm:py-12">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BookOpenIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-400" />
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#E9EEF4] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <BookOpenIcon className="w-6 h-6 sm:w-8 sm:h-8 text-[#94A3B8]" />
                   </div>
-                  <p className="text-slate-600 mb-4 sm:mb-6 text-sm sm:text-base">No courses yet</p>
+                  <p className="text-[#475569] mb-4 sm:mb-6 text-sm sm:text-base">No courses yet</p>
                   <Link href="/create-course">
                     <Button className="w-full sm:w-auto">Create Course</Button>
                   </Link>

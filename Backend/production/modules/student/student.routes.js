@@ -13,6 +13,7 @@ const assignments_routes_1 = __importDefault(require("./assignments/assignments.
 const uploads_routes_1 = __importDefault(require("./uploads/uploads.routes"));
 const platform_routes_1 = __importDefault(require("./platform/platform.routes"));
 const media_routes_1 = __importDefault(require("./media/media.routes"));
+const payments_routes_1 = __importDefault(require("./payments/payments.routes"));
 /**
  * Every student-facing module, mounted at /api/student.
  * Paths are unchanged from the previous flat route file.
@@ -28,4 +29,5 @@ router.use("/platform", platform_routes_1.default);
 router.use("/proxy", media_routes_1.default);
 // Courses own bare paths (/courses, /courses/:id), so they mount at the root.
 router.use("/", courses_routes_1.default);
+router.use("/payments", payments_routes_1.default);
 exports.default = router;

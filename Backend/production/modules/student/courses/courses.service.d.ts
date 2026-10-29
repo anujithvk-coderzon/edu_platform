@@ -25,17 +25,13 @@ export declare const listCoursesService: (query: CourseQuery, studentId: string 
         thumbnail: string;
         duration: number;
         status: import("../../../generated/prisma/enums").CourseStatus;
-        isPublic: boolean;
-        creatorId: string;
         tutorName: string;
         creator: {
-            id: string;
             firstName: string;
             lastName: string;
             avatar: string;
         };
         tutor: {
-            id: string;
             firstName: string;
             lastName: string;
             avatar: string;
@@ -75,22 +71,17 @@ export declare const getCourseByIdService: (courseId: string, studentId: string 
             enrollments: number;
             reviews: number;
         };
-        reviews: ({
+        reviews: {
             student: {
-                id: string;
                 firstName: string;
                 lastName: string;
                 avatar: string;
             };
-        } & {
             id: string;
             createdAt: Date;
-            updatedAt: Date;
             rating: number;
-            comment: string | null;
-            courseId: string;
-            studentId: string;
-        })[];
+            comment: string;
+        }[];
         price: number;
         description: string;
         title: string;
@@ -100,18 +91,17 @@ export declare const getCourseByIdService: (courseId: string, studentId: string 
         requirements: string[];
         prerequisites: string[];
         creator: {
-            id: string;
             firstName: string;
             lastName: string;
             avatar: string;
         };
         tutor: {
-            id: string;
             firstName: string;
             lastName: string;
             avatar: string;
         };
-        modules: ({
+        modules: {
+            id: string;
             materials: {
                 id: string;
                 type: import("../../../generated/prisma/enums").MaterialType;
@@ -119,14 +109,9 @@ export declare const getCourseByIdService: (courseId: string, studentId: string 
                 title: string;
                 orderIndex: number;
             }[];
-        } & {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            description: string | null;
+            description: string;
             title: string;
-            courseId: string;
             orderIndex: number;
-        })[];
+        }[];
     };
 }>;

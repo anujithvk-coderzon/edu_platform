@@ -286,6 +286,7 @@ export type StudentWhereInput = {
     submissions?: Prisma.AssignmentSubmissionListRelationFilter;
     progress?: Prisma.ProgressListRelationFilter;
     reviews?: Prisma.ReviewListRelationFilter;
+    payments?: Prisma.PaymentListRelationFilter;
 };
 export type StudentOrderByWithRelationInput = {
     id?: Prisma.SortOrder;
@@ -315,6 +316,7 @@ export type StudentOrderByWithRelationInput = {
     submissions?: Prisma.AssignmentSubmissionOrderByRelationAggregateInput;
     progress?: Prisma.ProgressOrderByRelationAggregateInput;
     reviews?: Prisma.ReviewOrderByRelationAggregateInput;
+    payments?: Prisma.PaymentOrderByRelationAggregateInput;
 };
 export type StudentWhereUniqueInput = Prisma.AtLeast<{
     id?: string;
@@ -347,6 +349,7 @@ export type StudentWhereUniqueInput = Prisma.AtLeast<{
     submissions?: Prisma.AssignmentSubmissionListRelationFilter;
     progress?: Prisma.ProgressListRelationFilter;
     reviews?: Prisma.ReviewListRelationFilter;
+    payments?: Prisma.PaymentListRelationFilter;
 }, "id" | "email">;
 export type StudentOrderByWithAggregationInput = {
     id?: Prisma.SortOrder;
@@ -432,6 +435,7 @@ export type StudentCreateInput = {
     submissions?: Prisma.AssignmentSubmissionCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentCreateNestedManyWithoutStudentInput;
 };
 export type StudentUncheckedCreateInput = {
     id?: string;
@@ -461,6 +465,7 @@ export type StudentUncheckedCreateInput = {
     submissions?: Prisma.AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput;
 };
 export type StudentUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -490,6 +495,7 @@ export type StudentUpdateInput = {
     submissions?: Prisma.AssignmentSubmissionUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUpdateManyWithoutStudentNestedInput;
 };
 export type StudentUncheckedUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -519,6 +525,7 @@ export type StudentUncheckedUpdateInput = {
     submissions?: Prisma.AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUncheckedUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUncheckedUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput;
 };
 export type StudentCreateManyInput = {
     id?: string;
@@ -725,6 +732,18 @@ export type StudentUpdateOneRequiredWithoutReviewsNestedInput = {
     connect?: Prisma.StudentWhereUniqueInput;
     update?: Prisma.XOR<Prisma.XOR<Prisma.StudentUpdateToOneWithWhereWithoutReviewsInput, Prisma.StudentUpdateWithoutReviewsInput>, Prisma.StudentUncheckedUpdateWithoutReviewsInput>;
 };
+export type StudentCreateNestedOneWithoutPaymentsInput = {
+    create?: Prisma.XOR<Prisma.StudentCreateWithoutPaymentsInput, Prisma.StudentUncheckedCreateWithoutPaymentsInput>;
+    connectOrCreate?: Prisma.StudentCreateOrConnectWithoutPaymentsInput;
+    connect?: Prisma.StudentWhereUniqueInput;
+};
+export type StudentUpdateOneRequiredWithoutPaymentsNestedInput = {
+    create?: Prisma.XOR<Prisma.StudentCreateWithoutPaymentsInput, Prisma.StudentUncheckedCreateWithoutPaymentsInput>;
+    connectOrCreate?: Prisma.StudentCreateOrConnectWithoutPaymentsInput;
+    upsert?: Prisma.StudentUpsertWithoutPaymentsInput;
+    connect?: Prisma.StudentWhereUniqueInput;
+    update?: Prisma.XOR<Prisma.XOR<Prisma.StudentUpdateToOneWithWhereWithoutPaymentsInput, Prisma.StudentUpdateWithoutPaymentsInput>, Prisma.StudentUncheckedUpdateWithoutPaymentsInput>;
+};
 export type StudentCreateWithoutEnrollmentsInput = {
     id?: string;
     email: string;
@@ -752,6 +771,7 @@ export type StudentCreateWithoutEnrollmentsInput = {
     submissions?: Prisma.AssignmentSubmissionCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentCreateNestedManyWithoutStudentInput;
 };
 export type StudentUncheckedCreateWithoutEnrollmentsInput = {
     id?: string;
@@ -780,6 +800,7 @@ export type StudentUncheckedCreateWithoutEnrollmentsInput = {
     submissions?: Prisma.AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput;
 };
 export type StudentCreateOrConnectWithoutEnrollmentsInput = {
     where: Prisma.StudentWhereUniqueInput;
@@ -821,6 +842,7 @@ export type StudentUpdateWithoutEnrollmentsInput = {
     submissions?: Prisma.AssignmentSubmissionUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUpdateManyWithoutStudentNestedInput;
 };
 export type StudentUncheckedUpdateWithoutEnrollmentsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -849,6 +871,7 @@ export type StudentUncheckedUpdateWithoutEnrollmentsInput = {
     submissions?: Prisma.AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUncheckedUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUncheckedUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput;
 };
 export type StudentCreateWithoutProgressInput = {
     id?: string;
@@ -877,6 +900,7 @@ export type StudentCreateWithoutProgressInput = {
     enrollments?: Prisma.EnrollmentCreateNestedManyWithoutStudentInput;
     submissions?: Prisma.AssignmentSubmissionCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentCreateNestedManyWithoutStudentInput;
 };
 export type StudentUncheckedCreateWithoutProgressInput = {
     id?: string;
@@ -905,6 +929,7 @@ export type StudentUncheckedCreateWithoutProgressInput = {
     enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutStudentInput;
     submissions?: Prisma.AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput;
 };
 export type StudentCreateOrConnectWithoutProgressInput = {
     where: Prisma.StudentWhereUniqueInput;
@@ -946,6 +971,7 @@ export type StudentUpdateWithoutProgressInput = {
     enrollments?: Prisma.EnrollmentUpdateManyWithoutStudentNestedInput;
     submissions?: Prisma.AssignmentSubmissionUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUpdateManyWithoutStudentNestedInput;
 };
 export type StudentUncheckedUpdateWithoutProgressInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -974,6 +1000,7 @@ export type StudentUncheckedUpdateWithoutProgressInput = {
     enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutStudentNestedInput;
     submissions?: Prisma.AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUncheckedUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput;
 };
 export type StudentCreateWithoutSubmissionsInput = {
     id?: string;
@@ -1002,6 +1029,7 @@ export type StudentCreateWithoutSubmissionsInput = {
     enrollments?: Prisma.EnrollmentCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentCreateNestedManyWithoutStudentInput;
 };
 export type StudentUncheckedCreateWithoutSubmissionsInput = {
     id?: string;
@@ -1030,6 +1058,7 @@ export type StudentUncheckedCreateWithoutSubmissionsInput = {
     enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutStudentInput;
     reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput;
 };
 export type StudentCreateOrConnectWithoutSubmissionsInput = {
     where: Prisma.StudentWhereUniqueInput;
@@ -1071,6 +1100,7 @@ export type StudentUpdateWithoutSubmissionsInput = {
     enrollments?: Prisma.EnrollmentUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUpdateManyWithoutStudentNestedInput;
 };
 export type StudentUncheckedUpdateWithoutSubmissionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1099,6 +1129,7 @@ export type StudentUncheckedUpdateWithoutSubmissionsInput = {
     enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUncheckedUpdateManyWithoutStudentNestedInput;
     reviews?: Prisma.ReviewUncheckedUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput;
 };
 export type StudentCreateWithoutReviewsInput = {
     id?: string;
@@ -1127,6 +1158,7 @@ export type StudentCreateWithoutReviewsInput = {
     enrollments?: Prisma.EnrollmentCreateNestedManyWithoutStudentInput;
     submissions?: Prisma.AssignmentSubmissionCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentCreateNestedManyWithoutStudentInput;
 };
 export type StudentUncheckedCreateWithoutReviewsInput = {
     id?: string;
@@ -1155,6 +1187,7 @@ export type StudentUncheckedCreateWithoutReviewsInput = {
     enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutStudentInput;
     submissions?: Prisma.AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput;
     progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutStudentInput;
+    payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutStudentInput;
 };
 export type StudentCreateOrConnectWithoutReviewsInput = {
     where: Prisma.StudentWhereUniqueInput;
@@ -1196,6 +1229,7 @@ export type StudentUpdateWithoutReviewsInput = {
     enrollments?: Prisma.EnrollmentUpdateManyWithoutStudentNestedInput;
     submissions?: Prisma.AssignmentSubmissionUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUpdateManyWithoutStudentNestedInput;
 };
 export type StudentUncheckedUpdateWithoutReviewsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -1224,6 +1258,136 @@ export type StudentUncheckedUpdateWithoutReviewsInput = {
     enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutStudentNestedInput;
     submissions?: Prisma.AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput;
     progress?: Prisma.ProgressUncheckedUpdateManyWithoutStudentNestedInput;
+    payments?: Prisma.PaymentUncheckedUpdateManyWithoutStudentNestedInput;
+};
+export type StudentCreateWithoutPaymentsInput = {
+    id?: string;
+    email: string;
+    password?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatar?: string | null;
+    phone?: string | null;
+    dateOfBirth?: Date | string | null;
+    gender?: string | null;
+    country?: string | null;
+    city?: string | null;
+    education?: string | null;
+    institution?: string | null;
+    occupation?: string | null;
+    company?: string | null;
+    isVerified?: boolean;
+    isActive?: boolean;
+    blocked?: boolean;
+    activeSessionToken?: string | null;
+    lastLoginAt?: Date | string | null;
+    lastLoginIP?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    enrollments?: Prisma.EnrollmentCreateNestedManyWithoutStudentInput;
+    submissions?: Prisma.AssignmentSubmissionCreateNestedManyWithoutStudentInput;
+    progress?: Prisma.ProgressCreateNestedManyWithoutStudentInput;
+    reviews?: Prisma.ReviewCreateNestedManyWithoutStudentInput;
+};
+export type StudentUncheckedCreateWithoutPaymentsInput = {
+    id?: string;
+    email: string;
+    password?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatar?: string | null;
+    phone?: string | null;
+    dateOfBirth?: Date | string | null;
+    gender?: string | null;
+    country?: string | null;
+    city?: string | null;
+    education?: string | null;
+    institution?: string | null;
+    occupation?: string | null;
+    company?: string | null;
+    isVerified?: boolean;
+    isActive?: boolean;
+    blocked?: boolean;
+    activeSessionToken?: string | null;
+    lastLoginAt?: Date | string | null;
+    lastLoginIP?: string | null;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
+    enrollments?: Prisma.EnrollmentUncheckedCreateNestedManyWithoutStudentInput;
+    submissions?: Prisma.AssignmentSubmissionUncheckedCreateNestedManyWithoutStudentInput;
+    progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutStudentInput;
+    reviews?: Prisma.ReviewUncheckedCreateNestedManyWithoutStudentInput;
+};
+export type StudentCreateOrConnectWithoutPaymentsInput = {
+    where: Prisma.StudentWhereUniqueInput;
+    create: Prisma.XOR<Prisma.StudentCreateWithoutPaymentsInput, Prisma.StudentUncheckedCreateWithoutPaymentsInput>;
+};
+export type StudentUpsertWithoutPaymentsInput = {
+    update: Prisma.XOR<Prisma.StudentUpdateWithoutPaymentsInput, Prisma.StudentUncheckedUpdateWithoutPaymentsInput>;
+    create: Prisma.XOR<Prisma.StudentCreateWithoutPaymentsInput, Prisma.StudentUncheckedCreateWithoutPaymentsInput>;
+    where?: Prisma.StudentWhereInput;
+};
+export type StudentUpdateToOneWithWhereWithoutPaymentsInput = {
+    where?: Prisma.StudentWhereInput;
+    data: Prisma.XOR<Prisma.StudentUpdateWithoutPaymentsInput, Prisma.StudentUncheckedUpdateWithoutPaymentsInput>;
+};
+export type StudentUpdateWithoutPaymentsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    education?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    institution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    occupation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    company?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    blocked?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    activeSessionToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginIP?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    enrollments?: Prisma.EnrollmentUpdateManyWithoutStudentNestedInput;
+    submissions?: Prisma.AssignmentSubmissionUpdateManyWithoutStudentNestedInput;
+    progress?: Prisma.ProgressUpdateManyWithoutStudentNestedInput;
+    reviews?: Prisma.ReviewUpdateManyWithoutStudentNestedInput;
+};
+export type StudentUncheckedUpdateWithoutPaymentsInput = {
+    id?: Prisma.StringFieldUpdateOperationsInput | string;
+    email?: Prisma.StringFieldUpdateOperationsInput | string;
+    password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    gender?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    country?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    education?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    institution?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    occupation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    company?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    blocked?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    activeSessionToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+    lastLoginIP?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
+    enrollments?: Prisma.EnrollmentUncheckedUpdateManyWithoutStudentNestedInput;
+    submissions?: Prisma.AssignmentSubmissionUncheckedUpdateManyWithoutStudentNestedInput;
+    progress?: Prisma.ProgressUncheckedUpdateManyWithoutStudentNestedInput;
+    reviews?: Prisma.ReviewUncheckedUpdateManyWithoutStudentNestedInput;
 };
 /**
  * Count Type StudentCountOutputType
@@ -1233,12 +1397,14 @@ export type StudentCountOutputType = {
     submissions: number;
     progress: number;
     reviews: number;
+    payments: number;
 };
 export type StudentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     enrollments?: boolean | StudentCountOutputTypeCountEnrollmentsArgs;
     submissions?: boolean | StudentCountOutputTypeCountSubmissionsArgs;
     progress?: boolean | StudentCountOutputTypeCountProgressArgs;
     reviews?: boolean | StudentCountOutputTypeCountReviewsArgs;
+    payments?: boolean | StudentCountOutputTypeCountPaymentsArgs;
 };
 /**
  * StudentCountOutputType without action
@@ -1273,6 +1439,12 @@ export type StudentCountOutputTypeCountProgressArgs<ExtArgs extends runtime.Type
 export type StudentCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     where?: Prisma.ReviewWhereInput;
 };
+/**
+ * StudentCountOutputType without action
+ */
+export type StudentCountOutputTypeCountPaymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    where?: Prisma.PaymentWhereInput;
+};
 export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
     email?: boolean;
@@ -1301,6 +1473,7 @@ export type StudentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     submissions?: boolean | Prisma.Student$submissionsArgs<ExtArgs>;
     progress?: boolean | Prisma.Student$progressArgs<ExtArgs>;
     reviews?: boolean | Prisma.Student$reviewsArgs<ExtArgs>;
+    payments?: boolean | Prisma.Student$paymentsArgs<ExtArgs>;
     _count?: boolean | Prisma.StudentCountOutputTypeDefaultArgs<ExtArgs>;
 }, ExtArgs["result"]["student"]>;
 export type StudentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1384,6 +1557,7 @@ export type StudentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
     submissions?: boolean | Prisma.Student$submissionsArgs<ExtArgs>;
     progress?: boolean | Prisma.Student$progressArgs<ExtArgs>;
     reviews?: boolean | Prisma.Student$reviewsArgs<ExtArgs>;
+    payments?: boolean | Prisma.Student$paymentsArgs<ExtArgs>;
     _count?: boolean | Prisma.StudentCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type StudentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {};
@@ -1395,6 +1569,7 @@ export type $StudentPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
         submissions: Prisma.$AssignmentSubmissionPayload<ExtArgs>[];
         progress: Prisma.$ProgressPayload<ExtArgs>[];
         reviews: Prisma.$ReviewPayload<ExtArgs>[];
+        payments: Prisma.$PaymentPayload<ExtArgs>[];
     };
     scalars: runtime.Types.Extensions.GetPayloadResult<{
         id: string;
@@ -1753,6 +1928,7 @@ export interface Prisma__StudentClient<T, Null = never, ExtArgs extends runtime.
     submissions<T extends Prisma.Student$submissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AssignmentSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     progress<T extends Prisma.Student$progressArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$progressArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     reviews<T extends Prisma.Student$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
+    payments<T extends Prisma.Student$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Student$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>;
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2267,6 +2443,29 @@ export type Student$reviewsArgs<ExtArgs extends runtime.Types.Extensions.Interna
     take?: number;
     skip?: number;
     distinct?: Prisma.ReviewScalarFieldEnum | Prisma.ReviewScalarFieldEnum[];
+};
+/**
+ * Student.payments
+ */
+export type Student$paymentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Payment
+     */
+    select?: Prisma.PaymentSelect<ExtArgs> | null;
+    /**
+     * Omit specific fields from the Payment
+     */
+    omit?: Prisma.PaymentOmit<ExtArgs> | null;
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Prisma.PaymentInclude<ExtArgs> | null;
+    where?: Prisma.PaymentWhereInput;
+    orderBy?: Prisma.PaymentOrderByWithRelationInput | Prisma.PaymentOrderByWithRelationInput[];
+    cursor?: Prisma.PaymentWhereUniqueInput;
+    take?: number;
+    skip?: number;
+    distinct?: Prisma.PaymentScalarFieldEnum | Prisma.PaymentScalarFieldEnum[];
 };
 /**
  * Student without action

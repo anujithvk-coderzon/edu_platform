@@ -81,7 +81,8 @@ export const createCourseSchema = z.object({
   description: z
     .string({ error: "Description is required" })
     .trim()
-    .min(10, "Description must be at least 10 characters"),
+    .min(10, "Description must be at least 10 characters")
+    .max(5000, "Description must be at most 5000 characters"),
   price: price.default(0),
   duration: duration.optional(),
   level: z.string().trim().optional(),
@@ -106,6 +107,7 @@ export const updateCourseSchema = z.object({
     .string()
     .trim()
     .min(1, "Description is required")
+    .max(5000, "Description must be at most 5000 characters")
     .optional(),
   price: price.optional(),
   duration: duration.optional(),

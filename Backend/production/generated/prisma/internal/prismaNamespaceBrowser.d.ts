@@ -38,6 +38,7 @@ export declare const ModelName: {
     readonly AssignmentSubmission: "AssignmentSubmission";
     readonly TutorRequest: "TutorRequest";
     readonly Review: "Review";
+    readonly Payment: "Payment";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -211,6 +212,21 @@ export declare const ReviewScalarFieldEnum: {
     readonly updatedAt: "updatedAt";
 };
 export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum];
+export declare const PaymentScalarFieldEnum: {
+    readonly id: "id";
+    readonly studentId: "studentId";
+    readonly courseId: "courseId";
+    readonly amount: "amount";
+    readonly currency: "currency";
+    readonly status: "status";
+    readonly razorpayOrderId: "razorpayOrderId";
+    readonly razorpayPaymentId: "razorpayPaymentId";
+    readonly razorpaySignature: "razorpaySignature";
+    readonly failureReason: "failureReason";
+    readonly createdAt: "createdAt";
+    readonly updatedAt: "updatedAt";
+};
+export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

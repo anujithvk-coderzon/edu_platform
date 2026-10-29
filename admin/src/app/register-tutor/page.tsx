@@ -242,12 +242,12 @@ export default function RegisterTutorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30 relative overflow-hidden">
+    <div className="min-h-screen bg-[#EFF4FF]/30 via-white to-[#EFF4FF]/30 relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-3xl animate-float-slower"></div>
-        <div className="absolute top-40 right-40 w-80 h-80 bg-purple-400/8 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#6091F0]/10 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-20 right-20 w-[500px] h-[500px] bg-[#6091F0]/10 rounded-full blur-3xl animate-float-slower"></div>
+        <div className="absolute top-40 right-40 w-80 h-80 bg-[#6091F0]/8 rounded-full blur-3xl animate-float-slow"></div>
       </div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8">
@@ -255,18 +255,18 @@ export default function RegisterTutorPage() {
           {/* Logo & Brand */}
           <div className="text-center mb-4 sm:mb-5 animate-fade-in-up">
             <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-              <div className="h-12 w-12 sm:h-14 sm:w-14 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30 animate-glow">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 bg-[#1D4ED8] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-[#1D4ED8]/30 animate-glow">
                 <AcademicCapIcon className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">CODiiN</h1>
-                <p className="text-xs sm:text-sm text-indigo-600 font-semibold">Tutor Portal</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A]">CODiiN</h1>
+                <p className="text-xs sm:text-sm text-[#1D4ED8] font-semibold">Tutor Portal</p>
               </div>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1">
+            <h2 className="text-2xl sm:text-3xl font-extrabold bg-[#1D4ED8] bg-clip-text text-transparent mb-1">
               Join Our Team
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600">
+            <p className="text-xs sm:text-sm text-[#475569]">
               {step === 1 && 'Create your tutor account'}
               {step === 2 && 'Verify your email address'}
               {step === 3 && 'Set your secure password'}
@@ -281,10 +281,10 @@ export default function RegisterTutorPage() {
                 <div
                   className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 transform ${
                     step > 1
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/40 scale-110'
+                      ? 'bg-[#079455] text-white shadow-lg shadow-[#17B26A]/40 scale-110'
                       : step === 1
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 scale-110 ring-4 ring-indigo-100'
-                      : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                      ? 'bg-[#1D4ED8] text-white shadow-lg shadow-[#1D4ED8]/50 scale-110 ring-4 ring-[#DBE7FE]'
+                      : 'bg-[#E9EEF4] text-[#94A3B8] hover:bg-[#DDE3EA]'
                   }`}
                 >
                   {step > 1 ? (
@@ -293,10 +293,10 @@ export default function RegisterTutorPage() {
                     1
                   )}
                   {step === 1 && (
-                    <div className="absolute inset-0 rounded-full animate-ping bg-indigo-400 opacity-20"></div>
+                    <div className="absolute inset-0 rounded-full animate-ping bg-[#6091F0] opacity-20"></div>
                   )}
                 </div>
-                <span className={`text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap ${step >= 1 ? 'text-slate-900' : 'text-slate-500'}`}>
+                <span className={`text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap ${step >= 1 ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
                   Basic Info
                 </span>
               </div>
@@ -304,7 +304,7 @@ export default function RegisterTutorPage() {
               {/* Connecting line 1-2 */}
               <div className="flex-1 flex items-start pt-4 sm:pt-4.5 px-1.5 sm:px-2">
                 <div className={`w-full h-1 rounded-full transition-all duration-500 ${
-                  step > 1 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-slate-200'
+                  step > 1 ? 'bg-[#079455]' : 'bg-[#DDE3EA]'
                 }`} />
               </div>
 
@@ -313,10 +313,10 @@ export default function RegisterTutorPage() {
                 <div
                   className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 transform ${
                     step > 2
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/40 scale-110'
+                      ? 'bg-[#079455] text-white shadow-lg shadow-[#17B26A]/40 scale-110'
                       : step === 2
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 scale-110 ring-4 ring-indigo-100'
-                      : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                      ? 'bg-[#1D4ED8] text-white shadow-lg shadow-[#1D4ED8]/50 scale-110 ring-4 ring-[#DBE7FE]'
+                      : 'bg-[#E9EEF4] text-[#94A3B8] hover:bg-[#DDE3EA]'
                   }`}
                 >
                   {step > 2 ? (
@@ -325,10 +325,10 @@ export default function RegisterTutorPage() {
                     2
                   )}
                   {step === 2 && (
-                    <div className="absolute inset-0 rounded-full animate-ping bg-indigo-400 opacity-20"></div>
+                    <div className="absolute inset-0 rounded-full animate-ping bg-[#6091F0] opacity-20"></div>
                   )}
                 </div>
-                <span className={`text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap ${step >= 2 ? 'text-slate-900' : 'text-slate-500'}`}>
+                <span className={`text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap ${step >= 2 ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
                   Verify
                 </span>
               </div>
@@ -336,7 +336,7 @@ export default function RegisterTutorPage() {
               {/* Connecting line 2-3 */}
               <div className="flex-1 flex items-start pt-4 sm:pt-4.5 px-1.5 sm:px-2">
                 <div className={`w-full h-1 rounded-full transition-all duration-500 ${
-                  step > 2 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-slate-200'
+                  step > 2 ? 'bg-[#079455]' : 'bg-[#DDE3EA]'
                 }`} />
               </div>
 
@@ -345,10 +345,10 @@ export default function RegisterTutorPage() {
                 <div
                   className={`relative w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-500 transform ${
                     step > 3
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/40 scale-110'
+                      ? 'bg-[#079455] text-white shadow-lg shadow-[#17B26A]/40 scale-110'
                       : step === 3
-                      ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/50 scale-110 ring-4 ring-indigo-100'
-                      : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                      ? 'bg-[#1D4ED8] text-white shadow-lg shadow-[#1D4ED8]/50 scale-110 ring-4 ring-[#DBE7FE]'
+                      : 'bg-[#E9EEF4] text-[#94A3B8] hover:bg-[#DDE3EA]'
                   }`}
                 >
                   {step > 3 ? (
@@ -357,10 +357,10 @@ export default function RegisterTutorPage() {
                     3
                   )}
                   {step === 3 && (
-                    <div className="absolute inset-0 rounded-full animate-ping bg-indigo-400 opacity-20"></div>
+                    <div className="absolute inset-0 rounded-full animate-ping bg-[#6091F0] opacity-20"></div>
                   )}
                 </div>
-                <span className={`text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap ${step >= 3 ? 'text-slate-900' : 'text-slate-500'}`}>
+                <span className={`text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap ${step >= 3 ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
                   Password
                 </span>
               </div>
@@ -370,14 +370,14 @@ export default function RegisterTutorPage() {
           {/* Modern Form Card */}
           <div className="relative group">
             {/* Glow effect on hover */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div className="absolute -inset-0.5 bg-[#1D4ED8] rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
 
-            <Card className="relative bg-white rounded-2xl shadow-2xl border border-slate-200/50 overflow-hidden">
+            <Card className="relative bg-white rounded-2xl shadow-2xl border border-[#DDE3EA]/50 overflow-hidden">
               {/* Animated gradient bar */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-gradient-x"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#1D4ED8] animate-gradient-x"></div>
 
               {/* Card Header */}
-              <CardHeader className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-3 sm:p-4 md:p-5 relative overflow-hidden">
+              <CardHeader className="bg-[#1D4ED8] p-3 sm:p-4 md:p-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 sm:w-40 h-32 sm:h-40 bg-white/10 rounded-full filter blur-3xl opacity-30 animate-pulse-subtle"></div>
                 <div className="absolute bottom-0 left-0 w-24 sm:w-32 h-24 sm:h-32 bg-white/10 rounded-full filter blur-2xl opacity-30"></div>
                 <div className="relative z-10">
@@ -386,7 +386,7 @@ export default function RegisterTutorPage() {
                     {step === 2 && 'Verify Email'}
                     {step === 3 && 'Set Password'}
                   </CardTitle>
-                  <CardDescription className="text-blue-100 mt-0.5 sm:mt-1 text-xs font-medium">
+                  <CardDescription className="text-[#DBE7FE] mt-0.5 sm:mt-1 text-xs font-medium">
                     {step === 1 && 'Enter your details to get started'}
                     {step === 2 && 'Check your email for verification code'}
                     {step === 3 && 'Create a secure password'}
@@ -394,7 +394,7 @@ export default function RegisterTutorPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-4 sm:p-5 md:p-6 bg-gradient-to-br from-blue-50/30 via-white to-indigo-50/30">
+              <CardContent className="p-4 sm:p-5 md:p-6 bg-[#EFF4FF]/30 via-white to-[#EFF4FF]/30">
                 {/* Step 1: Basic Info + Email */}
                 {step === 1 && (
                   <form onSubmit={handleSendOTP} className="space-y-3 sm:space-y-4">
@@ -437,7 +437,7 @@ export default function RegisterTutorPage() {
                         error={errors.email}
                       />
                       {formData.email && !errors.email && (
-                        <CheckCircleIcon className="absolute right-2 top-9 sm:right-3 sm:top-10 h-4 w-4 sm:h-5 sm:w-5 text-green-500 z-20" />
+                        <CheckCircleIcon className="absolute right-2 top-9 sm:right-3 sm:top-10 h-4 w-4 sm:h-5 sm:w-5 text-[#17B26A] z-20" />
                       )}
                     </div>
 
@@ -445,7 +445,7 @@ export default function RegisterTutorPage() {
                       type="submit"
                       disabled={loading}
                       size="sm"
-                      className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
+                      className="w-full bg-[#1D4ED8] hover:from-[#1E40AF] hover:via-[#1E40AF] hover:to-[#1E40AF] text-white font-bold shadow-xl shadow-[#1D4ED8]/30 hover:shadow-2xl hover:shadow-[#1D4ED8]/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
                     >
                       {/* Shimmer effect */}
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -464,9 +464,9 @@ export default function RegisterTutorPage() {
                       </span>
                     </Button>
 
-                    <div className="text-center text-xs sm:text-sm text-slate-600 pt-2">
+                    <div className="text-center text-xs sm:text-sm text-[#475569] pt-2">
                       Already have an account?{' '}
-                      <Link href="/login" className="text-indigo-600 hover:text-indigo-500 font-semibold">
+                      <Link href="/login" className="text-[#1D4ED8] hover:text-[#1D4ED8] font-semibold">
                         Login here
                       </Link>
                     </div>
@@ -477,13 +477,13 @@ export default function RegisterTutorPage() {
                 {step === 2 && (
                   <form onSubmit={handleVerifyOTP} className="space-y-3 sm:space-y-4">
                     <div className="text-center mb-4">
-                      <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-indigo-50 mb-3">
-                        <ShieldCheckIcon className="h-6 w-6 sm:h-7 sm:w-7 text-indigo-600" />
+                      <div className="mx-auto flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-[#EFF4FF] mb-3">
+                        <ShieldCheckIcon className="h-6 w-6 sm:h-7 sm:w-7 text-[#1D4ED8]" />
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-600">
+                      <p className="text-xs sm:text-sm text-[#475569]">
                         Enter the 6-digit code sent to
                       </p>
-                      <p className="text-sm sm:text-base font-semibold text-indigo-600">{formData.email}</p>
+                      <p className="text-sm sm:text-base font-semibold text-[#1D4ED8]">{formData.email}</p>
                     </div>
 
                     <Input
@@ -497,7 +497,7 @@ export default function RegisterTutorPage() {
                       placeholder="Enter 6-digit code"
                       className="text-center text-xl sm:text-2xl tracking-widest font-bold"
                     />
-                    <p className="text-xs text-slate-500 text-center">
+                    <p className="text-xs text-[#64748B] text-center">
                       Check your email inbox and spam folder
                     </p>
 
@@ -516,7 +516,7 @@ export default function RegisterTutorPage() {
                         type="submit"
                         disabled={loading}
                         size="sm"
-                        className="flex-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 relative overflow-hidden group"
+                        className="flex-1 bg-[#1D4ED8] hover:from-[#1E40AF] hover:via-[#1E40AF] hover:to-[#1E40AF] text-white font-bold shadow-xl shadow-[#1D4ED8]/30 hover:shadow-2xl hover:shadow-[#1D4ED8]/40 transition-all duration-300 relative overflow-hidden group"
                       >
                         {/* Shimmer effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -541,8 +541,8 @@ export default function RegisterTutorPage() {
                 {/* Step 3: Set Password */}
                 {step === 3 && (
                   <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4">
-                      <p className="text-xs sm:text-sm text-blue-800">
+                    <div className="bg-[#EFF4FF] border border-[#C7D7FE] rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4">
+                      <p className="text-xs sm:text-sm text-[#1E40AF]">
                         <strong className="font-bold">Welcome, {formData.firstName}!</strong>
                         <br />
                         Create a secure password to complete your registration.
@@ -551,7 +551,7 @@ export default function RegisterTutorPage() {
 
                     <div className="relative">
                       {capsLockActive && (
-                        <div className="absolute -top-8 right-0 flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-md z-20">
+                        <div className="absolute -top-8 right-0 flex items-center gap-1 text-[#DC6803] bg-[#FFFAEB] px-2 py-1 rounded-md z-20">
                           <ExclamationTriangleIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                           <span className="text-xs font-medium">Caps Lock is on</span>
                         </div>
@@ -571,14 +571,14 @@ export default function RegisterTutorPage() {
                       />
                       <button
                         type="button"
-                        className="absolute right-2 top-[50%] -translate-y-1/2 sm:right-3 p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors z-20"
+                        className="absolute right-2 top-[50%] -translate-y-1/2 sm:right-3 p-1.5 sm:p-2 rounded-lg hover:bg-[#E9EEF4] transition-colors z-20"
                         onClick={() => setShowPassword(!showPassword)}
                         tabIndex={-1}
                       >
                         {showPassword ? (
-                          <EyeSlashIcon className="h-4 w-4 text-slate-500" />
+                          <EyeSlashIcon className="h-4 w-4 text-[#64748B]" />
                         ) : (
-                          <EyeIcon className="h-4 w-4 text-slate-500" />
+                          <EyeIcon className="h-4 w-4 text-[#64748B]" />
                         )}
                       </button>
                     </div>
@@ -598,20 +598,20 @@ export default function RegisterTutorPage() {
                       />
                       <button
                         type="button"
-                        className="absolute right-2 top-[50%] -translate-y-1/2 sm:right-3 p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors z-20"
+                        className="absolute right-2 top-[50%] -translate-y-1/2 sm:right-3 p-1.5 sm:p-2 rounded-lg hover:bg-[#E9EEF4] transition-colors z-20"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         tabIndex={-1}
                       >
                         {showConfirmPassword ? (
-                          <EyeSlashIcon className="h-4 w-4 text-slate-500" />
+                          <EyeSlashIcon className="h-4 w-4 text-[#64748B]" />
                         ) : (
-                          <EyeIcon className="h-4 w-4 text-slate-500" />
+                          <EyeIcon className="h-4 w-4 text-[#64748B]" />
                         )}
                       </button>
                     </div>
 
-                    <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                      <p className="text-xs text-yellow-800">
+                    <div className="bg-[#FFFAEB] border border-[#FEDF89] rounded-lg sm:rounded-xl p-3 sm:p-4">
+                      <p className="text-xs text-[#93370D]">
                         <strong className="font-bold">Note:</strong> Your account will be reviewed by an admin. You&apos;ll receive a welcome email once your account is activated.
                       </p>
                     </div>
@@ -631,7 +631,7 @@ export default function RegisterTutorPage() {
                         type="submit"
                         disabled={loading}
                         size="sm"
-                        className="flex-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
+                        className="flex-1 bg-[#1D4ED8] hover:from-[#1E40AF] hover:via-[#1E40AF] hover:to-[#1E40AF] text-white font-bold shadow-xl shadow-[#1D4ED8]/30 hover:shadow-2xl hover:shadow-[#1D4ED8]/40 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 relative overflow-hidden group"
                       >
                         {/* Shimmer effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>

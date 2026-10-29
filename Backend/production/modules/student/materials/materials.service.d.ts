@@ -1,24 +1,18 @@
 export declare const getMaterialByIdService: (studentId: string, materialId: string) => Promise<{
     material: {
+        id: string;
+        type: import("../../../generated/prisma/enums").MaterialType;
+        description: string;
+        title: string;
         course: {
             id: string;
             title: string;
-            creatorId: string;
         };
-    } & {
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
-        type: import("../../../generated/prisma/enums").MaterialType;
-        description: string | null;
-        title: string;
-        isPublic: boolean;
         courseId: string;
-        fileUrl: string | null;
-        content: string | null;
         orderIndex: number;
-        moduleId: string | null;
-        authorId: string;
+        fileUrl: string;
+        content: string;
+        moduleId: string;
     };
 }>;
 export declare const completeMaterialService: (studentId: string, materialId: string) => Promise<{
